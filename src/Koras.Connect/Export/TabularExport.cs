@@ -9,13 +9,19 @@ public static class TabularExport
 {
     public static Task WriteJsonAsync<T>(Stream output, IEnumerable<T> records, CancellationToken cancellationToken = default)
         => JsonSerializer.SerializeAsync(output, records, cancellationToken: cancellationToken);
-    public static async Task WriteCsvAsync(Stream output, IReadOnlyList<string> columns, IEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+    /// <summary>Streams records incrementally without buffering the whole async sequence in memory.</summary>
+    public static Task WriteJsonAsync<T>(Stream output, IAsyncEnumerable<T> records, CancellationToken cancellationToken = default)
+        => JsonSerializer.SerializeAsync(output, records, cancellationToken: cancellationToken);
+    public static Task WriteCsvAsync(Stream output, IReadOnlyList<string> columns, IEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+        => WriteCsvAsync(output, columns, ToAsync(rows), cancellationToken);
+    /// <summary>Streams rows incrementally without buffering the whole async sequence in memory.</summary>
+    public static async Task WriteCsvAsync(Stream output, IReadOnlyList<string> columns, IAsyncEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
     {
         using var writer = new StreamWriter(output, new UTF8Encoding(false), leaveOpen: true);
         await writer.WriteLineAsync(string.Join(",", columns.Select(Csv)).AsMemory(), cancellationToken);
-        foreach (var row in rows)
+        await foreach (var row in rows.WithCancellation(cancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested(); ValidateWidth(columns, row);
+            ValidateWidth(columns, row);
             await writer.WriteLineAsync(string.Join(",", row.Select(Csv)).AsMemory(), cancellationToken);
         }
         await writer.FlushAsync(cancellationToken);
@@ -32,6 +38,31 @@ public static class TabularExport
         }
         writer.WriteEndElement();
     }
+    public static Task WriteXmlAsync(Stream output, IReadOnlyList<string> columns, IEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+        => WriteXmlAsync(output, columns, ToAsync(rows), cancellationToken);
+    /// <summary>Streams rows incrementally through real async XML I/O, honoring cancellation during writes rather than only between rows.</summary>
+    public static async Task WriteXmlAsync(Stream output, IReadOnlyList<string> columns, IAsyncEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+    {
+        using var writer = XmlWriter.Create(output, new XmlWriterSettings { Encoding = new UTF8Encoding(false), CloseOutput = false, Async = true });
+        await writer.WriteStartElementAsync(null, "records", null);
+        await foreach (var row in rows.WithCancellation(cancellationToken))
+        {
+            ValidateWidth(columns, row);
+            await writer.WriteStartElementAsync(null, "record", null);
+            for (var i = 0; i < columns.Count; i++)
+            {
+                await writer.WriteStartElementAsync(null, "field", null);
+                writer.WriteAttributeString("name", columns[i]);
+                await writer.WriteStringAsync(row[i]);
+                await writer.WriteEndElementAsync();
+            }
+            await writer.WriteEndElementAsync();
+        }
+        await writer.WriteEndElementAsync();
+        await writer.FlushAsync();
+    }
+    private static async IAsyncEnumerable<T> ToAsync<T>(IEnumerable<T> items)
+    { foreach (var item in items) { yield return item; await Task.Yield(); } }
     /// <summary>Minimal Office Open XML workbook using inline string cells, never formulas. Leaves output open.</summary>
     public static void WriteExcel(Stream output, IReadOnlyList<string> columns, IEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
     {
@@ -63,6 +94,41 @@ public static class TabularExport
             if (++count > 1048576) throw new ArgumentException("Excel row limit exceeded."); Row(row);
         }
         x.WriteEndElement(); x.WriteEndElement();
+    }
+    public static Task WriteExcelAsync(Stream output, IReadOnlyList<string> columns, IEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+        => WriteExcelAsync(output, columns, ToAsync(rows), cancellationToken);
+    /// <summary>Streams rows incrementally through async XML I/O; the surrounding zip-entry writes remain CPU-bound.</summary>
+    public static async Task WriteExcelAsync(Stream output, IReadOnlyList<string> columns, IAsyncEnumerable<IReadOnlyList<string?>> rows, CancellationToken cancellationToken = default)
+    {
+        if (columns.Count is < 1 or > 16384) throw new ArgumentOutOfRangeException(nameof(columns));
+        using var zip = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true);
+        Entry(zip, "[Content_Types].xml", """<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>""");
+        Entry(zip, "_rels/.rels", """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>""");
+        Entry(zip, "xl/workbook.xml", """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Records" sheetId="1" r:id="rId1"/></sheets></workbook>""");
+        Entry(zip, "xl/_rels/workbook.xml.rels", """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>""");
+        using var stream = zip.CreateEntry("xl/worksheets/sheet1.xml").Open();
+        using var x = XmlWriter.Create(stream, new XmlWriterSettings { Encoding = new UTF8Encoding(false), Async = true });
+        const string ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        await x.WriteStartElementAsync(null, "worksheet", ns); await x.WriteStartElementAsync(null, "sheetData", ns);
+        async Task RowAsync(IEnumerable<string?> values)
+        {
+            await x.WriteStartElementAsync(null, "row", ns);
+            foreach (var value in values)
+            {
+                if (value?.Length > 32767) throw new ArgumentException("Excel cell text exceeds 32767 characters.");
+                await x.WriteStartElementAsync(null, "c", ns); x.WriteAttributeString("t", "inlineStr"); await x.WriteStartElementAsync(null, "is", ns);
+                await x.WriteStartElementAsync(null, "t", ns); x.WriteAttributeString("xml", "space", "http://www.w3.org/XML/1998/namespace", "preserve");
+                await x.WriteStringAsync(value); await x.WriteEndElementAsync(); await x.WriteEndElementAsync(); await x.WriteEndElementAsync();
+            }
+            await x.WriteEndElementAsync();
+        }
+        await RowAsync(columns); var count = 1;
+        await foreach (var row in rows.WithCancellation(cancellationToken))
+        {
+            ValidateWidth(columns, row);
+            if (++count > 1048576) throw new ArgumentException("Excel row limit exceeded."); await RowAsync(row);
+        }
+        await x.WriteEndElementAsync(); await x.WriteEndElementAsync(); await x.FlushAsync();
     }
     private static void Entry(ZipArchive zip, string path, string content)
     { using var w = new StreamWriter(zip.CreateEntry(path).Open(), new UTF8Encoding(false)); w.Write(content); }

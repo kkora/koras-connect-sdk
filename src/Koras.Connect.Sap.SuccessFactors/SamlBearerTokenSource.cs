@@ -18,7 +18,9 @@ public sealed class SamlBearerTokenSource : IAccessTokenSource, IDisposable
     public SamlBearerTokenSource(HttpClient http, Uri endpoint, string companyId, string clientId,
         Func<CancellationToken, ValueTask<string>> assertions, TimeProvider? clock = null)
     {
+        ArgumentNullException.ThrowIfNull(http);
         EndpointSafety.ValidateRoot(endpoint);
+        ArgumentNullException.ThrowIfNull(assertions);
         if (!endpoint.AbsolutePath.EndsWith("/oauth/token", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(companyId) || string.IsNullOrWhiteSpace(clientId))
             throw new ArgumentException("Configure the exact SAP OAuth endpoint, company and registered client ID.");
         _http = http; _endpoint = endpoint; _company = companyId; _client = clientId; _assertions = assertions; _clock = clock ?? TimeProvider.System;

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Koras.Connect.Adp;
 using Koras.Connect.Transport;
 
 namespace Koras.Connect.Adp.Workers;
@@ -38,16 +39,24 @@ public sealed class AdpWorkersClient
     {
         if (string.IsNullOrWhiteSpace(filter)) throw new ArgumentException("Filter is required.", nameof(filter));
         if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-        return _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}"), cancellationToken: cancellationToken);
+        return GuardAsync("SearchWorkers", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}"), cancellationToken: cancellationToken));
     }
     public Task<JsonDocument> GetMetadataAsync(CancellationToken cancellationToken = default)
-        => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/meta"), cancellationToken: cancellationToken);
+        => GuardAsync("GetWorkersMetadata", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/meta"), cancellationToken: cancellationToken));
     public async Task<Worker?> GetWorkerAsync(string associateOid, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(associateOid) || associateOid is "." or ".." || associateOid.Contains('/') || associateOid.Contains('\\')) throw new ArgumentException("Associate OID is required.", nameof(associateOid));
-        using var doc = await _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/{Uri.EscapeDataString(associateOid)}"), cancellationToken: cancellationToken);
+        using var doc = await GuardAsync("GetWorker", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/{Uri.EscapeDataString(associateOid)}"), cancellationToken: cancellationToken));
         if (!doc.RootElement.TryGetProperty("workers", out var workers) || workers.ValueKind != JsonValueKind.Array) throw new JsonException("Expected workers array.");
         return workers.GetArrayLength() == 0 ? null : workers[0].Deserialize<Worker>();
+    }
+    /// <summary>Classifies a failed call into the structured <see cref="AdpApiException"/> hierarchy. Deliberately not
+    /// applied to <see cref="GetWorkersPageAsync"/>, whose documented contract is to surface the raw
+    /// <see cref="IntegrationRequestException"/> unmodified so pagination callers can inspect <c>ResponseStatus</c> directly.</summary>
+    private static async Task<T> GuardAsync<T>(string operation, Func<Task<T>> call)
+    {
+        try { return await call(); }
+        catch (IntegrationRequestException failure) { throw AdpApiException.Classify(operation, failure); }
     }
     public async IAsyncEnumerable<Worker> EnumerateTypedWorkersAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -61,7 +70,7 @@ public sealed class AdpWorkersClient
         string? previousPage = null;
         while (true)
         {
-            using var document = await GetWorkersPageAsync(skip, cancellationToken: cancellationToken);
+            using var document = await GuardAsync("EnumerateWorkers", () => GetWorkersPageAsync(skip, cancellationToken: cancellationToken));
             if (!document.RootElement.TryGetProperty("workers", out var workers) || workers.ValueKind != JsonValueKind.Array)
                 throw new JsonException("ADP response did not contain a workers array.");
             var pageHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(workers.GetRawText())));

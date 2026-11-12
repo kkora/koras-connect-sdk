@@ -1,10 +1,28 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Koras.Connect.Abstractions;
 using Koras.Connect.Transport;
 namespace Koras.Connect.Qualtrics;
 
-public sealed record QualtricsOptions(Uri ApiRoot, int MaxPages = 10000);
+/// <summary>Tenant API v3 root and bounded pagination configuration. <see cref="Validate"/> mirrors the checks the
+/// <see cref="QualtricsClient"/> constructor already performs so dependency-injection registration can reject an
+/// unsafe root or an out-of-range page count before any <see cref="HttpClient"/> is built.</summary>
+public sealed record QualtricsOptions(Uri ApiRoot, int MaxPages = 10000) : IValidatableOptions
+{
+    /// <summary>Throws <see cref="OptionsValidationException"/> describing every violated field. Never performs I/O.</summary>
+    public void Validate()
+    {
+        var failures = new List<string>();
+        Uri? safeRoot = null;
+        try { safeRoot = EndpointSafety.ValidateRoot(ApiRoot); }
+        catch (ArgumentException) { failures.Add("ApiRoot must be an absolute HTTPS tenant URI without embedded credentials, query or fragment."); }
+        if (safeRoot is not null && !safeRoot.AbsolutePath.EndsWith("/API/v3/", StringComparison.Ordinal))
+            failures.Add("ApiRoot must point at the tenant's /API/v3/ root.");
+        if (MaxPages is < 1 or > 100000) failures.Add("MaxPages must be between 1 and 100000.");
+        if (failures.Count > 0) throw new OptionsValidationException(nameof(QualtricsOptions), failures);
+    }
+}
 public sealed class SurveySummary
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
@@ -28,7 +46,7 @@ public sealed class ExportProgress
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalData { get; set; }
 }
 /// <summary>Qualtrics API v3. Use Create to configure X-API-TOKEN authentication and a redirect-disabled HTTP client.</summary>
-public sealed class QualtricsClient
+public sealed partial class QualtricsClient
 {
     private readonly IntegrationTransport _transport;
     private readonly Uri _root;
@@ -41,19 +59,15 @@ public sealed class QualtricsClient
     }
     public static QualtricsClient Create(HttpClient http, IAccessTokenSource apiTokens, QualtricsOptions options, TransportOptions? transport = null)
         => new(new IntegrationTransport(http, new HeaderTokenAuthenticator("X-API-TOKEN", apiTokens), transport), options);
-    public async IAsyncEnumerable<SurveySummary> EnumerateSurveysAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<SurveySummary> EnumerateSurveysAsync(CancellationToken cancellationToken = default)
+        => QualtricsPaging.EnumerateAsync<SurveySummary>(_root, new Uri(_root, "surveys"), _maxPages, _transport, cancellationToken);
+    /// <summary>Fetches exactly one page of surveys. Pass the <see cref="Page{T}.Next"/> continuation from a previous call
+    /// as <paramref name="resumeFrom"/> to pause and resume later rather than re-iterating <see cref="EnumerateSurveysAsync"/>
+    /// from the beginning.</summary>
+    public Task<Page<SurveySummary>> ListSurveysPageAsync(ContinuationToken? resumeFrom = null, CancellationToken cancellationToken = default)
     {
-        var next = new Uri(_root, "surveys"); var visited = new HashSet<string>(StringComparer.Ordinal);
-        for (var page = 0; ; page++)
-        {
-            if (page >= _maxPages || !visited.Add(next.AbsoluteUri)) throw new InvalidDataException("Survey pagination limit or cycle detected.");
-            using var doc = await _transport.ReadJsonAsync(next, cancellationToken: cancellationToken);
-            var result = doc.RootElement.GetProperty("result");
-            foreach (var item in result.GetProperty("elements").EnumerateArray())
-            { cancellationToken.ThrowIfCancellationRequested(); yield return item.Deserialize<SurveySummary>() ?? throw new JsonException("Null survey."); }
-            if (!result.TryGetProperty("nextPage", out var link) || string.IsNullOrWhiteSpace(link.GetString())) yield break;
-            next = EndpointSafety.Continuation(_root, link.GetString()!);
-        }
+        var address = resumeFrom is null ? new Uri(_root, "surveys") : QualtricsPaging.ResolveResume(_root, "surveys", resumeFrom);
+        return QualtricsPaging.FetchPageAsync<SurveySummary>("surveys", _root, address, _transport, cancellationToken);
     }
     public Task<JsonDocument> GetSurveyAsync(string surveyId, CancellationToken cancellationToken = default)
         => _transport.ReadJsonAsync(SurveyAddress(surveyId), cancellationToken: cancellationToken);
