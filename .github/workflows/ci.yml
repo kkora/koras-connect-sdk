@@ -25,7 +25,7 @@ jobs:
       - run: dotnet pack src/Koras.Connect.Adp/Koras.Connect.Adp.csproj --no-build --configuration Release --output artifacts
       - run: python eng/validate_packages.py
       - run: python eng/check_sources.py
-      - run: dotnet restore samples/PackageConsumer/PackageConsumer.csproj --source "${{ github.workspace }}/artifacts" --source https://api.nuget.org/v3/index.json
+      - run: dotnet restore samples/PackageConsumer/PackageConsumer.csproj --configfile samples/PackageConsumer/NuGet.Config
       - run: dotnet run --project samples/PackageConsumer/PackageConsumer.csproj --configuration Release --no-restore
       - uses: actions/upload-artifact@v4
         with:
