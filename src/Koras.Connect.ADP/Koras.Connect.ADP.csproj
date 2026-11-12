@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Koras.Connect.ADP</PackageId><Version>0.1.0-preview.1</Version></PropertyGroup><ItemGroup><ProjectReference Include="../Koras.Connect.Core/Koras.Connect.Core.csproj"/><ProjectReference Include="../Koras.Connect.Authentication/Koras.Connect.Authentication.csproj"/></ItemGroup></Project>
