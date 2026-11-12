@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Koras.Connect</PackageId><Description>Independent provider-neutral integration primitives</Description></PropertyGroup></Project>
