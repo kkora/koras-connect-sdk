@@ -1,7 +1,7 @@
 name: SDK CI
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main, develop, "feature/**", "fix/**", "chore/**"]
   pull_request:
 permissions:
   contents: read
