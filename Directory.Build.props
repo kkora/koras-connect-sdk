@@ -1,0 +1,1 @@
+<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><GenerateDocumentationFile>true</GenerateDocumentationFile><Version>0.1.0-preview.1</Version><Authors>Koras Technologies</Authors></PropertyGroup></Project>
