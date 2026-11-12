@@ -1,0 +1,6 @@
+{
+  "version": "0.1.0-preview.2",
+  "packages": ["Koras.Connect", "Koras.Connect.Adp", "Koras.Connect.Sap.SuccessFactors", "Koras.Connect.Qualtrics"],
+  "source": "https://github.com/kkora/koras-connect-sdk",
+  "publicationApproved": false
+}

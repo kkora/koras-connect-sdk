@@ -1,6 +1,6 @@
 # Koras Connect SDK — Master Feature Plan v1.0
 
-Status: see VERIFICATION.md for implemented evidence and remaining acceptance gaps. SAP/Qualtrics remain future scope. G0–G3 completion is not asserted.
+Status: see VERIFICATION.md for implemented evidence and remaining acceptance gaps. SAP/Qualtrics P0 contracts are implemented; see their matrices and G4–G6 specification for limitations. G0–G3 completion is not asserted.
 
 | ID | Feature | Priority | Acceptance evidence |
 |---|---|---|---|
