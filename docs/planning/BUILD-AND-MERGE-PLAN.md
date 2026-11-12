@@ -1,6 +1,6 @@
 # Koras Connect SDK — Independent implementation and merge plan
 
-Status: execution plan; implementation incomplete. This document does not assert all ADP APIs are available or tested.
+Status: implementation and verification in progress; see VERIFICATION.md for final evidence. This document does not assert all ADP APIs are available or live-tested.
 
 ## Non-negotiable architecture
 - Clean independent implementation based on official ADP specifications and authorized sandbox behavior.
@@ -36,3 +36,4 @@ ADP access varies by product subscription and tenant permissions. Features witho
 
 ## Evidence at plan creation
 GitHub Actions run 43150810500 succeeded for the initial PR head 534f21ecd8815323b1e6bf554d84b7ccf3d32d3e. This only validates the initial foundation, not the complete feature matrix.
+
