@@ -28,3 +28,7 @@ Transport streams response parsing, enforces a total request deadline including 
 `Reconciliation` compares caller-supplied previous fingerprints with an asynchronous full snapshot. Record hashes are representation-sensitive (property ordering may cause safe extra updates). Commit state only after successful delivery and complete traversal. Deletions are deliberately not inferred because visibility/permissions can change. Batching is local enumeration, not an ADP bulk endpoint.
 
 Webhook helpers verify the exact publisher header specified by ADP and extract organization/message delivery keys. The static credential-derived HMAC does not cover the payload or prevent replay: TLS, separate receiver authentication, durable deduplication and downstream transactions belong to the host. No HTTP webhook server is embedded in this SDK.
+
+## G6 package expansion
+
+`Koras.Connect.Sap.SuccessFactors` and `Koras.Connect.Qualtrics` each depend only on Koras.Connect. Shared IRequestAuthenticator supports bearer and safe header-token authentication. IntegrationTransport now supports XML metadata text and streaming binary response copies using the same deadline/retry/error pipeline; output is never retried after body consumption starts. Both provider clients confine continuation links to their configured HTTPS origin/API path and reject cycles. No external runtime dependencies were added to the core. See G4-G6-SPECIFICATION.md for bounded provider contracts and explicit host-owned responsibilities.

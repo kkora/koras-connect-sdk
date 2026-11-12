@@ -34,3 +34,9 @@ Webhook helpers follow the official static publisher-header contract. Hosts must
 ## Phase 2 readiness
 
 The package-reference consumer demonstrates an independent CLI can compile against this preview. Read-only worker/export prototyping is ready. Full Phase 2 integration and production use remain gated by the missing G0/G3 contracts and tenant verification. No CLI/Cloud repository, infrastructure or public package publication was created.
+
+## G4–G6 expansion (November 12, 2026)
+
+Version advances to 0.1.0-preview.2 to avoid mutable/cached preview package identities. Four packages are now built. SAP/Qualtrics P0 contracts, safe token-header authentication, streaming downloads, continuation boundary checks, release manifest/checksums/SPDX inventory and fail-closed publication tooling are implemented. Publication remains disabled; no owner approval record, license grant, NuGet key or live tenant credentials were supplied. Current CI evidence is recorded on PR #1 at the exact expansion head; earlier 37-test evidence above describes the prior ADP/core revision. G0/G3 remain incomplete and are not waived by these changes.
+
+Expansion local verification: .NET 10 Release build has 0 warnings/errors; all 55 .NET tests and 11 Python release-gate tests pass. Four preview.2 packages validate, a 17-package SPDX runtime inventory is generated, checksum checks pass, the independent package consumer restores/compiles/runs and the NuGet audit reports no known direct/transitive vulnerabilities. Publication-negative and synthetic positive tests exercise approval/tag/license/hash checks without any remote push. G5 publication execution remains blocked; no account secret or licensing approval has been fabricated.
