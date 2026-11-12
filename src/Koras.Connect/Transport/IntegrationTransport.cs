@@ -41,12 +41,14 @@ public sealed class IntegrationTransport
     private static readonly Meter Meter = new(InstrumentationName);
     private static readonly Counter<long> Requests = Meter.CreateCounter<long>("koras.connect.requests");
     private readonly HttpClient _http;
-    private readonly IAccessTokenSource _tokens;
+    private readonly IRequestAuthenticator _authentication;
     private readonly TransportOptions _options;
     public IntegrationTransport(HttpClient httpClient, IAccessTokenSource tokens, TransportOptions? options = null)
+        : this(httpClient, new BearerTokenAuthenticator(tokens), options) { }
+    public IntegrationTransport(HttpClient httpClient, IRequestAuthenticator authentication, TransportOptions? options = null)
     {
         _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+        _authentication = authentication ?? throw new ArgumentNullException(nameof(authentication));
         _options = options ?? new(); _options.Validate();
     }
     public Task<JsonDocument> ReadJsonAsync(Uri address, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
@@ -54,8 +56,29 @@ public sealed class IntegrationTransport
     public async Task<JsonDocument> SendJsonAsync(HttpMethod method, Uri address, JsonElement? payload = null,
         IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
         => (await SendResponseAsync(method, address, payload, headers, cancellationToken)).Body;
-    public async Task<IntegrationJsonResponse> SendResponseAsync(HttpMethod method, Uri address, JsonElement? payload = null,
+    public Task<IntegrationJsonResponse> SendResponseAsync(HttpMethod method, Uri address, JsonElement? payload = null,
         IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
+        => ExecuteAsync(method, address, payload, headers, async (response, ct) =>
+        {
+            var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id" })
+                if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.ToArray();
+            if (response.StatusCode == HttpStatusCode.NoContent) return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
+        }, cancellationToken);
+    /// <summary>Copies a successful GET response to a caller-owned stream. No replay after any output has been written.</summary>
+    public Task CopyToAsync(Uri address, Stream output, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        return ExecuteAsync(HttpMethod.Get, address, null, new Dictionary<string, string> { ["Accept"] = "*/*" }, async (response, ct) =>
+        { await response.Content.CopyToAsync(output, ct); return true; }, cancellationToken);
+    }
+    public Task<string> ReadTextAsync(Uri address, CancellationToken cancellationToken = default)
+        => ExecuteAsync(HttpMethod.Get, address, null, new Dictionary<string, string> { ["Accept"] = "application/xml" },
+            (response, ct) => response.Content.ReadAsStringAsync(ct), cancellationToken);
+    private async Task<T> ExecuteAsync<T>(HttpMethod method, Uri address, JsonElement? payload,
+        IReadOnlyDictionary<string, string>? headers, Func<HttpResponseMessage, CancellationToken, Task<T>> consume, CancellationToken cancellationToken)
     {
         if (!address.IsAbsoluteUri || address.Scheme != Uri.UriSchemeHttps || address.UserInfo.Length != 0)
             throw new ArgumentException("Endpoint must be an absolute HTTPS URI without user information.", nameof(address));
@@ -71,8 +94,9 @@ public sealed class IntegrationTransport
         {
             ct.ThrowIfCancellationRequested();
             using var request = new HttpRequestMessage(method, address);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _tokens.GetTokenAsync(ct));
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            await _authentication.AuthenticateAsync(request, ct);
+            if (headers is null || !headers.Keys.Any(k => k.Equals("Accept", StringComparison.OrdinalIgnoreCase)))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (headers is not null) foreach (var h in headers)
                 if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
             if (payload is not null) request.Content = new StringContent(payload.Value.GetRawText(), System.Text.Encoding.UTF8, "application/json");
@@ -96,13 +120,7 @@ public sealed class IntegrationTransport
                 }
                 if (!response.IsSuccessStatusCode)
                 { activity?.SetStatus(ActivityStatusCode.Error); throw new IntegrationRequestException(response.StatusCode, attempt + 1); }
-                var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-                // Preserve only protocol identifiers needed for acknowledgements; never cookies or arbitrary provider headers.
-                foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id" })
-                    if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.ToArray();
-                if (response.StatusCode == HttpStatusCode.NoContent) return new(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
-                await using var stream = await response.Content.ReadAsStreamAsync(ct);
-                return new(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
+                return await consume(response, ct);
             }
         }
     }

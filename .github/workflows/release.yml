@@ -1,0 +1,58 @@
+name: SDK release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish reviewed packages to NuGet (requires release tag and owner approval record)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore Koras.Connect.slnx
+      - run: dotnet build Koras.Connect.slnx -c Release --no-restore
+      - run: dotnet test Koras.Connect.slnx -c Release --no-build
+      - run: dotnet pack Koras.Connect.slnx -c Release --no-build -o artifacts
+      - run: python eng/validate_packages.py
+      - run: python eng/generate_sbom.py
+      - run: python eng/release_checks.py
+      - run: python eng/check_sources.py
+      - run: python -m unittest discover -s tests/release -v
+      - run: dotnet list Koras.Connect.slnx package --vulnerable --include-transitive --no-restore
+      - run: dotnet restore samples/PackageConsumer/PackageConsumer.csproj --configfile samples/PackageConsumer/NuGet.Config
+      - run: dotnet run --project samples/PackageConsumer/PackageConsumer.csproj --configuration Release --no-restore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate
+          path: artifacts/
+  publish:
+    if: ${{ inputs.publish }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: nuget-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate
+          path: artifacts
+      - run: python eng/release_checks.py --publish --ref "${{ github.ref }}"
+      - name: Publish approved packages
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          test -n "$NUGET_API_KEY"
+          for package in artifacts/*.nupkg; do
+            dotnet nuget push "$package" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+          done
