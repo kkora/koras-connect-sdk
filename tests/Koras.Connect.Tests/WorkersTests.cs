@@ -16,14 +16,14 @@ public sealed class WorkersTests
         using var http = new HttpClient(new StubHandler(_ =>
         {
             calls++;
-            var body = calls == 1 ? """{"workers":[{"id":"a"},{"id":"b"}]}""" : """{"workers":[{"id":"c"}]}""";
+            var body = calls == 1 ? """{"workers":[{"id":"a"},{"id":"b"}]}""" : calls == 2 ? """{"workers":[{"id":"c"}]}""" : """{"workers":[]}""";
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
         }));
         var client = new AdpWorkersClient(new IntegrationTransport(http, new FixedToken()), new AdpWorkersOptions(new Uri("https://example.test"), 2));
         var ids = new List<string>();
         await foreach (var worker in client.EnumerateWorkersAsync()) ids.Add(worker.GetProperty("id").GetString()!);
         Assert.Equal(["a", "b", "c"], ids);
-        Assert.Equal(2, calls);
+        Assert.Equal(3, calls);
     }
 
     [Fact]
@@ -47,3 +47,4 @@ public sealed class WorkersTests
             => Task.FromResult(reply(request));
     }
 }
+

@@ -8,7 +8,7 @@ public static class ClientCertificateTransport
     {
         ArgumentNullException.ThrowIfNull(certificate);
         if (!certificate.HasPrivateKey) throw new ArgumentException("Client certificate must include a private key.", nameof(certificate));
-        var handler = new HttpClientHandler();
+        var handler = new HttpClientHandler { AllowAutoRedirect = false };
         handler.ClientCertificates.Add(certificate);
         return new HttpClient(handler, disposeHandler: true) { Timeout = timeout ?? TimeSpan.FromSeconds(100) };
     }
@@ -17,3 +17,4 @@ public static class ClientCertificateTransport
     public static X509Certificate2 LoadPem(string certificatePath, string privateKeyPath)
         => X509Certificate2.CreateFromPemFile(certificatePath, privateKeyPath);
 }
+

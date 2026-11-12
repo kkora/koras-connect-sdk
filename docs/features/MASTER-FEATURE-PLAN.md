@@ -1,6 +1,6 @@
 # Koras Connect SDK — Master Feature Plan v1.0
 
-Status: PLANNING ONLY; features are targets, not implemented capabilities.
+Status: see VERIFICATION.md for implemented evidence and remaining acceptance gaps. SAP/Qualtrics remain future scope. G0–G3 completion is not asserted.
 
 | ID | Feature | Priority | Acceptance evidence |
 |---|---|---|---|
@@ -25,3 +25,4 @@ No claims of complete ADP coverage without documented product/API/entitlement ma
 
 ## Not in SDK
 Scheduling, cross-provider orchestration, tenant administration, cloud billing, job persistence, and managed worker operations.
+
