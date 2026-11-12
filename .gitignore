@@ -6,5 +6,8 @@ TestResults/
 *.p12
 *.key
 .env
+appsettings.local.json
+appsettings.*.local.json
 __pycache__/
 *.pyc
+Certificates/
