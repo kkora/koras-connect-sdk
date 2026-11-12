@@ -1,27 +1,36 @@
-# Koras Connect SDK — Architecture Proposal v1.0
+# Independent SDK architecture
 
-Status: PROPOSED. Planning only. No implementation authorization.
+Owner authorization: G0–G3 implementation, tests, commits and merge; public publishing remains excluded.
 
-## Product boundaries
-Phase 1: independently usable NuGet SDKs, owned by kkora.
-Phase 2: separate koras-connect-cli repository, containing independent console integration applications.
-Phase 3: separate commercial koras-integration-cloud repository, with hosted workers, tenancy, billing, and orchestration.
-Dependency direction: CLI and Cloud consume SDK; SDK must never depend on CLI or Cloud.
+The original G0–G3 preview introduced the core and ADP packages. G6 expands the current preview to four packages:
 
-## Proposed packages
-- Koras.Connect.Abstractions: connector contracts and typed capabilities
-- Koras.Connect.Core: HTTP client pipeline, pagination, errors, cancellation and resilience
-- Koras.Connect.Authentication: certificate/mTLS, OAuth token acquisition, credential provider abstractions
-- Koras.Connect.Export: CSV, JSON, XML; Excel as an optional extension
-- Koras.Connect.Observability: diagnostics, structured logging and optional OpenTelemetry
-- Koras.Connect.ADP: ADP product-specific APIs and typed models
-- Later: Koras.Connect.SAP.SuccessFactors and Koras.Connect.Qualtrics
+- `Koras.Connect`: provider-neutral OAuth, certificate loading, JSON transport, diagnostics, tabular export and reconciliation. Uses only the .NET runtime.
+- `Koras.Connect.Adp`: WFN workers, operation allowlist, polling acknowledgements, webhook publisher authentication and optional DI registration. Depends on the core and Microsoft.Extensions.Http.
+- `Koras.Connect.Sap.SuccessFactors`: OData V2/SAML bearer contracts; depends only on the core.
+- `Koras.Connect.Qualtrics`: survey/response-export contracts; depends only on the core.
 
-## Design constraints
-.NET 10 LTS target proposed, with compatibility validation before finalizing target frameworks. Use IHttpClientFactory and DI-friendly optional registration. Support async/cancellation, typed errors, streaming and pagination, safe credential injection, mockable transports, and documented public APIs. Never embed certificates, client secrets, employee records, or tokens in logs or examples.
+The earlier proposal for seven very small packages is consolidated to avoid unnecessary package/version coupling. Namespaces preserve separation. No SDK package references CLI, Cloud, an application host, a database or external infrastructure.
 
-## Licensing
-Initial source repository is private; public NuGet distribution is a separate approval gate. Apache-2.0 for eligible SDK source is proposed, not approved. Validate vendor API terms, dependencies, trademark, NuGet naming, and whether open-source source distribution is desired. Public binaries alone are not open-source.
+All code is independently engineered. No reference-repository material was consulted. Historical source-audit tasks are superseded by the owner's explicit prohibition.
 
-## Source audit dependency
-kkora/AdpIntegration is read-only reference. Verify source exists and classify code KEEP / REFACTOR / MOVE / REPLACE before implementation.
+## Ownership and security
+
+Hosts retain certificate lifetime, supply secrets, configure TLS, own HttpClient lifetimes and persist checkpoints/inbox state. DI registration disables redirects and default HTTP URL loggers, uses separate named token/API clients, and rejects duplicate ADP tenant registrations in a provider. Direct consumers must disable redirects and redact URI-bearing framework telemetry at their host.
+
+Core instrumentation uses `ActivitySource` and `Meter` named `Koras.Connect`, method/status tags only, with no worker identifiers, URIs, request bodies or tokens. Add these sources to the host's OpenTelemetry configuration; there is no exporter dependency.
+
+Transport streams response parsing, enforces a total request deadline including retry waits, retries bounded GET failures with jitter, honors Retry-After, and never automatically replays POST or DELETE. A Retry-After beyond the configured budget fails rather than retrying early. Client-credential tokens are renewed before expiry under a semaphore; no refresh token is assumed. SDK errors omit response content. Arbitrary HTTP clients and host instrumentation remain the host's responsibility.
+
+## Public contracts
+
+`IAccessTokenSource` supports external secret/token stores. `IntegrationTransport` returns caller-owned JsonDocument or IntegrationJsonResponse with allowlisted protocol headers. Workers offer raw pages, escaped metadata-driven filters, individual lookup and typed async enumeration. Unknown worker fields survive deserialization. Paging continues until an empty page; consecutive repeated pages and an overall offset bound prevent runaway requests.
+
+`AdpOperationsClient` is a low-level endpoint client, not a complete vendor schema validator. Supported write requests use customer metadata and original JSON payloads supplied by the host; enable operations only after checking CAR scope, population permissions, actor and product/version. There is no invented generic worker PATCH. The library does not infer permissions from enum values.
+
+`Reconciliation` compares caller-supplied previous fingerprints with an asynchronous full snapshot. Record hashes are representation-sensitive (property ordering may cause safe extra updates). Commit state only after successful delivery and complete traversal. Deletions are deliberately not inferred because visibility/permissions can change. Batching is local enumeration, not an ADP bulk endpoint.
+
+Webhook helpers verify the exact publisher header specified by ADP and extract organization/message delivery keys. The static credential-derived HMAC does not cover the payload or prevent replay: TLS, separate receiver authentication, durable deduplication and downstream transactions belong to the host. No HTTP webhook server is embedded in this SDK.
+
+## G6 package expansion
+
+`Koras.Connect.Sap.SuccessFactors` and `Koras.Connect.Qualtrics` each depend only on Koras.Connect. Shared IRequestAuthenticator supports bearer and safe header-token authentication. IntegrationTransport now supports XML metadata text and streaming binary response copies using the same deadline/retry/error pipeline; output is never retried after body consumption starts. Both provider clients confine continuation links to their configured HTTPS origin/API path and reject cycles. No external runtime dependencies were added to the core. See G4-G6-SPECIFICATION.md for bounded provider contracts and explicit host-owned responsibilities.
