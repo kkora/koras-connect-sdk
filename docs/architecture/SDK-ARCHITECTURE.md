@@ -2,12 +2,14 @@
 
 Owner authorization: G0–G3 implementation, tests, commits and merge; public publishing remains excluded.
 
-Two packages are intentional for this preview:
+The original G0–G3 preview introduced the core and ADP packages. G6 expands the current preview to four packages:
 
 - `Koras.Connect`: provider-neutral OAuth, certificate loading, JSON transport, diagnostics, tabular export and reconciliation. Uses only the .NET runtime.
 - `Koras.Connect.Adp`: WFN workers, operation allowlist, polling acknowledgements, webhook publisher authentication and optional DI registration. Depends on the core and Microsoft.Extensions.Http.
+- `Koras.Connect.Sap.SuccessFactors`: OData V2/SAML bearer contracts; depends only on the core.
+- `Koras.Connect.Qualtrics`: survey/response-export contracts; depends only on the core.
 
-The earlier proposal for seven very small packages is consolidated to avoid unnecessary package/version coupling. Namespaces preserve separation. Neither package references CLI, Cloud, an application host, a database or external infrastructure. SAP and Qualtrics are future scope.
+The earlier proposal for seven very small packages is consolidated to avoid unnecessary package/version coupling. Namespaces preserve separation. No SDK package references CLI, Cloud, an application host, a database or external infrastructure.
 
 All code is independently engineered. No reference-repository material was consulted. Historical source-audit tasks are superseded by the owner's explicit prohibition.
 
