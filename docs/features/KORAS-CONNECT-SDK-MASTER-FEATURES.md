@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Document | Canonical master feature specification, version 1.0 |
+| Document | Master architecture and feature index, version 1.1 |
 | Audit date | November 12, 2026, America/New_York |
 | Assignment | P1, documentation only; stop before P2 |
 | Repository | `C:\repos\koras-connect-sdk` |
@@ -13,8 +13,10 @@
 | Default branch | `develop`, confirmed through GitHub repository metadata and origin/HEAD |
 | Initial working tree | Clean; no staged or unstaged work |
 | Product owner | Repository owner; acceptance is not inferred from authorship or merging |
-| Specification authority | Supplied master requirements, then this document; historical plans remain evidence |
+| Specification authority | Supplied requirements; this master for shared architecture; individual feature files for current requirements/status; historical plans remain evidence |
 | Approval | P1 creation/validation/local commit authorized by the assignment; feature/release acceptance not granted |
+
+Version 1.1 (November 12, 2026) follows the owner request to organize one feature per file. All 74 detailed specifications now live under `sdk/`, `adp/`, `sap-successfactors/` and `qualtrics/`. Their YAML `status` is the authoritative current tracking state; update evidence and status history in the same file. This master retains shared architecture, audit evidence and baseline summary tables; its status columns are the frozen November 12, 2026 audit snapshot, not a second live status registry. See the [feature tracker](README.md) for update instructions and all feature links. This authorized documentation reorganization supersedes the earlier single-file deliverable restriction; it does not authorize P2 implementation.
 
 Version 1.0 consolidates the source audit, exact SDK/ADP requirements, independent connector catalogs, package migration and P1-P7 gates. The baseline SHA identifies implementation evidence, not this document's eventual commit. Git records the documentation commit separately so this file need not contain its own hash.
 
@@ -28,7 +30,7 @@ The current .NET 10 preview contains four packages and useful authentication, tr
 
 The first release prioritizes Abstractions, Core, Authentication, Export and ADP. Preserve existing SAP/Qualtrics preview behavior during shared refactoring, then expand them in P5/P6. Observability integration and enterprise expansion follow in P7; safe baseline diagnostics remain P0 foundation work. Public publication, deployment, paid services and main promotion are separate actions, excluded from P1.
 
-This catalog contains 20 SDK, 22 ADP, 16 SAP and 16 Qualtrics features, 74 total. Each detailed entry has the same twenty mandatory fields. Sections 16-26 supply binding common requirements; entries add capability-specific requirements rather than silently waiving common gates.
+This catalog contains 20 SDK, 22 ADP, 16 SAP and 16 Qualtrics features, 74 total. Each linked feature file retains the same twenty mandatory specification fields and adds editable status metadata and completion evidence. Sections 16-26 supply binding common requirements; entries add capability-specific requirements rather than silently waiving common gates.
 
 ## 3. Repository Audit and Baseline
 
@@ -163,537 +165,157 @@ Use Task for asynchronous I/O, ValueTask only for cache/source boundaries, IAsyn
 
 ## 9. Shared SDK Master Feature Matrix
 
-| ID | Feature | Priority | Phase | Current status |
+| ID | Feature | Priority | Phase | Audit baseline status |
 |---|---|---|---|---|
-| [SDK-001](#sdk-001) | .NET 10 solution and package structure | P0 | P2 | Partially implemented |
-| [SDK-002](#sdk-002) | Connector interface contracts | P0 | P2 | Not started |
-| [SDK-003](#sdk-003) | Dependency injection extensions | P0 | P2 | Partially implemented |
-| [SDK-004](#sdk-004) | HttpClientFactory integration | P0 | P2 | Partially implemented |
-| [SDK-005](#sdk-005) | Authentication abstraction | P0 | P2 | Partially implemented |
-| [SDK-006](#sdk-006) | Secure credential providers | P0 | P2 | Partially implemented |
-| [SDK-007](#sdk-007) | Pagination abstractions | P0 | P2 | Partially implemented |
-| [SDK-008](#sdk-008) | Retry and resilience policies | P0 | P2 | Partially implemented |
-| [SDK-009](#sdk-009) | Structured exception hierarchy | P0 | P2 | Partially implemented |
-| [SDK-010](#sdk-010) | Cancellation and timeout support | P0 | P2 | Partially implemented |
-| [SDK-011](#sdk-011) | Logging and correlation IDs | P0 | P2 | Partially implemented |
-| [SDK-012](#sdk-012) | OpenTelemetry instrumentation | P1 | P7 | Partially implemented |
-| [SDK-013](#sdk-013) | Export provider interfaces | P0 | P3 | Partially implemented |
-| [SDK-014](#sdk-014) | Configuration validation | P0 | P2 | Partially implemented |
-| [SDK-015](#sdk-015) | Package signing and provenance | P1 | P7 | Not started |
-| [SDK-016](#sdk-016) | NuGet publishing workflow | P0 | P4 | Partially implemented |
-| [SDK-017](#sdk-017) | API compatibility checks | P0 | P2-P4 | Not started |
-| [SDK-018](#sdk-018) | Security scanning and SBOM | P0 | P4 | Partially implemented |
-| [SDK-019](#sdk-019) | Versioning and release notes | P0 | P4 | Partially implemented |
-| [SDK-020](#sdk-020) | SDK documentation website | P1 | P7 | Not started |
+| [SDK-001](sdk/SDK-001.md) | .NET 10 solution and package structure | P0 | P2 | Partially implemented |
+| [SDK-002](sdk/SDK-002.md) | Connector interface contracts | P0 | P2 | Not started |
+| [SDK-003](sdk/SDK-003.md) | Dependency injection extensions | P0 | P2 | Partially implemented |
+| [SDK-004](sdk/SDK-004.md) | HttpClientFactory integration | P0 | P2 | Partially implemented |
+| [SDK-005](sdk/SDK-005.md) | Authentication abstraction | P0 | P2 | Partially implemented |
+| [SDK-006](sdk/SDK-006.md) | Secure credential providers | P0 | P2 | Partially implemented |
+| [SDK-007](sdk/SDK-007.md) | Pagination abstractions | P0 | P2 | Partially implemented |
+| [SDK-008](sdk/SDK-008.md) | Retry and resilience policies | P0 | P2 | Partially implemented |
+| [SDK-009](sdk/SDK-009.md) | Structured exception hierarchy | P0 | P2 | Partially implemented |
+| [SDK-010](sdk/SDK-010.md) | Cancellation and timeout support | P0 | P2 | Partially implemented |
+| [SDK-011](sdk/SDK-011.md) | Logging and correlation IDs | P0 | P2 | Partially implemented |
+| [SDK-012](sdk/SDK-012.md) | OpenTelemetry instrumentation | P1 | P7 | Partially implemented |
+| [SDK-013](sdk/SDK-013.md) | Export provider interfaces | P0 | P3 | Partially implemented |
+| [SDK-014](sdk/SDK-014.md) | Configuration validation | P0 | P2 | Partially implemented |
+| [SDK-015](sdk/SDK-015.md) | Package signing and provenance | P1 | P7 | Not started |
+| [SDK-016](sdk/SDK-016.md) | NuGet publishing workflow | P0 | P4 | Partially implemented |
+| [SDK-017](sdk/SDK-017.md) | API compatibility checks | P0 | P2-P4 | Not started |
+| [SDK-018](sdk/SDK-018.md) | Security scanning and SBOM | P0 | P4 | Partially implemented |
+| [SDK-019](sdk/SDK-019.md) | Versioning and release notes | P0 | P4 | Partially implemented |
+| [SDK-020](sdk/SDK-020.md) | SDK documentation website | P1 | P7 | Not started |
 
 ## 10. Shared SDK Detailed Feature Specifications
 
 <a id="sdk-001"></a>
 ### SDK-001 - .NET 10 solution and package structure
 
-1. **Feature ID:** SDK-001.
-2. **Feature name:** .NET 10 solution and package structure.
-3. **Description:** Deliver installable packages with predictable ownership and runtime support.
-4. **Business value:** A clean Linux/Windows build and pack produces the first-release package set reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core + Koras.Connect.Abstractions.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-BUILD. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Create the eight target boundaries in dependency order; preserve preview consumers through the migration in section 6; keep sample separate from runtime libraries.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing net10.0 projects; proposed eight package surfaces from sections 6-8.
-13. **Dependencies:** SDK-017; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise graph cycle/forbidden-reference checks and metadata inspection, plus old/new package consumer compilation. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Graph cycle/forbidden-reference checks and metadata inspection, plus old/new package consumer compilation.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** A clean Linux/Windows build and pack produces the first-release package set; each package installs independently and old preview breakages are documented.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No vendor blocker; compatibility inventory required before moving types.
+The authoritative [feature specification and completion tracker](sdk/SDK-001.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-002"></a>
 ### SDK-002 - Connector interface contracts
 
-1. **Feature ID:** SDK-002.
-2. **Feature name:** Connector interface contracts.
-3. **Description:** Let hosts discover connectors and capabilities without coupling to implementations.
-4. **Business value:** A host can discover and substitute each connector using only Abstractions reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Abstractions.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Not started; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT has only token/request-auth interfaces; no common connector found. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Define identity, product/version, supported operation and entitlement states; expose safe connection diagnostics; keep provider models out of neutral contracts.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed IConnector, ConnectorDescriptor and ConnectionDiagnostic in Abstractions.
-13. **Dependencies:** SDK-001; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise unknown/denied capability states, immutable descriptors, fake connector substitution and API snapshot tests. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Unknown/denied capability states, immutable descriptors, fake connector substitution and API snapshot tests.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** A host can discover and substitute each connector using only Abstractions; unknown entitlement is never reported as verified.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No external API needed for static contracts; runtime grants remain vendor-specific.
+The authoritative [feature specification and completion tracker](sdk/SDK-002.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-003"></a>
 ### SDK-003 - Dependency injection extensions
 
-1. **Feature ID:** SDK-003.
-2. **Feature name:** Dependency injection extensions.
-3. **Description:** Reduce host configuration errors while retaining direct construction.
-4. **Business value:** All provider clients can resolve independently reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core + provider packages (Koras.Connect.ADP, Koras.Connect.SAP.SuccessFactors, Koras.Connect.Qualtrics).
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-DI: AddKorasAdp only; E-TEST: CertificateAndDIContractsResolveWithoutExternalInfrastructure. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add shared/provider registration builders; validate eagerly; isolate named instances, token caches, certificate and handler lifetime; retain duplicate protection until named instances are implemented.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing AddKorasAdp; proposed AddKorasConnect, AddKorasSuccessFactors, AddKorasQualtrics.
-13. **Dependencies:** SDK-002, SDK-004, SDK-014; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise provider resolution/disposal, duplicate registration, named instance isolation and options failure before network. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Provider resolution/disposal, duplicate registration, named instance isolation and options failure before network.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** All provider clients can resolve independently; separate tenant registrations cannot exchange credentials; disposal ownership is documented and tested.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No vendor blocker; lifecycle and named-registration API must be frozen in P2.
+The authoritative [feature specification and completion tracker](sdk/SDK-003.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-004"></a>
 ### SDK-004 - HttpClientFactory integration
 
-1. **Feature ID:** SDK-004.
-2. **Feature name:** HttpClientFactory integration.
-3. **Description:** Provide safe reusable HTTP lifecycles across connectors.
-4. **Business value:** Every factory registration preserves security defaults, supports safe custom handlers and documents refresh behavior without retaining stale certificates indefinitely reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core + provider packages (Koras.Connect.ADP, Koras.Connect.SAP.SuccessFactors, Koras.Connect.Qualtrics).
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-DI uses two named ADP clients; SAP/Qualtrics require caller clients. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Use separate token/API named clients; disable redirects and unsafe URL loggers; disable credential-bearing cookie reuse; document handler/DNS/certificate refresh and caller overrides.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing IHttpClientFactory use in AddKorasAdp; proposed provider builder HTTP customization.
-13. **Dependencies:** SDK-005; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise handler replacement, auth isolation, logger removal, redirect rejection and disposal/DNS lifecycle simulations. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Handler replacement, auth isolation, logger removal, redirect rejection and disposal/DNS lifecycle simulations.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Every factory registration preserves security defaults, supports safe custom handlers and documents refresh behavior without retaining stale certificates indefinitely.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Microsoft factory guidance [M1]; no live vendor required for lifecycle checks.
+The authoritative [feature specification and completion tracker](sdk/SDK-004.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-005"></a>
 ### SDK-005 - Authentication abstraction
 
-1. **Feature ID:** SDK-005.
-2. **Feature name:** Authentication abstraction.
-3. **Description:** Allow vendor and host authentication adapters without changing transport.
-4. **Business value:** Core accepts authentication without referencing Authentication implementation reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Abstractions + Koras.Connect.Authentication.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT: IAccessTokenSource; RequestAuthentication.cs: IRequestAuthenticator. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Move neutral interfaces to Abstractions with compatibility handling; support bearer/header adapters and cancellation; keep vendor grant semantics in provider adapters.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing GetTokenAsync and AuthenticateAsync; preserve signatures or document preview migration.
-13. **Dependencies:** SDK-001, SDK-017; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise fake token source, invalid header token, auth cancellation, per-request token rotation and transport substitution. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Fake token source, invalid header token, auth cancellation, per-request token rotation and transport substitution.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Core accepts authentication without referencing Authentication implementation; cached and rotating token sources remain interoperable.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No vendor blocker for abstraction; grant verification belongs to provider entries.
+The authoritative [feature specification and completion tracker](sdk/SDK-005.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-006"></a>
 ### SDK-006 - Secure credential providers
 
-1. **Feature ID:** SDK-006.
-2. **Feature name:** Secure credential providers.
-3. **Description:** Enable secret rotation without embedding host-specific vault dependencies.
-4. **Business value:** No secrets appear in errors/logs reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Authentication.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-AUTH redacted options and certificate loaders; E-TRANSPORT token injection; no credential-provider API. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add asynchronous credential/certificate sources; redact representations; define reload/cache key semantics; hosts configure secret stores and storage permissions.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed ICredentialProvider<TCredential> with redacted credential wrappers; retain IAccessTokenSource adapter.
-13. **Dependencies:** SDK-005, SDK-014; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise concurrent rotation, canceled retrieval, source failure, stale cache invalidation and redacted diagnostics. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Concurrent rotation, canceled retrieval, source failure, stale cache invalidation and redacted diagnostics.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** No secrets appear in errors/logs; two credentials remain isolated; rotation is observable only through safe metadata and affects subsequent authentication.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Production secret store/certificate policy is host-owned; no paid store provisioned.
+The authoritative [feature specification and completion tracker](sdk/SDK-006.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-007"></a>
 ### SDK-007 - Pagination abstractions
 
-1. **Feature ID:** SDK-007.
-2. **Feature name:** Pagination abstractions.
-3. **Description:** Allow resumable traversal without data loss or hidden persistence.
-4. **Business value:** Resume produces the documented sequence with no client-induced omission reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Abstractions + Koras.Connect.Core.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-WORKERS iterators, E-SAP __next, E-QLT nextPage, E-SYNC; no common page/checkpoint. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add neutral pages/opaque continuation and query-bound checkpoint primitives; adapters retain vendor paging; bound cycles/pages and forbid cross-origin links.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed Page<T>, ContinuationToken and optional page-source contract; existing async enumerators remain supported.
-13. **Dependencies:** SDK-002, SDK-010; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise empty/intermediate-empty pages, cycles, mismatched query tokens, hostile next links and cancellation after partial traversal. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Empty/intermediate-empty pages, cycles, mismatched query tokens, hostile next links and cancellation after partial traversal.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Resume produces the documented sequence with no client-induced omission; invalid tokens fail safely; host commits checkpoints only after delivery.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No universal vendor delta contract; provider cursor lifetime must be verified separately.
+The authoritative [feature specification and completion tracker](sdk/SDK-007.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-008"></a>
 ### SDK-008 - Retry and resilience policies
 
-1. **Feature ID:** SDK-008.
-2. **Feature name:** Retry and resilience policies.
-3. **Description:** Recover safe transient reads while avoiding duplicate writes.
-4. **Business value:** 429/selected 5xx retry only within budget reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT bounded GET backoff/jitter/Retry-After; E-TEST TransientReadsRetry and WritesAreNeverRetried. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Retain GET-only retry defaults, total deadlines and server minimum delay; expose deterministic clock/delay testing, optional concurrency/circuit policies without stacked retries.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing TransportOptions and IntegrationTransport; proposed immutable operation-safety policy.
-13. **Dependencies:** SDK-010, SDK-009; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise 429/date and delta Retry-After, network failures, budget exhaustion, jitter bounds, circuit cancellation and no POST/DELETE replay. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** 429/date and delta Retry-After, network failures, budget exhaustion, jitter bounds, circuit cancellation and no POST/DELETE replay.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** 429/selected 5xx retry only within budget; excessive Retry-After fails without early retry; unsafe writes are sent at most once automatically.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No vendor global rate number assumed; advanced policy library is optional and requires dependency review.
+The authoritative [feature specification and completion tracker](sdk/SDK-008.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-009"></a>
 ### SDK-009 - Structured exception hierarchy
 
-1. **Feature ID:** SDK-009.
-2. **Feature name:** Structured exception hierarchy.
-3. **Description:** Let hosts classify failures safely and consistently.
-4. **Business value:** Callers can distinguish auth, throttle and schema failures without parsing messages reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT IntegrationRequestException with status/attempts; auth also throws HttpRequestException. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Define configuration/authentication/authorization/throttle/transport/contract exceptions, safe provider codes and correlation; preserve inner exceptions only when sanitized.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed IntegrationException family and safe ErrorDetails; retain HTTP status/attempts compatibility.
-13. **Dependencies:** SDK-005; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise 401/403/404/429/5xx, malformed successful payload, unknown provider error, secret-bearing body and cancellation passthrough. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** 401/403/404/429/5xx, malformed successful payload, unknown provider error, secret-bearing body and cancellation passthrough.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Callers can distinguish auth, throttle and schema failures without parsing messages; error text and serialized fields omit payloads/secrets.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Vendor-specific error schemas require authoritative evidence; unknown responses use neutral classification.
+The authoritative [feature specification and completion tracker](sdk/SDK-009.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-010"></a>
 ### SDK-010 - Cancellation and timeout support
 
-1. **Feature ID:** SDK-010.
-2. **Feature name:** Cancellation and timeout support.
-3. **Description:** Give hosts bounded work and prompt shutdown.
-4. **Business value:** All async I/O and waits honor the caller token reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT linked total timeout; E-AUTH semaphore cancellation; E-EXPORT mixed sync/async APIs; E-TEST DeadlineCancelsInFlightResponse. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Propagate cancellation into auth/waits/body/paging/export; distinguish caller cancellation from deadline; use async stream export paths and explicit per-operation budgets.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing CancellationToken parameters/TransportOptions.RequestTimeout; proposed neutral deadline failure metadata.
-13. **Dependencies:** SDK-009; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise cancel before send, during auth/retry/read/export, partial destination, deadline versus caller token and disposal. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Cancel before send, during auth/retry/read/export, partial destination, deadline versus caller token and disposal.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** All async I/O and waits honor the caller token; no write retry after timeout; resource cleanup completes and partial outputs are documented invalid.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Host-provided HttpClient/token providers must honor their contracts; no external service prerequisite.
+The authoritative [feature specification and completion tracker](sdk/SDK-010.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-011"></a>
 ### SDK-011 - Logging and correlation IDs
 
-1. **Feature ID:** SDK-011.
-2. **Feature name:** Logging and correlation IDs.
-3. **Description:** Support supportable failures without exposing employee data.
-4. **Business value:** Logs contain stable event IDs and correlation, never tokens, raw URI/query or records reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT ActivitySource/Meter and allowlisted response IDs; E-DI RemoveAllLoggers; no shared logging contract. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add structured safe event IDs, operation/attempt/result fields, trace correlation and bounded sanitized vendor IDs; use host opt-in ILogger integration.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed safe DiagnosticContext and logging events; existing IntegrationJsonResponse header allowlist.
-13. **Dependencies:** SDK-009, SDK-014; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise credential/PII canaries in URI/body/header/error, malicious/oversized request IDs, trace propagation and disabled logging. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Credential/PII canaries in URI/body/header/error, malicious/oversized request IDs, trace propagation and disabled logging.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Logs contain stable event IDs and correlation, never tokens, raw URI/query or records; unsafe vendor IDs are rejected or bounded.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Host framework instrumentation needs its own redaction configuration; SDK cannot guarantee arbitrary host logging.
+The authoritative [feature specification and completion tracker](sdk/SDK-011.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-012"></a>
 ### SDK-012 - OpenTelemetry instrumentation
 
-1. **Feature ID:** SDK-012.
-2. **Feature name:** OpenTelemetry instrumentation.
-3. **Description:** Enable optional distributed tracing and useful bounded metrics.
-4. **Business value:** A host can opt in to traces/metrics without changing clients reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Observability.
-6. **Priority:** P1.
-7. **Planned development phase:** P7; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-TRANSPORT ActivitySource/Meter Koras.Connect; E-TEST SdkActivityDoesNotEmitWorkerOrCredentialData. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add optional registration, durations/retries/errors and semantic tags with bounded cardinality; no global SDK/exporter setup or provider dependency.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing InstrumentationName/Activities; proposed AddKorasConnectInstrumentation in Observability.
-13. **Dependencies:** SDK-011; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise listener/exporter capture, parent-child context, disabled overhead, cardinality and redaction tests. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Listener/exporter capture, parent-child context, disabled overhead, cardinality and redaction tests.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** A host can opt in to traces/metrics without changing clients; removing Observability leaves Core usable; no PII reaches captured telemetry.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** OpenTelemetry versions and semantic conventions must be reviewed in P7; no exporter backend provisioned.
+The authoritative [feature specification and completion tracker](sdk/SDK-012.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-013"></a>
 ### SDK-013 - Export provider interfaces
 
-1. **Feature ID:** SDK-013.
-2. **Feature name:** Export provider interfaces.
-3. **Description:** Provide replaceable exports with deterministic safe projections.
-4. **Business value:** All four provider formats parse independently and preserve selected values/order reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Abstractions + Koras.Connect.Export.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-EXPORT static writers; provider interface/async schema contract absent. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Implement providers for CSV/JSON/XML/XLSX and schema-driven async records; preserve stream ownership, bounded memory and formula defenses; cancellation/failure leaves incomplete output explicit.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed IExportProvider, ExportSchema<T>; existing TabularExport methods retained through migration.
-13. **Dependencies:** SDK-002, SDK-010; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise empty records, null/date/culture/Unicode, delimiter/newline escaping, formula prefixes, width and Excel bounds, canceled stream. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Empty records, null/date/culture/Unicode, delimiter/newline escaping, formula prefixes, width and Excel bounds, canceled stream.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** All four provider formats parse independently and preserve selected values/order; caller stream remains open; no implicit filesystem or provider dependency.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** No vendor entitlement; third-party Excel library requires license review if chosen.
+The authoritative [feature specification and completion tracker](sdk/SDK-013.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-014"></a>
 ### SDK-014 - Configuration validation
 
-1. **Feature ID:** SDK-014.
-2. **Feature name:** Configuration validation.
-3. **Description:** Catch unsafe or contradictory settings before credentials leave the process.
-4. **Business value:** Every invalid configuration fails before network with actionable redacted field identifiers reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** Koras.Connect.Core + Koras.Connect.Authentication + provider packages (Koras.Connect.ADP, Koras.Connect.SAP.SuccessFactors, Koras.Connect.Qualtrics).
-6. **Priority:** P0.
-7. **Planned development phase:** P2; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-AUTH Validate, E-WORKERS options, E-SAP/E-QLT constructors, E-SAFETY; inconsistent validation surfaces. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Standardize eager validators for roots, token endpoints, limits, retries, credentials, effective dates and mutually exclusive settings; require exact configured origins and no redirects.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed options validators and safe validation results; existing constructor checks remain.
-13. **Dependencies:** SDK-005; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise null/relative/HTTP/userinfo/query/fragment roots, invalid durations, unsafe IDs, date conflicts and duplicate names. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Null/relative/HTTP/userinfo/query/fragment roots, invalid durations, unsafe IDs, date conflicts and duplicate names.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Every invalid configuration fails before network with actionable redacted field identifiers; DI and direct construction enforce the same rules.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Exact vendor hosts/product versions are supplied by authorized consumers, never guessed.
+The authoritative [feature specification and completion tracker](sdk/SDK-014.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-015"></a>
 ### SDK-015 - Package signing and provenance
 
-1. **Feature ID:** SDK-015.
-2. **Feature name:** Package signing and provenance.
-3. **Description:** Make package origin and artifact integrity verifiable.
-4. **Business value:** Reviewed candidate verifies against approved trust policy and source revision reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (release engineering).
-6. **Priority:** P1.
-7. **Planned development phase:** P7; P1 specifies only.
-8. **Current implementation status:** Not started; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-BUILD deterministic metadata; E-RELEASE hashes/SBOM do not sign or attest builds. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Design timestamped author-signing/key rotation and artifact-to-source provenance; verify signatures on both OSes and bind attestation to exact package digests.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed release signature/provenance policy; no runtime API.
-13. **Dependencies:** SDK-016, SDK-018; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise invalid/expired/untrusted signatures, tampered digest and mismatched source/build identity using disposable test certificates. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Invalid/expired/untrusted signatures, tampered digest and mismatched source/build identity using disposable test certificates.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Reviewed candidate verifies against approved trust policy and source revision; negative fixtures fail; no production key is stored in repository.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Approved signing identity, key custody and trust policy pending; procurement/public publication separately authorized [M3].
+The authoritative [feature specification and completion tracker](sdk/SDK-015.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-016"></a>
 ### SDK-016 - NuGet publishing workflow
 
-1. **Feature ID:** SDK-016.
-2. **Feature name:** NuGet publishing workflow.
-3. **Description:** Produce reviewable packages and guard any future publication.
-4. **Business value:** Candidate workflow works without secrets reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (release engineering).
-6. **Priority:** P0.
-7. **Planned development phase:** P4; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-RELEASE release.yml/manifest/checks; publicationApproved=false; release tests. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Update candidate inventory for target graph; preserve validate-only default, explicit version/license/approval/tag/hash checks; validate dependency order and partial remote publication recovery.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing manifest/approval schema and release_checks.validate; future workflow contract, no public push in P1.
-13. **Dependencies:** SDK-001, SDK-017, SDK-018, SDK-019; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise wrong tag/version/license/hash, missing/extra archive, denied approval and synthetic eligible candidate. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Wrong tag/version/license/hash, missing/extra archive, denied approval and synthetic eligible candidate.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Candidate workflow works without secrets; forbidden publication scenarios fail closed; actual publication requires distinct owner authorization and configured environment protections.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Distribution license, package ownership, vendor terms, publishing authorization and server-side environment protection unverified.
+The authoritative [feature specification and completion tracker](sdk/SDK-016.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-017"></a>
 ### SDK-017 - API compatibility checks
 
-1. **Feature ID:** SDK-017.
-2. **Feature name:** API compatibility checks.
-3. **Description:** Prevent accidental consumer breaks during package split and releases.
-4. **Business value:** CI rejects an unapproved public break reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (release engineering).
-6. **Priority:** P0.
-7. **Planned development phase:** P2-P4; P1 specifies only.
-8. **Current implementation status:** Not started; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-BUILD/E-RELEASE contain no ApiCompat/package-validation baseline. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Capture preview.2 surface before migration; add package validation against approved baseline and compile/run old and new consumers; require reviewed break records.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed reference API snapshots/EnablePackageValidation or ApiCompat workflow [M2].
-13. **Dependencies:** none for initial API capture; split-package checks follow SDK-001; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise deliberately removed/changed API, type-forwarding identity and transitive dependency bounds. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Deliberately removed/changed API, type-forwarding identity and transitive dependency bounds.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** CI rejects an unapproved public break; approved preview migration is documented and consumed successfully on Linux/Windows.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Baseline nupkg identity must be generated/preserved from audited source; never assume unpublished artifacts are immutable public releases.
+The authoritative [feature specification and completion tracker](sdk/SDK-017.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-018"></a>
 ### SDK-018 - Security scanning and SBOM
 
-1. **Feature ID:** SDK-018.
-2. **Feature name:** Security scanning and SBOM.
-3. **Description:** Expose vulnerable dependencies and shipping supply-chain contents.
-4. **Business value:** Each shipping archive maps to a complete reviewed runtime SBOM/hash reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (release engineering).
-6. **Priority:** P0.
-7. **Planned development phase:** P4; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-RELEASE dependency audit, focused key/path scan, SPDX runtime inventory; no comprehensive code/history secret scan. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Add reviewed code/dependency/secret scanning, explicit severity policy and SBOM completeness checks; include test/build tool inventories separately from runtime.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Existing eng/generate_sbom.py and check_sources.py; proposed security workflow and policy.
-13. **Dependencies:** SDK-001; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise missing transitive dependency, changed archive, malicious test fixture, scanner threshold failures and license unknowns. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Missing transitive dependency, changed archive, malicious test fixture, scanner threshold failures and license unknowns.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** Each shipping archive maps to a complete reviewed runtime SBOM/hash; scanner findings block according to policy; scope/limitations are stated without certification claims.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Security finding triage/license review needed; external scanning service permissions require separate configuration.
+The authoritative [feature specification and completion tracker](sdk/SDK-018.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-019"></a>
 ### SDK-019 - Versioning and release notes
 
-1. **Feature ID:** SDK-019.
-2. **Feature name:** Versioning and release notes.
-3. **Description:** Let consumers evaluate compatibility and upgrade safely.
-4. **Business value:** One candidate version agrees everywhere reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (release engineering).
-6. **Priority:** P0.
-7. **Planned development phase:** P4; P1 specifies only.
-8. **Current implementation status:** Partially implemented; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** E-BUILD preview.2; E-RELEASE versioned manifest; no changelog/release-note system found. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Coordinate versions across package/manifest/samples; adopt SemVer, immutable artifacts and migration notes; record known limitations/security changes per release.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed changelog/release-note format; existing version metadata.
-13. **Dependencies:** SDK-017; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise version drift checks, invalid SemVer, mismatched consumer and upgrade smoke scenarios. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Version drift checks, invalid SemVer, mismatched consumer and upgrade smoke scenarios.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** One candidate version agrees everywhere; notes enumerate feature IDs, supported products, breaks and verification scope; no package overwrite is attempted.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Owner selects stable release number and distribution license; no release tag or publication created in P1.
+The authoritative [feature specification and completion tracker](sdk/SDK-019.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sdk-020"></a>
 ### SDK-020 - SDK documentation website
 
-1. **Feature ID:** SDK-020.
-2. **Feature name:** SDK documentation website.
-3. **Description:** Give users searchable trustworthy APIs, examples and limitations.
-4. **Business value:** A reproducible local site build exposes supported APIs and migration/security guidance reduces integration risk and makes this capability independently consumable.
-5. **Owning package:** all shipping packages (documentation).
-6. **Priority:** P1.
-7. **Planned development phase:** P7; P1 specifies only.
-8. **Current implementation status:** Not started; no full-feature acceptance or new runtime execution asserted.
-9. **Existing implementation evidence:** README/planning Markdown only; no site source/build pipeline found. Evidence aliases resolve in section 3; missing symbols are proposed only.
-10. **Functional requirements:** Build site source from versioned docs/API references, samples and capability matrices; add link/accessibility checks and credential-safe examples; plan hosting separately.
-11. **Nonfunctional requirements:** No hidden host/infrastructure dependency; bounded buffers and work; deterministic output where applicable; net10.0/Linux/Windows support. Capture a P2 benchmark baseline before setting a release performance budget.
-12. **Public API contracts or proposed contracts:** Proposed generated API/reference site; no runtime API.
-13. **Dependencies:** SDK-019, ADP-022; package graph in section 7.
-14. **Security considerations:** No secret/PII in defaults, logs, exceptions or package assets; host-owned credential stores and streams; least dependency privilege. Apply section 16.
-15. **Error and edge-case handling:** Exercise broken links, absent API symbols, sample compilation, secret canaries and navigation checks. Apply the sanitized error and operation-safety rules in section 17; preserve cancellation and document incomplete work.
-16. **Unit-test requirements:** Broken links, absent API symbols, sample compilation, secret canaries and navigation checks.
-17. **Integration-test requirements:** Run isolated package-reference consumers on Linux/Windows and deterministic synthetic handlers/streams; test cross-package registration and compatibility. No external service is needed for the neutral behavior; provider live scenarios are governed by their feature entries.
-18. **Acceptance criteria:** A reproducible local site build exposes supported APIs and migration/security guidance; all examples compile; deployment remains separately authorized.
-19. **Definition of Done:** All numbered acceptance scenarios above pass with revision-linked unit/contract/consumer evidence; public API, docs, security review and compatibility gate in section 26 pass. Required live validation is recorded separately and never reported passed without access.
-20. **External API entitlement or documentation blockers:** Hosting/domain/deployment choices pending; site build does not authorize deployment.
+The authoritative [feature specification and completion tracker](sdk/SDK-020.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 ## 11. ADP Master Feature Matrix
 
-| ID | Feature | Priority | Phase | Current status |
+| ID | Feature | Priority | Phase | Audit baseline status |
 |---|---|---|---|---|
-| [ADP-001](#adp-001) | Certificate and mTLS authentication | P0 | P2 | Implemented but unverified |
-| [ADP-002](#adp-002) | OAuth token acquisition and refresh | P0 | P2 | Implemented but unverified |
-| [ADP-003](#adp-003) | Secure client credentials configuration | P0 | P2 | Partially implemented |
-| [ADP-004](#adp-004) | Worker profile retrieval | P0 | P3 | Implemented but unverified |
-| [ADP-005](#adp-005) | Worker pagination and filtering | P0 | P3 | Partially implemented |
-| [ADP-006](#adp-006) | Worker changes and incremental sync | P0 | P3 | Partially implemented |
-| [ADP-007](#adp-007) | Worker schema mapping | P0 | P3 | Partially implemented |
-| [ADP-008](#adp-008) | CSV/JSON/XML export | P0 | P3 | Partially implemented |
-| [ADP-009](#adp-009) | Excel export | P1 | P3 | Partially implemented |
-| [ADP-010](#adp-010) | Structured errors and rate-limit handling | P0 | P3 | Partially implemented |
-| [ADP-011](#adp-011) | Retry, timeout, and cancellation | P0 | P3 | Implemented but unverified |
-| [ADP-012](#adp-012) | Connection diagnostics | P0 | P3 | Not started |
-| [ADP-013](#adp-013) | ADP organization and manager data | P1 | P3 extension | Partially implemented |
-| [ADP-014](#adp-014) | Employment status and lifecycle events | P1 | P3 extension | Partially implemented |
-| [ADP-015](#adp-015) | Payroll operations, where entitled | P1 | P3 extension | Partially implemented |
-| [ADP-016](#adp-016) | Time and attendance APIs | P2 | P7 | Partially implemented |
-| [ADP-017](#adp-017) | Benefits APIs | P2 | P7 | Partially implemented |
-| [ADP-018](#adp-018) | Webhook/event subscriptions | P2 | P3 primitives; P7 expansion | Partially implemented |
-| [ADP-019](#adp-019) | Typed API response models | P0 | P3 | Partially implemented |
-| [ADP-020](#adp-020) | Sandbox and contract test suite | P0 | P3-P4 | Partially implemented |
-| [ADP-021](#adp-021) | API capability/entitlement matrix | P0 | P1 baseline; P3 completion | Partially implemented |
-| [ADP-022](#adp-022) | Documentation and runnable examples | P0 | P3-P4 | Partially implemented |
+| [ADP-001](adp/ADP-001.md) | Certificate and mTLS authentication | P0 | P2 | Implemented but unverified |
+| [ADP-002](adp/ADP-002.md) | OAuth token acquisition and refresh | P0 | P2 | Implemented but unverified |
+| [ADP-003](adp/ADP-003.md) | Secure client credentials configuration | P0 | P2 | Partially implemented |
+| [ADP-004](adp/ADP-004.md) | Worker profile retrieval | P0 | P3 | Implemented but unverified |
+| [ADP-005](adp/ADP-005.md) | Worker pagination and filtering | P0 | P3 | Partially implemented |
+| [ADP-006](adp/ADP-006.md) | Worker changes and incremental sync | P0 | P3 | Partially implemented |
+| [ADP-007](adp/ADP-007.md) | Worker schema mapping | P0 | P3 | Partially implemented |
+| [ADP-008](adp/ADP-008.md) | CSV/JSON/XML export | P0 | P3 | Partially implemented |
+| [ADP-009](adp/ADP-009.md) | Excel export | P1 | P3 | Partially implemented |
+| [ADP-010](adp/ADP-010.md) | Structured errors and rate-limit handling | P0 | P3 | Partially implemented |
+| [ADP-011](adp/ADP-011.md) | Retry, timeout, and cancellation | P0 | P3 | Implemented but unverified |
+| [ADP-012](adp/ADP-012.md) | Connection diagnostics | P0 | P3 | Not started |
+| [ADP-013](adp/ADP-013.md) | ADP organization and manager data | P1 | P3 extension | Partially implemented |
+| [ADP-014](adp/ADP-014.md) | Employment status and lifecycle events | P1 | P3 extension | Partially implemented |
+| [ADP-015](adp/ADP-015.md) | Payroll operations, where entitled | P1 | P3 extension | Partially implemented |
+| [ADP-016](adp/ADP-016.md) | Time and attendance APIs | P2 | P7 | Partially implemented |
+| [ADP-017](adp/ADP-017.md) | Benefits APIs | P2 | P7 | Partially implemented |
+| [ADP-018](adp/ADP-018.md) | Webhook/event subscriptions | P2 | P3 primitives; P7 expansion | Partially implemented |
+| [ADP-019](adp/ADP-019.md) | Typed API response models | P0 | P3 | Partially implemented |
+| [ADP-020](adp/ADP-020.md) | Sandbox and contract test suite | P0 | P3-P4 | Partially implemented |
+| [ADP-021](adp/ADP-021.md) | API capability/entitlement matrix | P0 | P1 baseline; P3 completion | Partially implemented |
+| [ADP-022](adp/ADP-022.md) | Documentation and runnable examples | P0 | P3-P4 | Partially implemented |
 
 ## 12. ADP Detailed Feature Specifications
 
@@ -702,530 +324,112 @@ Baseline product scope is ADP U.S. Workforce Now. WFN Next Gen, RUN, Lyric, Vant
 <a id="adp-001"></a>
 ### ADP-001 - Certificate and mTLS authentication
 
-1. **Feature ID:** ADP-001.
-2. **Feature name:** Certificate and mTLS authentication.
-3. **Description:** Establish certificate-authenticated ADP connections without exposing private keys.
-4. **Business value:** Establish certificate-authenticated ADP connections without exposing private keys.
-5. **Owning package:** Koras.Connect.ADP with Koras.Connect.Authentication.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; no implementation in P1.
-8. **Current implementation status:** Implemented but unverified; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-AUTH ClientCertificateTransport; E-DI; E-TEST certificate loader/DI tests; aliases resolve in section 3.
-10. **Functional requirements:** Use registered certificate for both token and API handlers; reject missing private key; support injected/PEM/PFX certificates and document expiry/rotation and host disposal.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing ClientCertificateTransport.Create/LoadPem/LoadPkcs12; proposed certificate-provider adapter.
-13. **Dependencies:** SDK-005, SDK-006, SDK-004; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** PEM/PFX roundtrip, public-only rejection, invalid password, expiry policy, handler isolation and rotation. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** PEM/PFX roundtrip, public-only rejection, invalid password, expiry policy, handler isolation and rotation.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Both OAuth and API channels present the intended certificate in an authorized sandbox; missing/expired credentials fail safely and synthetic resource tests pass.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** ADP app/certificate registration and sandbox TLS verification unavailable; source implementation is not a successful handshake claim.
+The authoritative [feature specification and completion tracker](adp/ADP-001.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-002"></a>
 ### ADP-002 - OAuth token acquisition and refresh
 
-1. **Feature ID:** ADP-002.
-2. **Feature name:** OAuth token acquisition and refresh.
-3. **Description:** Acquire and renew tokens predictably under concurrent load.
-4. **Business value:** Acquire and renew tokens predictably under concurrent load.
-5. **Owning package:** Koras.Connect.ADP with Koras.Connect.Authentication.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; no implementation in P1.
-8. **Current implementation status:** Implemented but unverified; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-AUTH ClientCredentialsTokenSource; E-TEST ConcurrentTokenAcquisitionIsSingleFlightAndRedacted and TokenRenewsBeforeExpiryAndCanceledCallsCannotUseCache; aliases resolve in section 3.
-10. **Functional requirements:** Use client_credentials on the exact configured ADP token endpoint; renew using expiry/skew; no refresh-token grant assumed; isolate caches and define credential-rotation invalidation.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing IAccessTokenSource/GetTokenAsync and ClientCredentialsOptions; proposed rotatable credential adapter.
-13. **Dependencies:** ADP-001, SDK-005, SDK-010; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Concurrency single-flight, expiry boundary, bad/missing token/type/lifetime, failed renewal and canceled cache hit. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Concurrency single-flight, expiry boundary, bad/missing token/type/lifetime, failed renewal and canceled cache hit.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Concurrent requests share one valid acquisition; expired credentials cannot remain cached; request shape and live token grant pass with authorized test credentials.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Official getting-started page fetch failed in P1; current endpoint is source/README evidence and official collection candidate, not newly live-verified; app grant required.
+The authoritative [feature specification and completion tracker](adp/ADP-002.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-003"></a>
 ### ADP-003 - Secure client credentials configuration
 
-1. **Feature ID:** ADP-003.
-2. **Feature name:** Secure client credentials configuration.
-3. **Description:** Prevent accidental credential leakage and enable replacement without code changes.
-4. **Business value:** Prevent accidental credential leakage and enable replacement without code changes.
-5. **Owning package:** Koras.Connect.ADP with Koras.Connect.Authentication.
-6. **Priority:** P0.
-7. **Planned development phase:** P2; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-AUTH ClientCredentialsOptions.Validate/ToString; E-DI certificate injection; aliases resolve in section 3.
-10. **Functional requirements:** Validate ID/secret/endpoint before send; add provider-source configuration, redacted options and documented local development setup without committing secrets; expose no credential dump diagnostics.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing ClientCredentialsOptions; proposed ICredentialProvider<AdpClientCredential> adapter.
-13. **Dependencies:** SDK-006, SDK-014, ADP-002; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Whitespace/null values, unsafe roots, option formatting/serialization, provider failures, reload and cross-tenant isolation. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Whitespace/null values, unsafe roots, option formatting/serialization, provider failures, reload and cross-tenant isolation.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Invalid settings fail before network; all public credential representations redact secrets; documented external source rotation invalidates the relevant token cache.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Secret store and certificate custody supplied by host; no customer credentials available.
+The authoritative [feature specification and completion tracker](adp/ADP-003.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-004"></a>
 ### ADP-004 - Worker profile retrieval
 
-1. **Feature ID:** ADP-004.
-2. **Feature name:** Worker profile retrieval.
-3. **Description:** Read an authorized worker using a stable public model.
-4. **Business value:** Read an authorized worker using a stable public model.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Implemented but unverified; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-WORKERS GetWorkerAsync; E-TEST IndividualWorkerPreservesUnknownFieldsAndEscapesFilters; aliases resolve in section 3.
-10. **Functional requirements:** Retrieve by associate OID, preserve extension fields and masked/absent values, define not-found/empty behavior and disposal; do not conflate workerID with associateOID.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing Task<Worker?> GetWorkerAsync(string associateOid, CancellationToken); GET /hr/v2/workers/{associateOID}.
-13. **Dependencies:** ADP-001, ADP-002, ADP-019; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Valid/empty/multiple worker envelopes, unsafe identifier encoding, unknown fields, 403/404 and malformed JSON. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Valid/empty/multiple worker envelopes, unsafe identifier encoding, unknown fields, 403/404 and malformed JSON.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Synthetic fixtures preserve typed and unknown data; empty authorized result returns documented null, non-success errors remain classified; live authorized worker matches sanitized schema.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** WFN product, worker read CAR grant, actor/population and field visibility must be verified against customer metadata [A1].
+The authoritative [feature specification and completion tracker](adp/ADP-004.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-005"></a>
 ### ADP-005 - Worker pagination and filtering
 
-1. **Feature ID:** ADP-005.
-2. **Feature name:** Worker pagination and filtering.
-3. **Description:** Enumerate large authorized populations without unsafe query construction.
-4. **Business value:** Enumerate large authorized populations without unsafe query construction.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-WORKERS page/search/iterators; E-TEST WorkersTests, SearchCannotInjectQueryParameters and RepeatedPagesStopInsteadOfLooping; aliases resolve in section 3.
-10. **Functional requirements:** Preserve encoded metadata-approved filters; define typed filter whitelist and neutral page adapter; do not stop only because a page is smaller than requested; document current SDK size bound separately from server limits.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing GetWorkersPageAsync/SearchWorkersAsync/EnumerateTypedWorkersAsync; proposed Page<Worker> adapter.
-13. **Dependencies:** ADP-004, SDK-007, SDK-010; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Empty/short/multiple/repeated pages, offset overflow, unsupported filters, special characters, partial cancellation and server-returned fewer records. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Empty/short/multiple/repeated pages, offset overflow, unsupported filters, special characters, partial cancellation and server-returned fewer records.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** All expected fixture records appear once per stable traversal; filters cannot inject query parameters; page resume validates query identity; 202 responses fail explicitly unless an authorized async protocol is implemented.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Current SDK accepts 1-100; that is not a universal ADP maximum. Async worker retrieval is outside current implementation and requires product-specific verification [A1].
+The authoritative [feature specification and completion tracker](adp/ADP-005.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-006"></a>
 ### ADP-006 - Worker changes and incremental sync
 
-1. **Feature ID:** ADP-006.
-2. **Feature name:** Worker changes and incremental sync.
-3. **Description:** Reduce repeat delivery while retaining a reliable recovery path.
-4. **Business value:** Reduce repeat delivery while retaining a reliable recovery path.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-SYNC fingerprints/batching; E-OPS notifications/ack; E-EVENT delivery identity; aliases resolve in section 3.
-10. **Functional requirements:** Expose caller-owned query-bound checkpoints and event-triggered re-read plus periodic snapshot reconciliation; never invent modifiedSince, infer deletion from invisibility or acknowledge before downstream success.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing Reconciliation.DetectChangesAsync, ReadNotificationAsync/AcknowledgeNotificationAsync; proposed synchronization result/checkpoint contract.
-13. **Dependencies:** ADP-004, SDK-007, ADP-018; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Duplicate keys/delivery IDs, changed representation, interrupted scan, out-of-order events, permission shrink and failed downstream delivery. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Duplicate keys/delivery IDs, changed representation, interrupted scan, out-of-order events, permission shrink and failed downstream delivery.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** A failed scan cannot commit a completed checkpoint; duplicate events do not force duplicate host processing in sample harness; no universal last-modified filter or hidden persistence is emitted.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Exact subscribed event coverage/retention and permitted reads required; no universal WFN delta cursor verified [A4].
+The authoritative [feature specification and completion tracker](adp/ADP-006.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-007"></a>
 ### ADP-007 - Worker schema mapping
 
-1. **Feature ID:** ADP-007.
-2. **Feature name:** Worker schema mapping.
-3. **Description:** Create explicit auditable export/domain projections without losing vendor fields silently.
-4. **Business value:** Create explicit auditable export/domain projections without losing vendor fields silently.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-WORKERS typed subset/JSON fragments; E-EXPORT caller projections; no mapping-provider interface; aliases resolve in section 3.
-10. **Functional requirements:** Provide opt-in mapper/projection profiles for identity, legal name and assignments; preserve absence/masking; version profiles and distinguish effective assignments; no built-in ADP-to-SAP workflow.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed IRecordMapper<Worker,T> and MappingResult<T>; current caller Func mappings.
-13. **Dependencies:** ADP-019, SDK-002, SDK-013; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Missing names, multiple assignments, unknown codes, masked identifiers, future properties, effective dates and culture. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Missing names, multiple assignments, unknown codes, masked identifiers, future properties, effective dates and culture.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Golden synthetic worker-to-neutral projection tests pass; omitted/masked/invalid fields produce explicit documented results; source model remains unchanged.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Field meanings and authorized metadata vary per tenant; obtain exact schema/codes before claiming full worker mapping.
+The authoritative [feature specification and completion tracker](adp/ADP-007.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-008"></a>
 ### ADP-008 - CSV/JSON/XML export
 
-1. **Feature ID:** ADP-008.
-2. **Feature name:** CSV/JSON/XML export.
-3. **Description:** Deliver selected worker data in portable file formats.
-4. **Business value:** Deliver selected worker data in portable file formats.
-5. **Owning package:** Koras.Connect.ADP (projection) and Koras.Connect.Export (serialization), composed by host.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-EXPORT WriteCsvAsync/WriteJsonAsync/WriteXml; E-TEST ExportsEscapeDataAndLeaveStreamOpen; E-SAMPLE; aliases resolve in section 3.
-10. **Functional requirements:** Compose worker mappings with independent Export providers; stable column/schema and null/date encoding; stream without implicit file writes and reject partial success.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing TabularExport; proposed IExportProvider composed with worker projection, no ADP-Export dependency.
-13. **Dependencies:** ADP-007, SDK-013, SDK-010; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** CSV quote/formula/control prefixes, XML invalid characters/names policy, JSON extension fields, Unicode/null values, cancellation and failing output stream. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** CSV quote/formula/control prefixes, XML invalid characters/names policy, JSON extension fields, Unicode/null values, cancellation and failing output stream.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Each format roundtrips the documented selected fixture fields; streams remain open and partial failure is surfaced; serialized output includes no implicit sensitive columns.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** No extra vendor grant beyond retrieving selected data; consumers must authorize data destinations.
+The authoritative [feature specification and completion tracker](adp/ADP-008.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-009"></a>
 ### ADP-009 - Excel export
 
-1. **Feature ID:** ADP-009.
-2. **Feature name:** Excel export.
-3. **Description:** Allow spreadsheet consumption without formula execution.
-4. **Business value:** Allow spreadsheet consumption without formula execution.
-5. **Owning package:** Koras.Connect.ADP (projection) and Koras.Connect.Export (serialization), composed by host.
-6. **Priority:** P1.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-EXPORT WriteExcel; E-TEST XLSX XML/no-formula checks; aliases resolve in section 3.
-10. **Functional requirements:** Retain inline text/no formulas; support async provider composition, explicit row/column/text limits and large-output budgets; reject invalid input rather than silently truncate.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing WriteExcel; proposed XLSX IExportProvider and explicit schema.
-13. **Dependencies:** SDK-013, ADP-007; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Formula prefixes, whitespace/Unicode, maximum and over-limit rows/columns/text, invalid XML characters and independent workbook-reader validation. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Formula prefixes, whitespace/Unicode, maximum and over-limit rows/columns/text, invalid XML characters and independent workbook-reader validation.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** An independent reader opens the workbook and recovers selected values; no formula nodes are generated; limits fail deterministically with documented partial-output handling.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** No Excel license/service required for generation; reader/library choice reviewed later, not installed in P1.
+The authoritative [feature specification and completion tracker](adp/ADP-009.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-010"></a>
 ### ADP-010 - Structured errors and rate-limit handling
 
-1. **Feature ID:** ADP-010.
-2. **Feature name:** Structured errors and rate-limit handling.
-3. **Description:** Expose actionable ADP failure classes without leaking HR records.
-4. **Business value:** Expose actionable ADP failure classes without leaking HR records.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-TRANSPORT IntegrationRequestException/retries; E-TEST ApiFailuresDoNotExposeResponseBody; aliases resolve in section 3.
-10. **Functional requirements:** Map documented ADP error metadata/correlation to neutral hierarchy; preserve HTTP/attempt/retry hints safely; never emit raw ADP userMessage by default.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed AdpApiException/SafeProviderError layered on SDK-009; current IntegrationRequestException.
-13. **Dependencies:** SDK-009, SDK-008, SDK-011; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** 401/403/404/429/5xx, blank benefits 400, malformed provider error, hostile IDs, excessive Retry-After and payload canaries. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** 401/403/404/429/5xx, blank benefits 400, malformed provider error, hostile IDs, excessive Retry-After and payload canaries.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Host can distinguish denied access, throttling, invalid input and malformed response with sanitized fields; no private message/body appears in diagnostics.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Per-operation official error schemas and tenant samples needed; no numeric ADP rate limit verified.
+The authoritative [feature specification and completion tracker](adp/ADP-010.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-011"></a>
 ### ADP-011 - Retry, timeout, and cancellation
 
-1. **Feature ID:** ADP-011.
-2. **Feature name:** Retry, timeout, and cancellation.
-3. **Description:** Bound ADP work while protecting writes from replay.
-4. **Business value:** Bound ADP work while protecting writes from replay.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Implemented but unverified; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-TRANSPORT bounded GET retry/deadline; E-TEST transient/deadline/no-write-retry tests; aliases resolve in section 3.
-10. **Functional requirements:** Apply shared operation-safety defaults to workers, event reads, acknowledgement and writes; include auth/waits in documented operation budget or expose separate explicit auth budget.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing TransportOptions and operation CancellationToken parameters.
-13. **Dependencies:** SDK-008, SDK-010, ADP-002; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Cancel during auth/page/delay/body, Retry-After date/delta, write timeout unknown outcome, no DELETE replay and disposed response. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Cancel during auth/page/delay/body, Retry-After date/delta, write timeout unknown outcome, no DELETE replay and disposed response.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Transient reads respect bounded delay/deadline; POST and acknowledgement DELETE are not automatically replayed; cancellation escapes promptly and writes advise reconciliation.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Sandbox rate behavior not verified; authorized live tests must avoid inducing damaging throttling or duplicate writes.
+The authoritative [feature specification and completion tracker](adp/ADP-011.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-012"></a>
 ### ADP-012 - Connection diagnostics
 
-1. **Feature ID:** ADP-012.
-2. **Feature name:** Connection diagnostics.
-3. **Description:** Help operators separate TLS, auth, entitlement and schema failures.
-4. **Business value:** Help operators separate TLS, auth, entitlement and schema failures.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Not started; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** No TestConnection/Diagnose API in E-WORKERS/E-OPS; E-TRANSPORT has only hooks; aliases resolve in section 3.
-10. **Functional requirements:** Implement opt-in staged read-only diagnostics: local config/cert validity, token acquisition and a configured minimal authorized API probe; no writes or exhaustive tenant scan.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed AdpConnector.DiagnoseAsync returning ConnectionDiagnostic with stage/outcome/redacted correlation.
-13. **Dependencies:** SDK-002, SDK-009, SDK-011, ADP-004; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Expired/missing cert, 401/403, timeout, DNS/TLS fault, malformed response, canceled probe and no write sends. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Expired/missing cert, 401/403, timeout, DNS/TLS fault, malformed response, canceled probe and no write sends.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Results identify the failed stage without exposing credential/worker data; default diagnostics never mutate ADP and do not claim full tenant permissions from one successful read.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Caller must select entitled probe and sandbox; no universal connectivity endpoint is invented.
+The authoritative [feature specification and completion tracker](adp/ADP-012.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-013"></a>
 ### ADP-013 - ADP organization and manager data
 
-1. **Feature ID:** ADP-013.
-2. **Feature name:** ADP organization and manager data.
-3. **Description:** Expose reporting relationships and organizational structure accurately.
-4. **Business value:** Expose reporting relationships and organizational structure accurately.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P1.
-7. **Planned development phase:** P3 extension; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-OPS OrganizationDepartments/ChangeManager; E-WORKERS WorkAssignment JSON fragments; aliases resolve in section 3.
-10. **Functional requirements:** Type supported department/manager reads and explicit relationship projections; separate documented manager writes and department-allocation events from arbitrary home-location/home-department replacement.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing department raw read and worker ReportsTo/OrganizationalUnits; proposed typed provider DTOs/mappers.
-13. **Dependencies:** ADP-004, ADP-007, ADP-019; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Multiple managers/assignments, absent relationship, cycles in host traversal, unknown organization codes, inaccessible manager and write gating. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Multiple managers/assignments, absent relationship, cycles in host traversal, unknown organization codes, inaccessible manager and write gating.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Selected official read schemas roundtrip unknown fields; relationship identity is documented; no unsupported general replacement endpoint is exposed.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Department/read and relationship/write grants differ; exact current contracts/product versions and manager-write envelope need tenant metadata [A1/A5].
+The authoritative [feature specification and completion tracker](adp/ADP-013.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-014"></a>
 ### ADP-014 - Employment status and lifecycle events
 
-1. **Feature ID:** ADP-014.
-2. **Feature name:** Employment status and lifecycle events.
-3. **Description:** Support entitled employment changes with deliberate safety gates.
-4. **Business value:** Support entitled employment changes with deliberate safety gates.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P1.
-7. **Planned development phase:** P3 extension; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-OPS Hire/Rehire/TerminateAssignment/ModifyWorkAssignment/ModifyDepartmentAllocations; E-WORKERS hire/termination fields; aliases resolve in section 3.
-10. **Functional requirements:** Add typed, metadata-validated opt-in operations and effective-date/status modeling; reconcile unknown write outcomes; do not infer generic worker PATCH from event names.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing SubmitEventAsync low-level JSON dispatch; proposed operation-specific commands/results only after contract verification.
-13. **Dependencies:** ADP-021, ADP-019, ADP-010, ADP-011; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Missing required fields, wrong code/effective date, unauthorized operation, mixed response errors, uncertain POST timeout and no retry. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Missing required fields, wrong code/effective date, unauthorized operation, mixed response errors, uncertain POST timeout and no retry.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Each enabled operation has current official request/response schema and synthetic positive/negative tests; live writes run only in a separately authorized sandbox with cleanup plan.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Full canonical grants/actor/product/metadata pending; termination portal is JS-only in P1. Existing dispatch does not prove complete lifecycle validation.
+The authoritative [feature specification and completion tracker](adp/ADP-014.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-015"></a>
 ### ADP-015 - Payroll operations, where entitled
 
-1. **Feature ID:** ADP-015.
-2. **Feature name:** Payroll operations, where entitled.
-3. **Description:** Read or submit narrowly authorized payroll data without overstating coverage.
-4. **Business value:** Read or submit narrowly authorized payroll data without overstating coverage.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P1.
-7. **Planned development phase:** P3 extension; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-OPS ChangePayDataInput, PayrollInstructions, PayDistributions; E-TEST documented route/no-retry tests; aliases resolve in section 3.
-10. **Functional requirements:** Document exact supported payroll subset; type approved contracts; gate writes by explicit opt-in/grants/open payroll context; preserve decimal/currency and per-item outcomes.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing raw read/SubmitEventAsync; proposed typed payroll result/command family after metadata review.
-13. **Dependencies:** ADP-021, ADP-010, ADP-019; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Invalid batch/payroll context, precision/nulls, denied grants, failed items and unknown write outcomes. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Invalid batch/payroll context, precision/nulls, denied grants, failed items and unknown write outcomes.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Only approved operation contracts are callable; synthetic envelopes validate against reviewed schemas; no automatic payroll POST retry; broader payroll APIs remain unsupported.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Licensed payroll API subscription, allowed payroll groups and safe sandbox write authorization unavailable [A5]; no production payroll execution.
+The authoritative [feature specification and completion tracker](adp/ADP-015.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-016"></a>
 ### ADP-016 - Time and attendance APIs
 
-1. **Feature ID:** ADP-016.
-2. **Feature name:** Time and attendance APIs.
-3. **Description:** Expose a scoped time capability rather than equating time-off reads with attendance coverage.
-4. **Business value:** Expose a scoped time capability rather than equating time-off reads with attendance coverage.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P2.
-7. **Planned development phase:** P7; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-OPS TimeOffBalances/TimeOffRequests; E-TEST documented worker read routes; aliases resolve in section 3.
-10. **Functional requirements:** Retain time-off reads; research attendance/timecard contracts independently before adding them; model timezone/date/unit rules and entitlement-specific capabilities.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing ReadAsync for two time-off operations; no attendance API proposed until verified.
-13. **Dependencies:** ADP-021, ADP-019, SDK-007; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Missing worker, date/unit/timezone edge cases, paging where documented, forbidden product and unknown fields. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Missing worker, date/unit/timezone edge cases, paging where documented, forbidden product and unknown fields.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Time-off subset has typed reviewed schemas and tests; capability report explicitly says attendance/timecard operations unverified until their contracts and tests are added.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Time product/module and exact grants unavailable; no attendance endpoint or common quota inferred from time-off collection examples [A5].
+The authoritative [feature specification and completion tracker](adp/ADP-016.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-017"></a>
 ### ADP-017 - Benefits APIs
 
-1. **Feature ID:** ADP-017.
-2. **Feature name:** Benefits APIs.
-3. **Description:** Retrieve authorized enrollment details within explicit product restrictions.
-4. **Business value:** Retrieve authorized enrollment details within explicit product restrictions.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P2.
-7. **Planned development phase:** P7; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-OPS ReadSpendingAccountEnrollmentsAsync; E-TEST BenefitsRequireEffectiveDateAndPreserveDocumentedFilter; aliases resolve in section 3.
-10. **Functional requirements:** Retain date-required spending-account read; preserve documented filter exactly until a current contract supersedes it; type coverage/periods and handle sensitive unmasked data conservatively.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing ReadSpendingAccountEnrollmentsAsync(string, DateOnly, CancellationToken); proposed typed enrollment response.
-13. **Dependencies:** ADP-021, ADP-019, ADP-010; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Missing date/identifier, blank-body 400, overlapping periods, active/inactive dependents, masked/unmasked fields and denied grant. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Missing date/identifier, blank-body 400, overlapping periods, active/inactive dependents, masked/unmasked fields and denied grant.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Required effective-date query and permitted plan restrictions are documented; no broad benefits coverage is claimed; output mapping uses explicit sensitive-field selection.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** External-benefit-provider plan setup/ADP Benefits onboarding and current grant required; official guide contains route inconsistencies requiring tenant confirmation [A3].
+The authoritative [feature specification and completion tracker](adp/ADP-017.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-018"></a>
 ### ADP-018 - Webhook/event subscriptions
 
-1. **Feature ID:** ADP-018.
-2. **Feature name:** Webhook/event subscriptions.
-3. **Description:** React to supported changes while maintaining host-owned durable delivery.
-4. **Business value:** React to supported changes while maintaining host-owned durable delivery.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P2.
-7. **Planned development phase:** P3 primitives; P7 expansion; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-EVENT publisher helper/delivery key; E-OPS notification read/ack; E-TEST polling/header tests; aliases resolve in section 3.
-10. **Functional requirements:** Keep polling helpers and explicit ack; document subscription provisioning and covered events; authenticate receiver separately, deduplicate durably in host and re-read worker data; no SDK web server.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing VerifyPublisherHeader/GetDeliveryKey and notification methods; proposed parsed safe event envelope/capability descriptor.
-13. **Dependencies:** SDK-007, ADP-004, ADP-021; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Invalid HMAC/header, duplicate/org-separated IDs, malformed envelope, empty 204 queue, ack after failure and no automatic ack. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Invalid HMAC/header, duplicate/org-separated IDs, malformed envelope, empty 204 queue, ack after failure and no automatic ack.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Synthetic workflow never acknowledges before simulated durable success; receiver docs explain static header cannot verify payload integrity/freshness; subscription is reported unknown until authorized evidence exists.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Subscription setup belongs to ADP project/partner administration, not a guessed API; live webhook endpoint and replay storage are host-owned [A4].
+The authoritative [feature specification and completion tracker](adp/ADP-018.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-019"></a>
 ### ADP-019 - Typed API response models
 
-1. **Feature ID:** ADP-019.
-2. **Feature name:** Typed API response models.
-3. **Description:** Make supported responses discoverable and resilient to schema growth.
-4. **Business value:** Make supported responses discoverable and resilient to schema growth.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-WORKERS Worker/Person/WorkAssignment; E-OPS other responses primarily JsonDocument; aliases resolve in section 3.
-10. **Functional requirements:** Complete typed schemas for the first-release operation subset; preserve extension data, vendor codes, dates/precision, masked/null distinction and stable naming; raw escape hatch remains explicit.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Existing Worker family; proposed response envelopes and safe error/metadata models tied to verified operations.
-13. **Dependencies:** ADP-021, SDK-017, SDK-009; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Unknown/nested fields, null/missing collections, invalid code/date/number, oversized/deep JSON and forward/backward fixtures. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Unknown/nested fields, null/missing collections, invalid code/date/number, oversized/deep JSON and forward/backward fixtures.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Every declared first-release typed operation has official schema mapping and golden tests; unknown fields survive roundtrip; raw-only preview operations are labeled clearly.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Current complete official schemas and authorized metadata required; code fragments are not full vendor models.
+The authoritative [feature specification and completion tracker](adp/ADP-019.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-020"></a>
 ### ADP-020 - Sandbox and contract test suite
 
-1. **Feature ID:** ADP-020.
-2. **Feature name:** Sandbox and contract test suite.
-3. **Description:** Verify protocol correctness and expose live-access gaps honestly.
-4. **Business value:** Verify protocol correctness and expose live-access gaps honestly.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3-P4; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-TEST all five C# files; no live harness; historical execution in VERIFICATION.md; aliases resolve in section 3.
-10. **Functional requirements:** Organize unit/contract/security/live suites; schema-version synthetic fixtures with provenance; opt-in read-only sandbox harness; approved writes isolated and never default.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed sandbox configuration/test category; no production runtime API.
-13. **Dependencies:** ADP-001-019, SDK-018; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Contract fixture negative cases, missing credential skip reasons, no-network-by-default, redaction and destructive-operation exclusion. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Contract fixture negative cases, missing credential skip reasons, no-network-by-default, redaction and destructive-operation exclusion.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** CI runs deterministic synthetic tests on both OSes; separately authorized sandbox results identify product/schema/grants/revision; missing access is reported skipped/blocked, never passed.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Sandbox root, credentials/certificate, population and subscriptions absent; synthetic tests can proceed without them.
+The authoritative [feature specification and completion tracker](adp/ADP-020.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-021"></a>
 ### ADP-021 - API capability/entitlement matrix
 
-1. **Feature ID:** ADP-021.
-2. **Feature name:** API capability/entitlement matrix.
-3. **Description:** Prevent customers from assuming availability from a method's existence.
-4. **Business value:** Prevent customers from assuming availability from a method's existence.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P1 baseline; P3 completion; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** docs/features/ADP-FEATURE-MATRIX.md; E-OPS catalog; section 13; aliases resolve in section 3.
-10. **Functional requirements:** Track product/version, family, method/path, schema, auth, canonical grant, actor/population, read/write, paging/quota, evidence date and live state per operation; unknown stays unknown.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed ConnectorDescriptor operation descriptors; section 13 is the P1 baseline.
-13. **Dependencies:** SDK-002; current official schema/entitlement research precedes modeling, matrix acceptance consumes ADP-019/020 evidence; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Matrix-to-catalog consistency, unsupported/unknown states, grant evidence expiry and synthetic deny-before-network. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Matrix-to-catalog consistency, unsupported/unknown states, grant evidence expiry and synthetic deny-before-network.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** Every exposed operation has a reviewed row; unknown grants/schemas block that operation's release acceptance without falsely blocking unrelated independently verified operations.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Exact customer CAR/exported current metadata and product access not supplied; public catalog availability does not establish entitlement.
+The authoritative [feature specification and completion tracker](adp/ADP-021.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="adp-022"></a>
 ### ADP-022 - Documentation and runnable examples
 
-1. **Feature ID:** ADP-022.
-2. **Feature name:** Documentation and runnable examples.
-3. **Description:** Let engineers adopt supported operations reproducibly and safely.
-4. **Business value:** Let engineers adopt supported operations reproducibly and safely.
-5. **Owning package:** Koras.Connect.ADP.
-6. **Priority:** P0.
-7. **Planned development phase:** P3-P4; no implementation in P1.
-8. **Current implementation status:** Partially implemented; live tenant behavior unverified, full-feature acceptance not granted.
-9. **Existing implementation evidence:** E-SAMPLE packaging smoke and README snippets; no dedicated ADP auth/export/connection examples; aliases resolve in section 3.
-10. **Functional requirements:** Provide minimal Authentication, WorkerExport and ConnectionTest examples with synthetic/offline modes; document mTLS, credentials, cancellation, operation gates, output sensitivity and migration.
-11. **Nonfunctional requirements:** Bound time/memory/request count; support net10.0 on Linux/Windows, stream records without whole-population buffering and retain host-owned resources. No host scheduling or storage dependency.
-12. **Public API contracts or proposed contracts:** Proposed samples/ADP.Authentication, ADP.WorkerExport, ADP.ConnectionTest; keep PackageConsumer.
-13. **Dependencies:** ADP-012, ADP-008, ADP-001, ADP-020; graph in section 7.
-14. **Security considerations:** Require actual tenant/product/operation permissions; no credentials or HR payloads in errors/logs; default vendor masking, explicit field selection, TLS and no redirects. Writes need explicit enablement and authorization for the test environment.
-15. **Error and edge-case handling:** Compile examples, offline execution, missing settings diagnostics, cancellation and secret/PII canaries. Use section 17 classification; uncertain writes require reconciliation rather than retry; absence is not deletion or loss of employment.
-16. **Unit-test requirements:** Compile examples, offline execution, missing settings diagnostics, cancellation and secret/PII canaries.
-17. **Integration-test requirements:** Synthetic HttpMessageHandler/schema/stream tests on both OSes plus isolated package consumers; authorized read-only sandbox checks for applicable vendor behavior, and separately authorized disposable write cases only where required. Record exact product/grants/schema and revision; no live access is claimed here.
-18. **Acceptance criteria:** All three examples compile/run offline from clean checkout; optional sandbox mode clearly states prerequisites and cannot mutate payroll/lifecycle records by default.
-19. **Definition of Done:** Meet the feature acceptance criteria, unit/contract/security/consumer gates and section 26; attach current official schema/grant evidence for claimed operations and explicit live result or blocker. Do not mark Accepted while a mandatory external gate is unresolved.
-20. **External API entitlement or documentation blockers:** Live sample mode blocked by missing authorized sandbox; offline examples are not blocked.
+The authoritative [feature specification and completion tracker](adp/ADP-022.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 ## 13. ADP API Capability and Entitlement Matrix
 
@@ -1290,408 +494,104 @@ This independent connector owns SAP semantics, not ADP-to-SAP orchestration. SAP
 
 Official sources checked November 12, 2026: [S1: SAML exchange](https://help.sap.com/docs/successfactors-platform/sap-successfactors-api-reference-guide-odata-v2/requesting-access-token?locale=en-US) (official search excerpt readable, page rendering limited), [S2: entity operations/upsert](https://userapps.support.sap.com/sap/support/knowledge/en/2670250), [S3: query/pagination/retry guidance](https://userapps.support.sap.com/sap/support/knowledge/E/2735876) (readable). The historical 2411 OData PDF redirected to page-not-found and is not new schema evidence. Current tenant metadata/entity references must close each entity contract. Permissions are entity-specific RBP/target population; do not invent OAuth scope strings or assume all entities support all verbs.
 
-| ID | Feature | Priority | Phase | Current status |
+| ID | Feature | Priority | Phase | Audit baseline status |
 |---|---|---|---|---|
-| [SAP-001](#sap-001) | OAuth and supported authentication mechanisms | P0 | P5 | Partially implemented |
-| [SAP-002](#sap-002) | OData API foundation and employee/person data | P0 | P5 | Partially implemented |
-| [SAP-003](#sap-003) | Upsert operations | P0 | P5 | Partially implemented |
-| [SAP-004](#sap-004) | Pagination and filtering | P0 | P5 | Partially implemented |
-| [SAP-005](#sap-005) | Error handling and diagnostics | P0 | P5 | Partially implemented |
-| [SAP-006](#sap-006) | Contract and sandbox testing | P0 | P5 | Partially implemented |
-| [SAP-007](#sap-007) | Additional APIs and complete business-schema validation | P1 | P5 | Planned |
-| [SAP-008](#sap-008) | Employment records | P0 | P5 | Partially implemented |
-| [SAP-009](#sap-009) | Job information | P0 | P5 | Partially implemented |
-| [SAP-010](#sap-010) | Organizational data | P1 | P5 | Not started |
-| [SAP-011](#sap-011) | Manager relationships | P1 | P5 | Partially implemented |
-| [SAP-012](#sap-012) | Employee create/update operations where authorized | P1 | P5 | Partially implemented |
-| [SAP-013](#sap-013) | Delta and incremental synchronization | P0 | P5 | Partially implemented |
-| [SAP-014](#sap-014) | Metadata and schema discovery | P0 | P5 | Partially implemented |
-| [SAP-015](#sap-015) | Data mapping | P0 | P5 | Partially implemented |
-| [SAP-016](#sap-016) | Configuration, documentation and examples | P0 | P5 | Partially implemented |
+| [SAP-001](sap-successfactors/SAP-001.md) | OAuth and supported authentication mechanisms | P0 | P5 | Partially implemented |
+| [SAP-002](sap-successfactors/SAP-002.md) | OData API foundation and employee/person data | P0 | P5 | Partially implemented |
+| [SAP-003](sap-successfactors/SAP-003.md) | Upsert operations | P0 | P5 | Partially implemented |
+| [SAP-004](sap-successfactors/SAP-004.md) | Pagination and filtering | P0 | P5 | Partially implemented |
+| [SAP-005](sap-successfactors/SAP-005.md) | Error handling and diagnostics | P0 | P5 | Partially implemented |
+| [SAP-006](sap-successfactors/SAP-006.md) | Contract and sandbox testing | P0 | P5 | Partially implemented |
+| [SAP-007](sap-successfactors/SAP-007.md) | Additional APIs and complete business-schema validation | P1 | P5 | Planned |
+| [SAP-008](sap-successfactors/SAP-008.md) | Employment records | P0 | P5 | Partially implemented |
+| [SAP-009](sap-successfactors/SAP-009.md) | Job information | P0 | P5 | Partially implemented |
+| [SAP-010](sap-successfactors/SAP-010.md) | Organizational data | P1 | P5 | Not started |
+| [SAP-011](sap-successfactors/SAP-011.md) | Manager relationships | P1 | P5 | Partially implemented |
+| [SAP-012](sap-successfactors/SAP-012.md) | Employee create/update operations where authorized | P1 | P5 | Partially implemented |
+| [SAP-013](sap-successfactors/SAP-013.md) | Delta and incremental synchronization | P0 | P5 | Partially implemented |
+| [SAP-014](sap-successfactors/SAP-014.md) | Metadata and schema discovery | P0 | P5 | Partially implemented |
+| [SAP-015](sap-successfactors/SAP-015.md) | Data mapping | P0 | P5 | Partially implemented |
+| [SAP-016](sap-successfactors/SAP-016.md) | Configuration, documentation and examples | P0 | P5 | Partially implemented |
 
 <a id="sap-001"></a>
 ### SAP-001 - OAuth and supported authentication mechanisms
 
-1. **Feature ID:** SAP-001.
-2. **Feature name:** OAuth and supported authentication mechanisms.
-3. **Description:** Authenticate an independent tenant with authorized bearer or SAML exchange.
-4. **Business value:** Authenticate an independent tenant with authorized bearer or SAML exchange.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP SamlBearerTokenSource; E-TEST SapSamlGrantUsesExactProtocolAndCachesWithoutLoggingAssertions; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Require exact company/client/API host and host-generated assertion; no implicit Basic fallback or assumption that unrelated IAS tokens work.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing SamlBearerTokenSource/IAccessTokenSource; POST /oauth/token with company_id/client_id/grant_type/assertion.
-13. **Dependencies:** SDK-005, SDK-006; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Concurrent renewal, expiry/skew, invalid assertion/token, rotation and canceled exchange. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Concurrent renewal, expiry/skew, invalid assertion/token, rotation and canceled exchange.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Concurrent calls share valid acquisition; malformed tokens cannot poison cache; configured grant succeeds in permitted sandbox with no assertion disclosure.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Registered OAuth client/company, trusted IdP assertion and technical-user permissions absent [S1]; other auth modes need current verification.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-001.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-002"></a>
 ### SAP-002 - OData API foundation and employee/person data
 
-1. **Feature ID:** SAP-002.
-2. **Feature name:** OData API foundation and employee/person data.
-3. **Description:** Read person records independently of other connectors.
-4. **Business value:** Read person records independently of other connectors.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP SuccessFactorsClient/PerPerson; E-TEST SapPagesPreserveUnknownFieldsAndEffectiveDatesWithoutChangingNextLink; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Use explicit /odata/v2 root, metadata-named entity sets and d.results/d.__next parsing; preserve typed/unknown fields and masked/absent values.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing EnumeratePersonsAsync/EnumerateAsync<T>/PerPerson; proposed Page<T> adapter.
-13. **Dependencies:** SAP-001, SDK-007; shared paging contract before SAP-004 adapter completion; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Empty/malformed d.results, null fields, unknown extensions, unsafe entity name and access denial. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Empty/malformed d.results, null fields, unknown extensions, unsafe entity name and access denial.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Person fixtures preserve all mapped/unknown values; denied RBP is not reported as empty data; isolated consumer references no ADP package.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Entity/field visibility and target population require tenant RBP/current metadata; no universal employee schema.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-002.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-003"></a>
 ### SAP-003 - Upsert operations
 
-1. **Feature ID:** SAP-003.
-2. **Feature name:** Upsert operations.
-3. **Description:** Submit authorized insert/update batches with per-row outcomes.
-4. **Business value:** Submit authorized insert/update batches with per-row outcomes.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP UpsertAsync/UpsertResult; E-TEST HTTP200 row failures and no-retry tests; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Keep writesEnabled=false default and SDK 1-1000 bound; inject validated entity metadata, inspect every status/httpCode/index, never infer atomic success from HTTP200.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing UpsertAsync; POST /odata/v2/upsert?$format=json.
-13. **Dependencies:** SAP-001, SAP-014; primitive precedes SAP-012 typed employee commands; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Mixed row outcomes, metadata injection, count boundaries, malformed results and unknown POST outcome. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Mixed row outcomes, metadata injection, count boundaries, malformed results and unknown POST outcome.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Every row has attributable result; default call sends nothing; explicit batch is sent once; row failures remain visible without logging their private messages.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Entity upsert support, required keys/fields, RBP and disposable sandbox objects required [S2].
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-003.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-004"></a>
 ### SAP-004 - Pagination and filtering
 
-1. **Feature ID:** SAP-004.
-2. **Feature name:** Pagination and filtering.
-3. **Description:** Traverse effective-dated data without unsafe continuations.
-4. **Business value:** Traverse effective-dated data without unsafe continuations.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP ODataQuery/iterator; E-SAFETY; E-TEST continuation/cycle tests; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Preserve valid __next verbatim within configured origin/path; support filter/select/expand/as-of/ranges and cursor/snapshot only per entity; bind resumable tokens to query.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing ODataQuery; proposed Page<T>/ContinuationToken adapter.
-13. **Dependencies:** SDK-007, SAP-002; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Off-origin/path/userinfo/HTTP links, cycles/max pages, escaped filters, date conflicts, expired cursor and empty page with continuation. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Off-origin/path/userinfo/HTTP links, cycles/max pages, escaped filters, date conflicts, expired cursor and empty page with continuation.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Fixtures use returned next URLs unchanged; hostile links fail before forwarding credentials; conflicting date options fail locally.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Entity paging modes/effective-date behavior depend on current schema; SDK bounds are not vendor capacity guarantees [S3].
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-004.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-005"></a>
 ### SAP-005 - Error handling and diagnostics
 
-1. **Feature ID:** SAP-005.
-2. **Feature name:** Error handling and diagnostics.
-3. **Description:** Separate auth/RBP/transport/business-row failures safely.
-4. **Business value:** Separate auth/RBP/transport/business-row failures safely.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP redacted UpsertResult.ToString; E-TRANSPORT; no SAP diagnostic API; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Map safe codes/correlation and staged read-only diagnostics; apply read retry budget and no upsert replay; keep row messages out of automatic logs.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing UpsertResult/IntegrationRequestException; proposed SAP exception/DiagnoseAsync.
-13. **Dependencies:** SDK-009, SDK-011, SAP-003; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** 401/403, HTTP200 row error, invalid field, malformed XML/error, rate hint and canceled probe. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** 401/403, HTTP200 row error, invalid field, malformed XML/error, rate hint and canceled probe.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Host identifies failed stage and row without parsing private messages; captured diagnostics contain no employee keys/assertions.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Current error schemas and minimal authorized probe required; returned row messages remain sensitive host data.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-005.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-006"></a>
 ### SAP-006 - Contract and sandbox testing
 
-1. **Feature ID:** SAP-006.
-2. **Feature name:** Contract and sandbox testing.
-3. **Description:** Separate deterministic protocol tests from actual tenant compatibility.
-4. **Business value:** Separate deterministic protocol tests from actual tenant compatibility.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-TEST ExpansionTests; E-SAMPLE SAP options smoke; historical execution only; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Version entity/metadata/upsert fixtures; isolated consumer; opt-in read-only sandbox; approved writes use explicit test objects and per-row verification.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed SAP test categories/config; no runtime infrastructure.
-13. **Dependencies:** SAP-001-005, SDK-018; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Offline mode, missing credentials, fixture drift, RBP denial, mixed batches and secret canaries. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Offline mode, missing credentials, fixture drift, RBP denial, mixed batches and secret canaries.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Both OS jobs pass synthetic tests; live evidence identifies product/schema/RBP/revision or explicit access blocker; no production calls by default.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Sandbox/API host/company/client/assertion/RBP and population absent.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-006.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-007"></a>
 ### SAP-007 - Additional APIs and complete business-schema validation
 
-1. **Feature ID:** SAP-007.
-2. **Feature name:** Additional APIs and complete business-schema validation.
-3. **Description:** Make expansion deliberate rather than implying all SAP coverage.
-4. **Business value:** Make expansion deliberate rather than implying all SAP coverage.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Planned; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP generic queries; no complete business-schema validator; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Select approved entities from current references/metadata; publish per-entity operations/keys/fields/date support; generic query syntax is not authorization or full validation.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed entity capability/schema policies; no universal all-SAP client.
-13. **Dependencies:** SAP-014, SAP-006, SDK-002; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Unsupported entity/field, stale schema, required keys, missing module and denied permission. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Unsupported entity/field, stale schema, required keys, missing module and denied permission.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Each newly advertised entity has official contract, fixtures and limitations; generic enumeration remains explicitly low-level.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Current official entity specs and tenant business rules needed; metadata presence alone is insufficient.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-007.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-008"></a>
 ### SAP-008 - Employment records
 
-1. **Feature ID:** SAP-008.
-2. **Feature name:** Employment records.
-3. **Description:** Preserve employment identity and dates separately from person profiles.
-4. **Business value:** Preserve employment identity and dates separately from person profiles.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP EmpEmployment/EnumerateAsync<T>; no dedicated employment method; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Add typed employment queries/projection, documented composite keys, multiple employments and extension data; define effective-date and absence rules.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing EmpEmployment; proposed EnumerateEmploymentAsync after contract review.
-13. **Dependencies:** SAP-002, SAP-004, SAP-014; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Concurrent employments, absent endDate, SAP date values, composite keys and invisible records. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Concurrent employments, absent endDate, SAP date values, composite keys and invisible records.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Fixtures retain employment keys/dates and multiple employments; authorized query scope and field meanings are documented.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** EmpEmployment current metadata/RBP/target population unavailable.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-008.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-009"></a>
 ### SAP-009 - Job information
 
-1. **Feature ID:** SAP-009.
-2. **Feature name:** Job information.
-3. **Description:** Represent effective-dated job history accurately.
-4. **Business value:** Represent effective-dated job history accurately.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP EmpJob managerId/sequence; generic enumeration; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Add typed job operations/model completeness; preserve startDate/sequence identity and codes; explicit as-of/range behavior and date conversion policy.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing EmpJob; proposed EnumerateJobsAsync after metadata review.
-13. **Dependencies:** SAP-008, SAP-004, SAP-014; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Same-day sequences, future/past jobs, missing manager, string numeric sequence and unknown fields. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Same-day sequences, future/past jobs, missing manager, string numeric sequence and unknown fields.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Golden fixtures preserve sequence/effective dates without collapsing job history; query semantics match reviewed entity contract.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** EmpJob entity schema/RBP and effective-date contract needed.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-009.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-010"></a>
 ### SAP-010 - Organizational data
 
-1. **Feature ID:** SAP-010.
-2. **Feature name:** Organizational data.
-3. **Description:** Read entitled organization codes and relationships.
-4. **Business value:** Read entitled organization codes and relationships.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live tenant acceptance unverified.
-9. **Existing implementation evidence:** Generic traversal in E-SAP; no dedicated org models/contracts; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Select actual organization entity sets from metadata; model keys/effective dates/navigation; do not guess universal SAP organization routes.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed organizational DTO/query APIs; exact entity/method only after verification.
-13. **Dependencies:** SAP-014, SAP-004, SAP-015; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Retired codes, duplicate effective versions, missing parent, cycle and denied entity. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Retired codes, duplicate effective versions, missing parent, cycle and denied entity.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Each advertised entity has verified read contract and typed fixtures; no unrelated module/provider dependency.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Exact organization entity sets/version and tenant RBP unverified.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-010.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-011"></a>
 ### SAP-011 - Manager relationships
 
-1. **Feature ID:** SAP-011.
-2. **Feature name:** Manager relationships.
-3. **Description:** Expose reporting lines with temporal and employment context.
-4. **Business value:** Expose reporting lines with temporal and employment context.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP EmpJob.ManagerId only; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Define job/user relationship projections and documented navigation; handle missing/external/inaccessible managers and multiple employments without whole-tenant recursive scans.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing EmpJob.ManagerId; proposed typed manager relationship projection.
-13. **Dependencies:** SAP-009, SAP-015; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Missing manager, self-reference/cycle, multiple assignments, denied target and date boundary. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Missing manager, self-reference/cycle, multiple assignments, denied target and date boundary.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Fixtures preserve temporal/identity context; inaccessible manager is explicit; traversal cannot loop indefinitely.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Navigation names and manager visibility require current metadata/RBP.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-011.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-012"></a>
 ### SAP-012 - Employee create/update operations where authorized
 
-1. **Feature ID:** SAP-012.
-2. **Feature name:** Employee create/update operations where authorized.
-3. **Description:** Support intentional employee mutations with real entity permissions.
-4. **Business value:** Support intentional employee mutations with real entity permissions.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP generic opt-in UpsertAsync; no employee command validation; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Add operation-specific commands using supported create/update/upsert semantics; keys/date validation, explicit write opt-in and target-population enforcement by SAP.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed typed commands atop UpsertAsync where supported; no invented universal PATCH/MERGE API.
-13. **Dependencies:** SAP-003, SAP-007, SAP-014; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Read-only entity, missing key, invalid date, row rejection and uncertain write outcome. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Read-only entity, missing key, invalid date, row rejection and uncertain write outcome.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Only verified authorized operations are exposed; default mode sends no writes; fixtures and disposable sandbox cases demonstrate documented changes.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Entity-specific operations/RBP and separate sandbox write authorization required [S2].
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-012.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-013"></a>
 ### SAP-013 - Delta and incremental synchronization
 
-1. **Feature ID:** SAP-013.
-2. **Feature name:** Delta and incremental synchronization.
-3. **Description:** Reduce extraction while protecting against missed temporal changes.
-4. **Business value:** Reduce extraction while protecting against missed temporal changes.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP filter support and E-SYNC; no delta/checkpoint contract; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Use entity-documented modification fields/overlap windows and host checkpoints/deduplication; distinguish modification time from effective date; keep reconciliation fallback.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed entity-specific DeltaQuery/checkpoint adapters; no universal delta endpoint.
-13. **Dependencies:** SAP-004, SAP-009, SDK-007; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Late/same-timestamp changes, timezone, overlap, failed scan, visibility shrink and future-effective records. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Late/same-timestamp changes, timezone, overlap, failed scan, visibility shrink and future-effective records.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Fixture overlaps deduplicate with no checkpoint advance after failed traversal; effective-date policy is explicit.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Exact modified-field/filter/retention contract per entity unverified; generic lastModifiedOn is not assumed [S3].
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-013.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-014"></a>
 ### SAP-014 - Metadata and schema discovery
 
-1. **Feature ID:** SAP-014.
-2. **Feature name:** Metadata and schema discovery.
-3. **Description:** Discover actual entity definitions safely.
-4. **Business value:** Discover actual entity definitions safely.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP GetMetadataAsync; E-TEST XXE rejection; no schema adapter; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Disable DTD/external resolution; cap document size/depth; expose entity/property/key/type descriptors and schema hash/version caching; never auto-generate writes from visibility.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing XDocument GetMetadataAsync; proposed typed metadata projection.
-13. **Dependencies:** SAP-001, SDK-009, SDK-014; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** XXE/DTD, oversized/invalid XML, missing keys, changed namespace/schema and canceled retrieval. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** XXE/DTD, oversized/invalid XML, missing keys, changed namespace/schema and canceled retrieval.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Metadata fixtures yield exact descriptors; external entities cannot resolve; changed schemas invalidate stale validators visibly.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Tenant metadata access/schema required; metadata visibility does not establish write RBP.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-014.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-015"></a>
 ### SAP-015 - Data mapping
 
-1. **Feature ID:** SAP-015.
-2. **Feature name:** Data mapping.
-3. **Description:** Keep date, key and code meanings explicit in neutral outputs.
-4. **Business value:** Keep date, key and code meanings explicit in neutral outputs.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP extension-preserving DTOs; no mapper interface; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Add versioned person/employment/job projections, raw-date conversion policy and source-key provenance; no ADP-to-SAP workflow.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Proposed IRecordMapper<SapEntity,T>/MappingResult<T>.
-13. **Dependencies:** SDK-002, SAP-008, SAP-009; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** SAP date representations/timezones, composite keys, masked/custom fields, invariant culture and unknown codes. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** SAP date representations/timezones, composite keys, masked/custom fields, invariant culture and unknown codes.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Golden mappings are deterministic with explicit date policy; omitted/error fields are visible and original source remains intact.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** Entity schema and business profiles require review; customer-specific rules remain host-configured.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-015.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="sap-016"></a>
 ### SAP-016 - Configuration, documentation and examples
 
-1. **Feature ID:** SAP-016.
-2. **Feature name:** Configuration, documentation and examples.
-3. **Description:** Make SAP adoption independently reproducible.
-4. **Business value:** Make SAP adoption independently reproducible.
-5. **Owning package:** Koras.Connect.SAP.SuccessFactors; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P5; preserve preview during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live tenant acceptance unverified.
-9. **Existing implementation evidence:** E-SAP options/constructor checks; README and E-SAMPLE option smoke; aliases resolve in section 3; generic infrastructure is not a complete dedicated business contract.
-10. **Functional requirements:** Document root/company/client/assertion/RBP, effective dates, row checks and checkpoints; offline examples plus optional sandbox; consistent DI/direct validation.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers, cancellable I/O; no ADP/Qualtrics, scheduler, cloud or database dependency. Measure performance before setting release budgets.
-12. **Public API contracts or proposed contracts:** Existing SuccessFactorsOptions/ODataQuery; proposed AddKorasSuccessFactors and examples.
-13. **Dependencies:** SDK-003, SDK-014, SAP-006; acyclic graph in section 7.
-14. **Security considerations:** Isolate company/technical-user credentials; verify entity/field RBP and target population; redact assertions, keys and records. Writes require explicit opt-in, verified contract and test authorization.
-15. **Error and edge-case handling:** Unsafe root/date conflicts/invalid limits, missing assertion, redacted config and sample compilation. Preserve cancellation; sanitize diagnostics; uncertain writes require reconciliation, never blind replay.
-16. **Unit-test requirements:** Unsafe root/date conflicts/invalid limits, missing assertion, redacted config and sample compilation.
-17. **Integration-test requirements:** Synthetic entity/metadata/upsert protocol fixtures and isolated consumers on both OSes; authorized sandbox reads plus separately authorized disposable writes where required. Record schema, permissions, revision and outcomes or access blocker.
-18. **Acceptance criteria:** Clean checkout runs SAP offline without ADP; invalid settings fail before send; docs list supported operations and live limits.
-19. **Definition of Done:** Acceptance plus section 26 unit/contract/security/API/consumer/docs gates; current entity evidence and mandatory sandbox outcomes attached. Missing required schema/access blocks acceptance rather than becoming a pass.
-20. **External API entitlement or documentation blockers:** API hostname/company/client/roles must come from authorized consumer; no host guessing.
+The authoritative [feature specification and completion tracker](sap-successfactors/SAP-016.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 ## 15. Qualtrics Feature Catalog
 
@@ -1701,408 +601,104 @@ Official references checked November 12, 2026: [Q1: setup/token permission](http
 
 Verified sequence: GET /API/v3/surveys; POST /API/v3/surveys/{surveyId}/export-responses; GET its /{progressId}; then GET /{fileId}/file. Documented export formats/constraints apply; status complete and fileId, not percentComplete alone, determine readiness. Stream bytes as returned; host owns archive extraction. Exact account quotas and permissions remain unverified.
 
-| ID | Feature | Priority | Phase | Current status |
+| ID | Feature | Priority | Phase | Audit baseline status |
 |---|---|---|---|---|
-| [QLT-001](#qlt-001) | Authentication and API token configuration | P0 | P6 | Partially implemented |
-| [QLT-002](#qlt-002) | Survey APIs | P0 | P6 | Partially implemented |
-| [QLT-003](#qlt-003) | Response export APIs | P0 | P6 | Partially implemented |
-| [QLT-004](#qlt-004) | Pagination and transport resilience | P0 | P6 | Partially implemented |
-| [QLT-005](#qlt-005) | Typed responses, errors and diagnostics | P0 | P6 | Partially implemented |
-| [QLT-006](#qlt-006) | Directory and contact operations | P1 | P6 | Not started |
-| [QLT-007](#qlt-007) | Events and webhook capabilities | P2 | P7 | Not started |
-| [QLT-008](#qlt-008) | Contract and sandbox testing | P0 | P6 | Partially implemented |
-| [QLT-009](#qlt-009) | Mailing lists and segments | P1 | P6 | Not started |
-| [QLT-010](#qlt-010) | Participant management | P1 | P6 | Not started |
-| [QLT-011](#qlt-011) | Batch operations | P1 | P6 | Not started |
-| [QLT-012](#qlt-012) | Data mapping | P0 | P6 | Partially implemented |
-| [QLT-013](#qlt-013) | Rate-limit handling | P0 | P6 | Partially implemented |
-| [QLT-014](#qlt-014) | Documentation and examples | P0 | P6 | Partially implemented |
-| [QLT-015](#qlt-015) | Contact-specific typed schema and consent | P1 | P6 | Not started |
-| [QLT-016](#qlt-016) | API client foundation and configuration | P0 | P6 | Partially implemented |
+| [QLT-001](qualtrics/QLT-001.md) | Authentication and API token configuration | P0 | P6 | Partially implemented |
+| [QLT-002](qualtrics/QLT-002.md) | Survey APIs | P0 | P6 | Partially implemented |
+| [QLT-003](qualtrics/QLT-003.md) | Response export APIs | P0 | P6 | Partially implemented |
+| [QLT-004](qualtrics/QLT-004.md) | Pagination and transport resilience | P0 | P6 | Partially implemented |
+| [QLT-005](qualtrics/QLT-005.md) | Typed responses, errors and diagnostics | P0 | P6 | Partially implemented |
+| [QLT-006](qualtrics/QLT-006.md) | Directory and contact operations | P1 | P6 | Not started |
+| [QLT-007](qualtrics/QLT-007.md) | Events and webhook capabilities | P2 | P7 | Not started |
+| [QLT-008](qualtrics/QLT-008.md) | Contract and sandbox testing | P0 | P6 | Partially implemented |
+| [QLT-009](qualtrics/QLT-009.md) | Mailing lists and segments | P1 | P6 | Not started |
+| [QLT-010](qualtrics/QLT-010.md) | Participant management | P1 | P6 | Not started |
+| [QLT-011](qualtrics/QLT-011.md) | Batch operations | P1 | P6 | Not started |
+| [QLT-012](qualtrics/QLT-012.md) | Data mapping | P0 | P6 | Partially implemented |
+| [QLT-013](qualtrics/QLT-013.md) | Rate-limit handling | P0 | P6 | Partially implemented |
+| [QLT-014](qualtrics/QLT-014.md) | Documentation and examples | P0 | P6 | Partially implemented |
+| [QLT-015](qualtrics/QLT-015.md) | Contact-specific typed schema and consent | P1 | P6 | Not started |
+| [QLT-016](qualtrics/QLT-016.md) | API client foundation and configuration | P0 | P6 | Partially implemented |
 
 <a id="qlt-001"></a>
 ### QLT-001 - Authentication and API token configuration
 
-1. **Feature ID:** QLT-001.
-2. **Feature name:** Authentication and API token configuration.
-3. **Description:** Authenticate against the correct data center without leaking tokens.
-4. **Business value:** Authenticate against the correct data center without leaking tokens.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT Create; E-TRANSPORT HeaderTokenAuthenticator; E-TEST QualtricsUsesOnlyApiTokenAndPagesSurveys; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Use rotating host X-API-TOKEN source, reject blank/newline tokens and disable redirects; OAuth remains a separately verified extension, not interchangeable silently.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing QualtricsClient.Create/IAccessTokenSource; proposed DI token registration.
-13. **Dependencies:** SDK-005, SDK-006, SDK-004; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Header injection, empty source, rotation, off-origin links, redirects, cross-account isolation and redaction. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Header injection, empty source, rotation, off-origin links, redirects, cross-account isolation and redaction.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Create adds X-API-TOKEN without bearer; separate accounts cannot exchange credentials; Access API requirements are documented.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** API feature/Access API permission and authorized token/data center absent [Q1].
+The authoritative [feature specification and completion tracker](qualtrics/QLT-001.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-002"></a>
 ### QLT-002 - Survey APIs
 
-1. **Feature ID:** QLT-002.
-2. **Feature name:** Survey APIs.
-3. **Description:** Read permitted survey summaries and definitions.
-4. **Business value:** Read permitted survey summaries and definitions.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT EnumerateSurveysAsync/GetSurveyAsync/SurveySummary; E-TEST survey paging; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Preserve typed summaries/extensions, safely encode IDs and document raw design ownership; listing does not imply full survey access.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing GET /surveys and GET /surveys/{surveyId}; proposed typed design subset after schema verification.
-13. **Dependencies:** QLT-001, QLT-004, QLT-005; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Empty/malformed list, unknown fields, invalid ID, private survey 403/404 and cancellation. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Empty/malformed list, unknown fields, invalid ID, private survey 403/404 and cancellation.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** All fixture summaries/unknown data survive; denied design access reports classified error; no survey mutation implied.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Survey ownership/sharing and full current design schema unverified; list route readable [Q2].
+The authoritative [feature specification and completion tracker](qualtrics/QLT-002.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-003"></a>
 ### QLT-003 - Response export APIs
 
-1. **Feature ID:** QLT-003.
-2. **Feature name:** Response export APIs.
-3. **Description:** Retrieve response datasets with resumable export jobs.
-4. **Business value:** Retrieve response datasets with resumable export jobs.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT start/progress/wait/download; E-TEST QualtricsExportUsesProgressThenFileIdAndStreamsWithoutExtraction; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Keep create -> progress -> file sequence, validated format/date/filter and bounded polling; stop failed/404/unknown states; never restart uncertain POST automatically.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing StartResponseExportAsync/GetExportProgressAsync/WaitForExportAsync/DownloadExportAsync and typed options/progress.
-13. **Dependencies:** QLT-001, QLT-004, QLT-013, SDK-010; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** inProgress/complete/failed/unknown, missing IDs, bounds, cancellation, partial bytes and no POST replay. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** inProgress/complete/failed/unknown, missing IDs, bounds, cancellation, partial bytes and no POST replay.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Download only complete with fileId; IDs are not interchanged; bytes remain unchanged/stream stays open; resume existing progress after poll timeout.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Response permission, current export constraints/filters and account limits required [Q3-Q5]; direct response writes not claimed.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-003.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-004"></a>
 ### QLT-004 - Pagination and transport resilience
 
-1. **Feature ID:** QLT-004.
-2. **Feature name:** Pagination and transport resilience.
-3. **Description:** Traverse results without credential forwarding or infinite loops.
-4. **Business value:** Traverse results without credential forwarding or infinite loops.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT nextPage/maxPages; E-SAFETY; E-TEST hostile continuation tests; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Preserve valid nextPage within configured origin/API path; cycle/page guards, neutral adapter and query-bound resume; no provider-wide offset guess.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing survey iterator/TransportOptions; proposed per-family Page<T> adapter.
-13. **Dependencies:** SDK-007, SDK-008, SDK-010; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Host/path/protocol changes, repeated URL, empty page with next link, expired cursor and canceled delay. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Host/path/protocol changes, repeated URL, empty page with next link, expired cursor and canceled delay.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Next links are preserved and hostile links rejected before send; future directory/batch families use their own verified paging contracts.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Current per-family cursor/limit/expiration schemas required; no universal pagination assumption.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-004.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-005"></a>
 ### QLT-005 - Typed responses, errors and diagnostics
 
-1. **Feature ID:** QLT-005.
-2. **Feature name:** Typed responses, errors and diagnostics.
-3. **Description:** Expose stable results and safe actionable failures.
-4. **Business value:** Expose stable results and safe actionable failures.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT SurveySummary/ExportProgress/options; E-TRANSPORT; no dedicated diagnostic API; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Add sanitized requestId/provider code metadata and staged read-only probe; preserve typed/unknown fields; raw documents remain caller-owned.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed QualtricsApiException/DiagnoseAsync; existing typed models/JsonDocument.
-13. **Dependencies:** SDK-009, SDK-011, QLT-002; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** 401/403/404/429, malformed result/error meta, hostile request IDs, private messages and unknown export state. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** 401/403/404/429, malformed result/error meta, hostile request IDs, private messages and unknown export state.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Host distinguishes auth/throttle/schema failure by safe fields; captured logs contain no token/respondent/record data.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Current error schemas and authorized minimal probe needed; no invented diagnostics endpoint.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-005.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-006"></a>
 ### QLT-006 - Directory and contact operations
 
-1. **Feature ID:** QLT-006.
-2. **Feature name:** Directory and contact operations.
-3. **Description:** Manage an authorized directory independently.
-4. **Business value:** Manage an authorized directory independently.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** No directory/contact methods in E-QLT; legacy QLT-006 directory/distribution writes planned; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Verify XM Directory operations then add typed list/get/create/update/contact methods; explicit opt-in mutations and capability descriptors; destructive calls need separate verified contracts.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed directory/contact clients; exact routes/verbs/schemas from [Q6], not survey APIs.
-13. **Dependencies:** QLT-001, QLT-004, QLT-005; contract/schema design precedes QLT-012 mapping; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Invalid IDs, duplicate external IDs, missing fields, 403/404, opt-out/consent and uncertain write outcome. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Invalid IDs, duplicate external IDs, missing fields, 403/404, opt-out/consent and uncertain write outcome.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Each exposed operation has official schema/permission evidence; defaults are read-only; write tests never blindly replay or disclose PII.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** XM Directory license/permissions and current operation schemas required; docs availability is not entitlement.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-006.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-007"></a>
 ### QLT-007 - Events and webhook capabilities
 
-1. **Feature ID:** QLT-007.
-2. **Feature name:** Events and webhook capabilities.
-3. **Description:** React to documented events with host-owned durable delivery.
-4. **Business value:** React to documented events with host-owned durable delivery.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P2.
-7. **Planned development phase:** P7; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** No event/subscription/receiver code; legacy QLT-007; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Choose verified event types, subscription operations, envelope/auth/verification and delivery identity; host owns endpoint/TLS/inbox and deduplication.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed event DTO/client/helpers only after [Q8] operation verification; no embedded server.
-13. **Dependencies:** QLT-001, QLT-005, QLT-008; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Unsupported type, forged/stale/duplicate envelope, retries, missing identity, permission denial and explicit opt-in. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Unsupported type, forged/stale/duplicate envelope, retries, missing identity, permission denial and explicit opt-in.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Verified fixtures/auth behavior pass; docs state actual integrity/freshness guarantees and host obligations without borrowing ADP HMAC assumptions.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Current full subscription contract/auth/event schemas and tenant eligibility unverified; family index alone insufficient.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-007.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-008"></a>
 ### QLT-008 - Contract and sandbox testing
 
-1. **Feature ID:** QLT-008.
-2. **Feature name:** Contract and sandbox testing.
-3. **Description:** Separate mock protocol evidence from actual account compatibility.
-4. **Business value:** Separate mock protocol evidence from actual account compatibility.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-TEST ExpansionTests; E-SAMPLE options smoke; no live harness; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Version survey/export/contact fixtures; independent consumer; opt-in read-only sandbox and separately authorized write fixtures.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed Qualtrics test categories/config; no required runtime host.
-13. **Dependencies:** QLT-001-005, SDK-018; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Offline/missing-token behavior, schema drift, continuation cycles, leaked errors and interrupted download. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Offline/missing-token behavior, schema drift, continuation cycles, leaked errors and interrupted download.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Both OSes pass synthetic tests with provenance; live evidence identifies account/API/permissions/revision or blocker; CI never calls production by default.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Data center/token/permitted survey/directory and disposable records absent.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-008.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-009"></a>
 ### QLT-009 - Mailing lists and segments
 
-1. **Feature ID:** QLT-009.
-2. **Feature name:** Mailing lists and segments.
-3. **Description:** Organize contact groups without conflating static lists and dynamic segments.
-4. **Business value:** Organize contact groups without conflating static lists and dynamic segments.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** No list/segment models or methods in E-QLT; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Verify list membership and segment queries separately; typed IDs/results, authorized reads and explicit writes; preserve consent/opt-out.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed list/segment adapters from current schemas [Q7]; segment retrieval incomplete.
-13. **Dependencies:** QLT-006, QLT-004, QLT-012; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Missing list, dynamic changes, duplicate membership, consent changes, partial failure and denied permission. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Missing list, dynamic changes, duplicate membership, consent changes, partial failure and denied permission.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Each advertised method has exact current contract/tests; unsupported segment operations remain unknown/absent, never simulated.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** List family documented; segments page fetch failed; actual operation schemas/licenses/permissions unverified.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-009.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-010"></a>
 ### QLT-010 - Participant management
 
-1. **Feature ID:** QLT-010.
-2. **Feature name:** Participant management.
-3. **Description:** Support product-specific participant workflows with consent.
-4. **Business value:** Support product-specific participant workflows with consent.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** No participant/distribution methods in E-QLT; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Identify actual product (XM Directory/distributions/EX) before selecting APIs; distinguish contact/participant/response IDs; writes/message sends disabled by default.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed product-specific commands/models only after official verification; no endpoint guessed.
-13. **Dependencies:** QLT-006, QLT-009, QLT-008; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Wrong identity type, opt-out, duplicates, denied access and unknown submission outcome. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Wrong identity type, opt-out, duplicates, denied access and unknown submission outcome.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Chosen product contract/fixtures show documented participant behavior; default tests/examples never send distributions/messages.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Product/family/license/current endpoints and scopes unspecified; missing research is not vendor-proven unavailability.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-010.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-011"></a>
 ### QLT-011 - Batch operations
 
-1. **Feature ID:** QLT-011.
-2. **Feature name:** Batch operations.
-3. **Description:** Support volume with bounded requests and visible item outcomes.
-4. **Business value:** Support volume with bounded requests and visible item outcomes.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** E-SYNC BatchAsync is local chunking; no remote Qualtrics batch; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Choose verified bulk/contact-import contract; model async status/item results/idempotency/limits; local chunks are not a remote batch API.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed family-specific commands/results after schema verification; existing local BatchAsync remains neutral.
-13. **Dependencies:** QLT-006, QLT-013, SDK-007; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Batch limits, duplicates, partial failure, expired job, poll interruption, ambiguous POST and cancellation. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Batch limits, duplicates, partial failure, expired job, poll interruption, ambiguous POST and cancellation.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Each item has documented outcome; bounded resume does not silently start a new write or introduce scheduler/persistence.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Remote routes/formats/quotas/eligibility unverified; family names do not justify generic batch URLs.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-011.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-012"></a>
 ### QLT-012 - Data mapping
 
-1. **Feature ID:** QLT-012.
-2. **Feature name:** Data mapping.
-3. **Description:** Map selected data without losing identity or consent semantics.
-4. **Business value:** Map selected data without losing identity or consent semantics.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT extension-preserving models; E-EXPORT projections; no mapper; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Add opt-in neutral profiles and null/timezone/code/embedded-data rules; preserve unknown fields and sensitive omissions; no cross-provider workflow.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed IRecordMapper<QualtricsEntity,T>/MappingResult<T>; raw downloads remain raw.
-13. **Dependencies:** SDK-002, SDK-013, QLT-002, QLT-006; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Null/unknown fields, mixed response schemas, Unicode, embedded keys, identity distinctions and consent fields. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Null/unknown fields, mixed response schemas, Unicode, embedded keys, identity distinctions and consent fields.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Golden cases preserve selected identity/consent deterministically; raw file bytes change only when caller explicitly parses/maps them.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Product contact/response schema and consent review required; no universal normalized response model.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-012.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-013"></a>
 ### QLT-013 - Rate-limit handling
 
-1. **Feature ID:** QLT-013.
-2. **Feature name:** Rate-limit handling.
-3. **Description:** Avoid read storms and duplicate unsafe submissions.
-4. **Business value:** Avoid read storms and duplicate unsafe submissions.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-TRANSPORT GET 429/Retry-After; no quota/concurrency model; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Provide bounded configured concurrency and safe throttle hints; respect server delay/total budget; never hardcode universal brand quota or retry POST automatically.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing TransportOptions; proposed quota/concurrency policy and safe metadata.
-13. **Dependencies:** SDK-008, QLT-004, QLT-005; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** 429, long/date/malformed hints, concurrent callers, queue cancellation and POST throttle. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** 429, long/date/malformed hints, concurrent callers, queue cancellation and POST throttle.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Safe reads wait server minimum or fail budget; configured concurrency bounded; writes remain one automatic attempt with explicit reconciliation guidance.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Exact account/family/brand quotas not verified; obtain official limits rather than invent requests/minute.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-013.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-014"></a>
 ### QLT-014 - Documentation and examples
 
-1. **Feature ID:** QLT-014.
-2. **Feature name:** Documentation and examples.
-3. **Description:** Make survey/export and later directory adoption reproducible.
-4. **Business value:** Make survey/export and later directory adoption reproducible.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** README example; E-SAMPLE options smoke; no dedicated end-to-end example; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Offline survey/export flow with resume/cancellation and sensitive-download guidance; data center/Access API setup, per-family rights and limits.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed samples/Qualtrics.SurveyExport and opt-in directory example; no orchestration service.
-13. **Dependencies:** QLT-008, QLT-003, QLT-016; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Clean-checkout compile/offline execution, bad settings, interrupted resume and token/PII canaries. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Clean-checkout compile/offline execution, bad settings, interrupted resume and token/PII canaries.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Example runs without SAP/ADP and sends no messages by default; synthetic behavior is clearly distinguished from live account validation.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Live mode needs authorized token/data center/survey; offline example unblocked.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-014.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-015"></a>
 ### QLT-015 - Contact-specific typed schema and consent
 
-1. **Feature ID:** QLT-015.
-2. **Feature name:** Contact-specific typed schema and consent.
-3. **Description:** Avoid unsafe contact mutations and ambiguous field presence.
-4. **Business value:** Avoid unsafe contact mutations and ambiguous field presence.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P1.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Not started; live account acceptance unverified.
-9. **Existing implementation evidence:** No Contact/Directory DTO in E-QLT; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Review contact identity/custom fields/consent/opt-out/extension data; bind field requiredness/access to actual directory contract and preserve null versus omission.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Proposed QualtricsContact/ContactChange validation after [Q6] schema review.
-13. **Dependencies:** QLT-006, QLT-012; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Missing/duplicate external ID, custom fields, explicit null/omission, opted-out contact and sensitive attributes. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Missing/duplicate external ID, custom fields, explicit null/omission, opted-out contact and sensitive attributes.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Model/mapper preserve field presence and consent; unsupported changes are explicit; no implicit unsubscribe/resubscribe behavior.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Tenant schema/permissions/consent policy required; no customer contact data used in P1.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-015.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 <a id="qlt-016"></a>
 ### QLT-016 - API client foundation and configuration
 
-1. **Feature ID:** QLT-016.
-2. **Feature name:** API client foundation and configuration.
-3. **Description:** Keep Qualtrics independently installable and configured safely.
-4. **Business value:** Keep Qualtrics independently installable and configured safely.
-5. **Owning package:** Koras.Connect.Qualtrics; shared contracts follow section 7.
-6. **Priority:** P0.
-7. **Planned development phase:** P6; preview preserved during P2-P4; P1 documentation only.
-8. **Current implementation status:** Partially implemented; live account acceptance unverified.
-9. **Existing implementation evidence:** E-QLT options/Create/root checks; E-SAFETY; no DI extension; aliases resolve in section 3; generic infrastructure is not a complete business contract.
-10. **Functional requirements:** Consistent DI/direct construction, validated /API/v3 root, token/HTTP ownership, bounded options and capability descriptor; preserve preview methods.
-11. **Nonfunctional requirements:** net10.0/Linux/Windows, bounded pages/waits/buffers and cancellation-aware I/O; no SAP/ADP, scheduler, cloud or database dependency. Measure performance before release budgets.
-12. **Public API contracts or proposed contracts:** Existing QualtricsClient/QualtricsOptions; proposed AddKorasQualtrics/descriptor.
-13. **Dependencies:** SDK-001, SDK-002, SDK-003, SDK-014; acyclic graph in section 7.
-14. **Security considerations:** Account/data-center token isolation, no redirects, field/operation permissions, consent preservation; no token/contact/response data in telemetry. Writes require explicit opt-in, verified contract and authorization for testing.
-15. **Error and edge-case handling:** Unsafe roots, bad maxPages, duplicate names, wrong auth adapter, disposal and account isolation. Preserve cancellation, sanitize diagnostics and reconcile uncertain writes instead of replaying blindly.
-16. **Unit-test requirements:** Unsafe roots, bad maxPages, duplicate names, wrong auth adapter, disposal and account isolation.
-17. **Integration-test requirements:** Versioned synthetic HTTP/schema/stream fixtures and independent consumer on both OSes; separately opt-in permitted account reads and authorized disposable writes where applicable. Record product/permissions/schema/revision and result or blocker.
-18. **Acceptance criteria:** Independent consumer uses only neutral/shared packages; invalid config fails before send; no inferred data center or entitlement.
-19. **Definition of Done:** Criteria plus section 26 unit/contract/security/API/consumer/documentation gates; current official operation evidence and required sandbox outcomes attached. Missing required contract/access prevents acceptance, never becomes a pass.
-20. **External API entitlement or documentation blockers:** Exact data-center root and product access are supplied by consumer; no account provisioning.
+The authoritative [feature specification and completion tracker](qualtrics/QLT-016.md) is maintained in its own file. Shared requirements in this master document still apply.
 
 ## 16. Security and Credential Architecture
 
@@ -2290,6 +886,8 @@ P1 validation record (November 12, 2026): thirty ordered sections; 74 unique det
 
 ## 30. Master Feature Index
 
+The implementation counts and status columns below are the original audit snapshot. Current status lives only in the linked feature files.
+
 | Whole-feature implementation state | Count | Feature IDs |
 |---|---|---|
 | Partially implemented | 57 | SDK-001, SDK-003, SDK-004, SDK-005, SDK-006, SDK-007, SDK-008, SDK-009, SDK-010, SDK-011, SDK-012, SDK-013, SDK-014, SDK-016, SDK-018, SDK-019, ADP-003, ADP-005, ADP-006, ADP-007, ADP-008, ADP-009, ADP-010, ADP-013, ADP-014, ADP-015, ADP-016, ADP-017, ADP-018, ADP-019, ADP-020, ADP-021, ADP-022, SAP-001, SAP-002, SAP-003, SAP-004, SAP-005, SAP-006, SAP-008, SAP-009, SAP-011, SAP-012, SAP-013, SAP-014, SAP-015, SAP-016, QLT-001, QLT-002, QLT-003, QLT-004, QLT-005, QLT-008, QLT-012, QLT-013, QLT-014, QLT-016 |
@@ -2300,79 +898,79 @@ P1 validation record (November 12, 2026): thirty ordered sections; 74 unique det
 
 Live external verification is unverified/blocked for all provider features requiring access; these blockers overlap implementation states and must not be added as extra feature counts. Four implemented source slices (ADP-001/002/004/011) are unverified in this audit. The remaining 57 partial features, 12 not-started features and one planned feature have explicit gaps above.
 
-| Feature ID | Name | Priority | Phase | Current implementation state |
+| Feature ID | Name | Priority | Phase | Audit baseline state |
 |---|---|---|---|---|
-| [SDK-001](#sdk-001) | .NET 10 solution and package structure | P0 | P2 | Partially implemented |
-| [SDK-002](#sdk-002) | Connector interface contracts | P0 | P2 | Not started |
-| [SDK-003](#sdk-003) | Dependency injection extensions | P0 | P2 | Partially implemented |
-| [SDK-004](#sdk-004) | HttpClientFactory integration | P0 | P2 | Partially implemented |
-| [SDK-005](#sdk-005) | Authentication abstraction | P0 | P2 | Partially implemented |
-| [SDK-006](#sdk-006) | Secure credential providers | P0 | P2 | Partially implemented |
-| [SDK-007](#sdk-007) | Pagination abstractions | P0 | P2 | Partially implemented |
-| [SDK-008](#sdk-008) | Retry and resilience policies | P0 | P2 | Partially implemented |
-| [SDK-009](#sdk-009) | Structured exception hierarchy | P0 | P2 | Partially implemented |
-| [SDK-010](#sdk-010) | Cancellation and timeout support | P0 | P2 | Partially implemented |
-| [SDK-011](#sdk-011) | Logging and correlation IDs | P0 | P2 | Partially implemented |
-| [SDK-012](#sdk-012) | OpenTelemetry instrumentation | P1 | P7 | Partially implemented |
-| [SDK-013](#sdk-013) | Export provider interfaces | P0 | P3 | Partially implemented |
-| [SDK-014](#sdk-014) | Configuration validation | P0 | P2 | Partially implemented |
-| [SDK-015](#sdk-015) | Package signing and provenance | P1 | P7 | Not started |
-| [SDK-016](#sdk-016) | NuGet publishing workflow | P0 | P4 | Partially implemented |
-| [SDK-017](#sdk-017) | API compatibility checks | P0 | P2-P4 | Not started |
-| [SDK-018](#sdk-018) | Security scanning and SBOM | P0 | P4 | Partially implemented |
-| [SDK-019](#sdk-019) | Versioning and release notes | P0 | P4 | Partially implemented |
-| [SDK-020](#sdk-020) | SDK documentation website | P1 | P7 | Not started |
-| [ADP-001](#adp-001) | Certificate and mTLS authentication | P0 | P2 | Implemented but unverified |
-| [ADP-002](#adp-002) | OAuth token acquisition and refresh | P0 | P2 | Implemented but unverified |
-| [ADP-003](#adp-003) | Secure client credentials configuration | P0 | P2 | Partially implemented |
-| [ADP-004](#adp-004) | Worker profile retrieval | P0 | P3 | Implemented but unverified |
-| [ADP-005](#adp-005) | Worker pagination and filtering | P0 | P3 | Partially implemented |
-| [ADP-006](#adp-006) | Worker changes and incremental sync | P0 | P3 | Partially implemented |
-| [ADP-007](#adp-007) | Worker schema mapping | P0 | P3 | Partially implemented |
-| [ADP-008](#adp-008) | CSV/JSON/XML export | P0 | P3 | Partially implemented |
-| [ADP-009](#adp-009) | Excel export | P1 | P3 | Partially implemented |
-| [ADP-010](#adp-010) | Structured errors and rate-limit handling | P0 | P3 | Partially implemented |
-| [ADP-011](#adp-011) | Retry, timeout, and cancellation | P0 | P3 | Implemented but unverified |
-| [ADP-012](#adp-012) | Connection diagnostics | P0 | P3 | Not started |
-| [ADP-013](#adp-013) | ADP organization and manager data | P1 | P3 extension | Partially implemented |
-| [ADP-014](#adp-014) | Employment status and lifecycle events | P1 | P3 extension | Partially implemented |
-| [ADP-015](#adp-015) | Payroll operations, where entitled | P1 | P3 extension | Partially implemented |
-| [ADP-016](#adp-016) | Time and attendance APIs | P2 | P7 | Partially implemented |
-| [ADP-017](#adp-017) | Benefits APIs | P2 | P7 | Partially implemented |
-| [ADP-018](#adp-018) | Webhook/event subscriptions | P2 | P3 primitives | Partially implemented |
-| [ADP-019](#adp-019) | Typed API response models | P0 | P3 | Partially implemented |
-| [ADP-020](#adp-020) | Sandbox and contract test suite | P0 | P3-P4 | Partially implemented |
-| [ADP-021](#adp-021) | API capability/entitlement matrix | P0 | P1 baseline | Partially implemented |
-| [ADP-022](#adp-022) | Documentation and runnable examples | P0 | P3-P4 | Partially implemented |
-| [SAP-001](#sap-001) | OAuth and supported authentication mechanisms | P0 | P5 | Partially implemented |
-| [SAP-002](#sap-002) | OData API foundation and employee/person data | P0 | P5 | Partially implemented |
-| [SAP-003](#sap-003) | Upsert operations | P0 | P5 | Partially implemented |
-| [SAP-004](#sap-004) | Pagination and filtering | P0 | P5 | Partially implemented |
-| [SAP-005](#sap-005) | Error handling and diagnostics | P0 | P5 | Partially implemented |
-| [SAP-006](#sap-006) | Contract and sandbox testing | P0 | P5 | Partially implemented |
-| [SAP-007](#sap-007) | Additional APIs and complete business-schema validation | P1 | P5 | Planned |
-| [SAP-008](#sap-008) | Employment records | P0 | P5 | Partially implemented |
-| [SAP-009](#sap-009) | Job information | P0 | P5 | Partially implemented |
-| [SAP-010](#sap-010) | Organizational data | P1 | P5 | Not started |
-| [SAP-011](#sap-011) | Manager relationships | P1 | P5 | Partially implemented |
-| [SAP-012](#sap-012) | Employee create/update operations where authorized | P1 | P5 | Partially implemented |
-| [SAP-013](#sap-013) | Delta and incremental synchronization | P0 | P5 | Partially implemented |
-| [SAP-014](#sap-014) | Metadata and schema discovery | P0 | P5 | Partially implemented |
-| [SAP-015](#sap-015) | Data mapping | P0 | P5 | Partially implemented |
-| [SAP-016](#sap-016) | Configuration, documentation and examples | P0 | P5 | Partially implemented |
-| [QLT-001](#qlt-001) | Authentication and API token configuration | P0 | P6 | Partially implemented |
-| [QLT-002](#qlt-002) | Survey APIs | P0 | P6 | Partially implemented |
-| [QLT-003](#qlt-003) | Response export APIs | P0 | P6 | Partially implemented |
-| [QLT-004](#qlt-004) | Pagination and transport resilience | P0 | P6 | Partially implemented |
-| [QLT-005](#qlt-005) | Typed responses, errors and diagnostics | P0 | P6 | Partially implemented |
-| [QLT-006](#qlt-006) | Directory and contact operations | P1 | P6 | Not started |
-| [QLT-007](#qlt-007) | Events and webhook capabilities | P2 | P7 | Not started |
-| [QLT-008](#qlt-008) | Contract and sandbox testing | P0 | P6 | Partially implemented |
-| [QLT-009](#qlt-009) | Mailing lists and segments | P1 | P6 | Not started |
-| [QLT-010](#qlt-010) | Participant management | P1 | P6 | Not started |
-| [QLT-011](#qlt-011) | Batch operations | P1 | P6 | Not started |
-| [QLT-012](#qlt-012) | Data mapping | P0 | P6 | Partially implemented |
-| [QLT-013](#qlt-013) | Rate-limit handling | P0 | P6 | Partially implemented |
-| [QLT-014](#qlt-014) | Documentation and examples | P0 | P6 | Partially implemented |
-| [QLT-015](#qlt-015) | Contact-specific typed schema and consent | P1 | P6 | Not started |
-| [QLT-016](#qlt-016) | API client foundation and configuration | P0 | P6 | Partially implemented |
+| [SDK-001](sdk/SDK-001.md) | .NET 10 solution and package structure | P0 | P2 | Partially implemented |
+| [SDK-002](sdk/SDK-002.md) | Connector interface contracts | P0 | P2 | Not started |
+| [SDK-003](sdk/SDK-003.md) | Dependency injection extensions | P0 | P2 | Partially implemented |
+| [SDK-004](sdk/SDK-004.md) | HttpClientFactory integration | P0 | P2 | Partially implemented |
+| [SDK-005](sdk/SDK-005.md) | Authentication abstraction | P0 | P2 | Partially implemented |
+| [SDK-006](sdk/SDK-006.md) | Secure credential providers | P0 | P2 | Partially implemented |
+| [SDK-007](sdk/SDK-007.md) | Pagination abstractions | P0 | P2 | Partially implemented |
+| [SDK-008](sdk/SDK-008.md) | Retry and resilience policies | P0 | P2 | Partially implemented |
+| [SDK-009](sdk/SDK-009.md) | Structured exception hierarchy | P0 | P2 | Partially implemented |
+| [SDK-010](sdk/SDK-010.md) | Cancellation and timeout support | P0 | P2 | Partially implemented |
+| [SDK-011](sdk/SDK-011.md) | Logging and correlation IDs | P0 | P2 | Partially implemented |
+| [SDK-012](sdk/SDK-012.md) | OpenTelemetry instrumentation | P1 | P7 | Partially implemented |
+| [SDK-013](sdk/SDK-013.md) | Export provider interfaces | P0 | P3 | Partially implemented |
+| [SDK-014](sdk/SDK-014.md) | Configuration validation | P0 | P2 | Partially implemented |
+| [SDK-015](sdk/SDK-015.md) | Package signing and provenance | P1 | P7 | Not started |
+| [SDK-016](sdk/SDK-016.md) | NuGet publishing workflow | P0 | P4 | Partially implemented |
+| [SDK-017](sdk/SDK-017.md) | API compatibility checks | P0 | P2-P4 | Not started |
+| [SDK-018](sdk/SDK-018.md) | Security scanning and SBOM | P0 | P4 | Partially implemented |
+| [SDK-019](sdk/SDK-019.md) | Versioning and release notes | P0 | P4 | Partially implemented |
+| [SDK-020](sdk/SDK-020.md) | SDK documentation website | P1 | P7 | Not started |
+| [ADP-001](adp/ADP-001.md) | Certificate and mTLS authentication | P0 | P2 | Implemented but unverified |
+| [ADP-002](adp/ADP-002.md) | OAuth token acquisition and refresh | P0 | P2 | Implemented but unverified |
+| [ADP-003](adp/ADP-003.md) | Secure client credentials configuration | P0 | P2 | Partially implemented |
+| [ADP-004](adp/ADP-004.md) | Worker profile retrieval | P0 | P3 | Implemented but unverified |
+| [ADP-005](adp/ADP-005.md) | Worker pagination and filtering | P0 | P3 | Partially implemented |
+| [ADP-006](adp/ADP-006.md) | Worker changes and incremental sync | P0 | P3 | Partially implemented |
+| [ADP-007](adp/ADP-007.md) | Worker schema mapping | P0 | P3 | Partially implemented |
+| [ADP-008](adp/ADP-008.md) | CSV/JSON/XML export | P0 | P3 | Partially implemented |
+| [ADP-009](adp/ADP-009.md) | Excel export | P1 | P3 | Partially implemented |
+| [ADP-010](adp/ADP-010.md) | Structured errors and rate-limit handling | P0 | P3 | Partially implemented |
+| [ADP-011](adp/ADP-011.md) | Retry, timeout, and cancellation | P0 | P3 | Implemented but unverified |
+| [ADP-012](adp/ADP-012.md) | Connection diagnostics | P0 | P3 | Not started |
+| [ADP-013](adp/ADP-013.md) | ADP organization and manager data | P1 | P3 extension | Partially implemented |
+| [ADP-014](adp/ADP-014.md) | Employment status and lifecycle events | P1 | P3 extension | Partially implemented |
+| [ADP-015](adp/ADP-015.md) | Payroll operations, where entitled | P1 | P3 extension | Partially implemented |
+| [ADP-016](adp/ADP-016.md) | Time and attendance APIs | P2 | P7 | Partially implemented |
+| [ADP-017](adp/ADP-017.md) | Benefits APIs | P2 | P7 | Partially implemented |
+| [ADP-018](adp/ADP-018.md) | Webhook/event subscriptions | P2 | P3 primitives | Partially implemented |
+| [ADP-019](adp/ADP-019.md) | Typed API response models | P0 | P3 | Partially implemented |
+| [ADP-020](adp/ADP-020.md) | Sandbox and contract test suite | P0 | P3-P4 | Partially implemented |
+| [ADP-021](adp/ADP-021.md) | API capability/entitlement matrix | P0 | P1 baseline | Partially implemented |
+| [ADP-022](adp/ADP-022.md) | Documentation and runnable examples | P0 | P3-P4 | Partially implemented |
+| [SAP-001](sap-successfactors/SAP-001.md) | OAuth and supported authentication mechanisms | P0 | P5 | Partially implemented |
+| [SAP-002](sap-successfactors/SAP-002.md) | OData API foundation and employee/person data | P0 | P5 | Partially implemented |
+| [SAP-003](sap-successfactors/SAP-003.md) | Upsert operations | P0 | P5 | Partially implemented |
+| [SAP-004](sap-successfactors/SAP-004.md) | Pagination and filtering | P0 | P5 | Partially implemented |
+| [SAP-005](sap-successfactors/SAP-005.md) | Error handling and diagnostics | P0 | P5 | Partially implemented |
+| [SAP-006](sap-successfactors/SAP-006.md) | Contract and sandbox testing | P0 | P5 | Partially implemented |
+| [SAP-007](sap-successfactors/SAP-007.md) | Additional APIs and complete business-schema validation | P1 | P5 | Planned |
+| [SAP-008](sap-successfactors/SAP-008.md) | Employment records | P0 | P5 | Partially implemented |
+| [SAP-009](sap-successfactors/SAP-009.md) | Job information | P0 | P5 | Partially implemented |
+| [SAP-010](sap-successfactors/SAP-010.md) | Organizational data | P1 | P5 | Not started |
+| [SAP-011](sap-successfactors/SAP-011.md) | Manager relationships | P1 | P5 | Partially implemented |
+| [SAP-012](sap-successfactors/SAP-012.md) | Employee create/update operations where authorized | P1 | P5 | Partially implemented |
+| [SAP-013](sap-successfactors/SAP-013.md) | Delta and incremental synchronization | P0 | P5 | Partially implemented |
+| [SAP-014](sap-successfactors/SAP-014.md) | Metadata and schema discovery | P0 | P5 | Partially implemented |
+| [SAP-015](sap-successfactors/SAP-015.md) | Data mapping | P0 | P5 | Partially implemented |
+| [SAP-016](sap-successfactors/SAP-016.md) | Configuration, documentation and examples | P0 | P5 | Partially implemented |
+| [QLT-001](qualtrics/QLT-001.md) | Authentication and API token configuration | P0 | P6 | Partially implemented |
+| [QLT-002](qualtrics/QLT-002.md) | Survey APIs | P0 | P6 | Partially implemented |
+| [QLT-003](qualtrics/QLT-003.md) | Response export APIs | P0 | P6 | Partially implemented |
+| [QLT-004](qualtrics/QLT-004.md) | Pagination and transport resilience | P0 | P6 | Partially implemented |
+| [QLT-005](qualtrics/QLT-005.md) | Typed responses, errors and diagnostics | P0 | P6 | Partially implemented |
+| [QLT-006](qualtrics/QLT-006.md) | Directory and contact operations | P1 | P6 | Not started |
+| [QLT-007](qualtrics/QLT-007.md) | Events and webhook capabilities | P2 | P7 | Not started |
+| [QLT-008](qualtrics/QLT-008.md) | Contract and sandbox testing | P0 | P6 | Partially implemented |
+| [QLT-009](qualtrics/QLT-009.md) | Mailing lists and segments | P1 | P6 | Not started |
+| [QLT-010](qualtrics/QLT-010.md) | Participant management | P1 | P6 | Not started |
+| [QLT-011](qualtrics/QLT-011.md) | Batch operations | P1 | P6 | Not started |
+| [QLT-012](qualtrics/QLT-012.md) | Data mapping | P0 | P6 | Partially implemented |
+| [QLT-013](qualtrics/QLT-013.md) | Rate-limit handling | P0 | P6 | Partially implemented |
+| [QLT-014](qualtrics/QLT-014.md) | Documentation and examples | P0 | P6 | Partially implemented |
+| [QLT-015](qualtrics/QLT-015.md) | Contact-specific typed schema and consent | P1 | P6 | Not started |
+| [QLT-016](qualtrics/QLT-016.md) | API client foundation and configuration | P0 | P6 | Partially implemented |

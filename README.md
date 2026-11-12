@@ -1,5 +1,7 @@
 # Koras Connect SDK
 
+Track requirements and completion in the [feature tracker](docs/features/README.md): one file per feature, grouped by SDK, ADP, SAP SuccessFactors and Qualtrics.
+
 Independent .NET 10 integration libraries for application hosts, the future Koras Connect CLI and Koras Integration Cloud. This preview is independently written; no reference repository was consulted.
 
 Packages: `Koras.Connect`, `Koras.Connect.Adp`, `Koras.Connect.Sap.SuccessFactors`, and `Koras.Connect.Qualtrics`, version `0.1.0-preview.2`. Packages are built for validation, not published.
