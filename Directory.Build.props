@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>0.1.0-preview.1</Version><Authors>Koras Technologies</Authors>
+    <Version>0.1.0-preview.2</Version><Authors>Koras Technologies</Authors>
     <RepositoryUrl>https://github.com/kkora/koras-connect-sdk</RepositoryUrl>
     <RepositoryType>git</RepositoryType><PackageReadmeFile>README.md</PackageReadmeFile>
     <Deterministic>true</Deterministic><ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>

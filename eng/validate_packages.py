@@ -1,11 +1,13 @@
 """Validate packaged assets without loading or publishing user code."""
+import json
 import pathlib
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
 
 root = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "artifacts")
-expected = {"Koras.Connect", "Koras.Connect.Adp"}
+manifest = json.loads((pathlib.Path(__file__).parent / "release_manifest.json").read_text())
+expected = set(manifest["packages"])
 found = set()
 for path in root.glob("*.nupkg"):
     with zipfile.ZipFile(path) as archive:
@@ -17,7 +19,7 @@ for path in root.glob("*.nupkg"):
         package = fields["id"]
         assert package in expected and package not in found, path
         found.add(package)
-        assert fields["version"] == "0.1.0-preview.1", path
+        assert fields["version"] == manifest["version"], path
         assert f"lib/net10.0/{package}.dll" in names, path
         assert f"lib/net10.0/{package}.xml" in names, path
         assert "README.md" in names, path

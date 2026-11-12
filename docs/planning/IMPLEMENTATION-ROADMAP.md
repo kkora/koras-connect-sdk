@@ -7,4 +7,8 @@
 | G2 | Authentication, certificates, safe transport, retries, diagnostics, exports, reconciliation | CoreTests and source |
 | G3 | WFN workers, documented operations, event helpers, contract verification | AdpContractTests and feature matrix |
 
+| G4 | Release candidate validation, SPDX runtime inventory, four-package consumer | G4-G6-SPECIFICATION.md, release validator, CI |
+| G5 | Public publication workflow (execution disabled) | release.yml, fail-closed approval/tag/checksum gates |
+| G6 | SAP SuccessFactors and Qualtrics P0 connectors | expansion tests and provider matrices |
+
 The prior reference-repository audit proposal is withdrawn under the owner's explicit instruction. No source from that repository is read or used. Missing tenant access and limitations must remain visible in VERIFICATION.md. CLI and Cloud are separate future products.
