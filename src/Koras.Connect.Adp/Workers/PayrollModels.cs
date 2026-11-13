@@ -12,6 +12,12 @@ namespace Koras.Connect.Adp.Workers;
 // typed property; that content is deliberately retained only inside the raw AdditionalData/AccountDetail bag (the
 // same posture already used for SpendingAccountEnrollment.AccountBasedCoverage) so this file never invents a
 // sensitive field it has not verified.
+//
+// Schema source: "Payroll instructions" and "Pay distributions" rows (S2/S8) in
+// docs/features/ADP-FEATURE-MATRIX.md. Unlike the other typed models in this package, S2/S8 cite those rows only
+// as protocol/catalog evidence (that the GET operation and path exist), not as a published field-level JSON
+// schema - this is the explicit reason these two models stay "best-effort" rather than citing a verified schema
+// the way Worker/OrganizationDepartment/TimeOff do.
 
 /// <summary>Best-effort typed view of one entry in the existing <c>GET /payroll/v1/workers/{worker}/payroll-instructions</c>
 /// response (<see cref="AdpOperation.PayrollInstructions"/>). No new endpoint is introduced. See the remarks at the

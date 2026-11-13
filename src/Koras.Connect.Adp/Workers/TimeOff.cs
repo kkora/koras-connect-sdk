@@ -4,7 +4,8 @@ namespace Koras.Connect.Adp.Workers;
 
 /// <summary>Typed view of one entry in the existing <c>GET /time/v2/workers/{worker}/time-off-details/time-off-balances</c>
 /// response (<see cref="AdpOperation.TimeOffBalances"/>). No new endpoint is introduced. Unknown vendor fields are
-/// preserved, matching the pattern used by <see cref="Worker"/>.</summary>
+/// preserved, matching the pattern used by <see cref="Worker"/>. Schema source: "Time-off balances" row (S2) in
+/// <c>docs/features/ADP-FEATURE-MATRIX.md</c>.</summary>
 public sealed class TimeOffBalanceEntry
 {
     [JsonPropertyName("accrualCode")] public CodeValue? AccrualCode { get; set; }
@@ -26,7 +27,8 @@ public sealed class TimeOffBalancesResponse
 }
 
 /// <summary>Typed view of one entry in the existing <c>GET /time/v2/workers/{worker}/time-off-details/time-off-requests</c>
-/// response (<see cref="AdpOperation.TimeOffRequests"/>). No new endpoint is introduced.</summary>
+/// response (<see cref="AdpOperation.TimeOffRequests"/>). No new endpoint is introduced. Schema source: "Time-off
+/// requests" row (S2) in <c>docs/features/ADP-FEATURE-MATRIX.md</c>.</summary>
 public sealed class TimeOffRequest
 {
     [JsonPropertyName("itemID")] public string? ItemId { get; set; }

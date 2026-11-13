@@ -6,7 +6,10 @@ namespace Koras.Connect.Adp.Workers;
 /// response (<see cref="AdpOperation.SpendingAccountEnrollments"/>, dispatched by
 /// <see cref="AdpOperationsClient.ReadSpendingAccountEnrollmentsAsync"/>). No new endpoint is introduced; coverage
 /// detail is preserved as a raw <see cref="JsonElement"/> because its shape varies by plan type, while unknown
-/// top-level vendor fields are preserved via <c>[JsonExtensionData]</c> as elsewhere in this package.</summary>
+/// top-level vendor fields are preserved via <c>[JsonExtensionData]</c> as elsewhere in this package. Schema
+/// source: "Spending-account enrollments" row (S5, the dedicated HROpen benefit spending-account guide) in
+/// <c>docs/features/ADP-FEATURE-MATRIX.md</c> — only the two top-level fields S5 documents consistently across plan
+/// types are modeled; everything plan-specific stays in <see cref="AccountBasedCoverage"/>.</summary>
 public sealed class SpendingAccountEnrollment
 {
     [JsonPropertyName("itemID")] public string? ItemId { get; set; }

@@ -5,7 +5,8 @@ namespace Koras.Connect.Adp.Workers;
 /// <summary>Typed view of one entry in the existing <c>GET /hr/v1/organization-departments</c> response
 /// (<see cref="AdpOperation.OrganizationDepartments"/>). No new endpoint is introduced; this is a typed
 /// deserialization target for the documented response already dispatched by <see cref="AdpOperationsClient"/>.
-/// Unknown vendor fields are preserved, matching the pattern used by <see cref="Worker"/>.</summary>
+/// Unknown vendor fields are preserved, matching the pattern used by <see cref="Worker"/>. Schema source:
+/// "Departments" row (S2) in <c>docs/features/ADP-FEATURE-MATRIX.md</c>.</summary>
 public sealed class OrganizationDepartment
 {
     [JsonPropertyName("itemID")] public string? ItemId { get; set; }

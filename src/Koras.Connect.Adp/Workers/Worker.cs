@@ -2,7 +2,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace Koras.Connect.Adp.Workers;
 
-/// <summary>WFN worker fields; unknown vendor fields are preserved for forward compatibility.</summary>
+/// <summary>WFN worker fields; unknown vendor fields are preserved for forward compatibility. Schema source: the
+/// "Worker list / search" and "Individual worker" rows of <c>docs/features/ADP-FEATURE-MATRIX.md</c> (S1 worker
+/// guide PDF, cross-checked against the S2 official request/response sample payloads). Only the subset of fields
+/// those two sources document is modeled; everything else survives through <see cref="AdditionalData"/>.</summary>
 public sealed class Worker
 {
     [JsonPropertyName("associateOID")] public string? AssociateOid { get; set; }

@@ -6,7 +6,8 @@ namespace Koras.Connect.Adp.Workers;
 /// both when reading <see cref="WorkAssignment.ReportsTo"/> and when composing a
 /// <see cref="AdpOperation.ChangeManager"/> event payload). No new endpoint is introduced; this is a typed
 /// deserialization target for data already returned or submitted by existing, documented operations. Unknown
-/// vendor fields are preserved, matching the pattern used by <see cref="Worker"/>.</summary>
+/// vendor fields are preserved, matching the pattern used by <see cref="Worker"/>. Schema source: "Manager change"
+/// row (S1) in <c>docs/features/ADP-FEATURE-MATRIX.md</c>.</summary>
 public sealed class ManagerRelationship
 {
     [JsonPropertyName("workerID")] public Identifier? WorkerId { get; set; }

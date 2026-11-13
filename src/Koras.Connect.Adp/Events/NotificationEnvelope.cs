@@ -3,7 +3,10 @@ namespace Koras.Connect.Adp.Events;
 
 /// <summary>Minimal typed envelope around one ADP event-notification message, whether delivered via webhook or
 /// retrieved by polling <see cref="AdpOperation.EventNotifications"/>. The full original message is preserved as
-/// <see cref="Payload"/> so downstream processing stays schema-tolerant to vendor event shapes this SDK does not model.</summary>
+/// <see cref="Payload"/> so downstream processing stays schema-tolerant to vendor event shapes this SDK does not
+/// model. Schema source: "Event polling"/"Event acknowledgement" rows (S2) and the webhook delivery envelope (S6)
+/// in <c>docs/features/ADP-FEATURE-MATRIX.md</c>; only the <c>meta.messageId</c> field needed to identify a
+/// delivery is modeled, matching S6's documented envelope shape.</summary>
 public sealed class NotificationEnvelope
 {
     public required string MessageId { get; init; }
