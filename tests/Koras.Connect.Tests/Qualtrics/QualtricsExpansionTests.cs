@@ -671,4 +671,91 @@ public sealed class QualtricsExpansionTests
         Assert.Equal("营销", embeddedData.GetProperty("部門").GetString());
         Assert.Equal("café 😀", embeddedData.GetProperty("note").GetString());
     }
+
+    // ---------- QLT-007: event subscriptions ----------
+
+    [Fact]
+    public async Task ListEventSubscriptionsPagesUsingTheSharedPagingHelper()
+    {
+        var calls = 0;
+        using var h = new HttpClient(new Handler((r, ct) =>
+        {
+            calls++;
+            Assert.Equal(HttpMethod.Get, r.Method);
+            return Task.FromResult(Json("""{"result":{"elements":[{"id":"ES_1","topics":"surveyengine.completedResponse.SV_1","publicationUrl":"https://host.test/hook","encrypt":false}],"nextPage":null}}"""));
+        }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var subscriptions = new List<QualtricsEventSubscription>();
+        await foreach (var s in c.ListEventSubscriptionsAsync()) subscriptions.Add(s);
+        var single = Assert.Single(subscriptions);
+        Assert.Equal("ES_1", single.Id);
+        Assert.Equal("surveyengine.completedResponse.SV_1", single.Topics);
+        Assert.Equal(1, calls);
+    }
+
+    [Fact]
+    public async Task CreateEventSubscriptionRequiresExplicitOptInAndJoinsTopicsAndRejectsNonHttpsPublicationUrl()
+    {
+        var calls = 0; string? sentBody = null;
+        using var h = new HttpClient(new Handler(async (r, ct) =>
+        {
+            calls++;
+            sentBody = await r.Content!.ReadAsStringAsync(ct);
+            return Json("""{"result":{"id":"ES_new"}}""");
+        }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var topics = new[] { "surveyengine.completedResponse.SV_1", "contacts.import.complete" };
+        var publicationUrl = new Uri("https://host.test/hook");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => c.CreateEventSubscriptionAsync(topics, publicationUrl));
+        Assert.Equal(0, calls);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => c.CreateEventSubscriptionAsync([], publicationUrl, writesEnabled: true));
+        await Assert.ThrowsAsync<ArgumentException>(() => c.CreateEventSubscriptionAsync(topics, new Uri("http://host.test/hook"), writesEnabled: true));
+        Assert.Equal(0, calls);
+
+        var id = await c.CreateEventSubscriptionAsync(topics, publicationUrl, writesEnabled: true);
+        Assert.Equal("ES_new", id);
+        Assert.Equal(1, calls);
+        using var parsedBody = JsonDocument.Parse(sentBody!);
+        Assert.Equal("surveyengine.completedResponse.SV_1,contacts.import.complete", parsedBody.RootElement.GetProperty("topics").GetString());
+        Assert.Equal("https://host.test/hook", parsedBody.RootElement.GetProperty("publicationUrl").GetString());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task CreateEventSubscriptionClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-subscription-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.CreateEventSubscriptionAsync(["contacts.import.complete"], new Uri("https://host.test/hook"), writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-subscription-detail", ex.ToString());
+    }
+
+    [Fact]
+    public async Task DeleteEventSubscriptionRequiresExplicitOptInAndSendsDelete()
+    {
+        var calls = 0; HttpMethod? seenMethod = null;
+        using var h = new HttpClient(new Handler((r, ct) => { calls++; seenMethod = r.Method; return Task.FromResult(Json("null")); }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => c.DeleteEventSubscriptionAsync("ES_1"));
+        Assert.Equal(0, calls);
+        await c.DeleteEventSubscriptionAsync("ES_1", writesEnabled: true);
+        Assert.Equal(HttpMethod.Delete, seenMethod);
+        Assert.Equal(1, calls);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task DeleteEventSubscriptionClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-delete-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.DeleteEventSubscriptionAsync("ES_1", writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-delete-detail", ex.ToString());
+    }
 }

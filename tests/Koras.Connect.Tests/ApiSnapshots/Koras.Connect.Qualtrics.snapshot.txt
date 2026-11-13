@@ -57,7 +57,9 @@ sealed class Koras.Connect.Qualtrics.QualtricsClient
   ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Qualtrics.QualtricsOptions options)
   method Koras.Connect.Qualtrics.QualtricsClient Create(System.Net.Http.HttpClient http, Koras.Connect.Transport.IAccessTokenSource apiTokens, Koras.Connect.Qualtrics.QualtricsOptions options, Koras.Connect.Transport.TransportOptions transport = null)
   method System.Threading.Tasks.Task<System.String> CreateContactAsync(System.String directoryId, Koras.Connect.Qualtrics.QualtricsContact contact, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> CreateEventSubscriptionAsync(System.Collections.Generic.IReadOnlyList<System.String> topics, System.Uri publicationUrl, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateMailingListAsync(System.String directoryId, Koras.Connect.Qualtrics.QualtricsMailingList mailingList, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DeleteEventSubscriptionAsync(System.String subscriptionId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DownloadExportAsync(System.String surveyId, System.String fileId, System.IO.Stream output, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.SurveySummary> EnumerateSurveysAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.QualtricsContact> GetContactAsync(System.String directoryId, System.String contactId, System.Threading.CancellationToken cancellationToken = null)
@@ -66,6 +68,8 @@ sealed class Koras.Connect.Qualtrics.QualtricsClient
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetSurveyAsync(System.String surveyId, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsContact> ListContactsAsync(System.String directoryId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.QualtricsContact>> ListContactsPageAsync(System.String directoryId, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsEventSubscription> ListEventSubscriptionsAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.QualtricsEventSubscription>> ListEventSubscriptionsPageAsync(Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsMailingList> ListMailingListsAsync(System.String directoryId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.SurveySummary>> ListSurveysPageAsync(Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> StartResponseExportAsync(System.String surveyId, Koras.Connect.Qualtrics.ResponseExportOptions options = null, System.Threading.CancellationToken cancellationToken = null)
@@ -93,6 +97,13 @@ sealed class Koras.Connect.Qualtrics.QualtricsContact
 sealed class Koras.Connect.Qualtrics.QualtricsContactMapper
   ctor()
   method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Qualtrics.NeutralContactRecord> Map(Koras.Connect.Qualtrics.QualtricsContact source)
+sealed class Koras.Connect.Qualtrics.QualtricsEventSubscription
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Boolean> Encrypt {get+set}
+  property System.String Id {get+set}
+  property System.String PublicationUrl {get+set}
+  property System.String Topics {get+set}
 sealed class Koras.Connect.Qualtrics.QualtricsMailingList
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}

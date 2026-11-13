@@ -4,10 +4,10 @@ title: "Events and webhook capabilities"
 category: "qualtrics"
 priority: "P2"
 phase: "P7"
-status: "not-started"
+status: "partial"
 baseline_status: "Not started"
 verification: "unverified"
-last_updated: "2026-11-12"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | After an explicit go/no-go call, the user chose to implement subscription *management* now (create/list/delete against the publicly documented Qualtrics API v3 Event Subscriptions contract), explicitly scoped to exclude any receiver/signature-verification server - the same division of responsibility already documented for ADP-018's webhooks (host owns the inbound endpoint, TLS, delivery-authenticity verification and deduplication). Added `QualtricsEventSubscription` DTO and `ListEventSubscriptionsAsync`/`ListEventSubscriptionsPageAsync` (read, default-enabled, reusing the shared paging engine) plus `CreateEventSubscriptionAsync`/`DeleteEventSubscriptionAsync` (write, explicit `writesEnabled` opt-in, classified through `QualtricsApiException` on failure) in `src/Koras.Connect.Qualtrics/QualtricsEventSubscriptionsClient.cs`. `Topics` is modeled as a single comma-joined string per the documented contract, not a JSON array. **Endpoint shape is based on the publicly documented Qualtrics API v3 contract; it is NOT verified against a live tenant** - every new public member's XML doc states this explicitly, matching the established "best-effort, unconfirmed" posture used for QLT-006/009's contact/mailing-list writes. Added `samples/Qualtrics.EventSubscriptions`, an offline console sample (list -> create -> delete, no receiver) verified with `dotnet build`/`dotnet run` on a clean checkout. Covered by `tests/Koras.Connect.Tests/Qualtrics/QualtricsExpansionTests.cs` (`ListEventSubscriptionsPagesUsingTheSharedPagingHelper`, `CreateEventSubscriptionRequiresExplicitOptInAndJoinsTopicsAndRejectsNonHttpsPublicationUrl`, `CreateEventSubscriptionClassifiesForbiddenAndNotFoundWithoutLeakingBody`, `DeleteEventSubscriptionRequiresExplicitOptInAndSendsDelete`, `DeleteEventSubscriptionClassifiesForbiddenAndNotFoundWithoutLeakingBody`). Regenerated the committed `Koras.Connect.Qualtrics.snapshot.txt` API baseline for the new public surface. `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: 499 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No receiver/signature-verification code exists or was attempted by design (host-owned, out of scope for this pass). Status stays `partial`, not `implemented`: [Q8] the full subscription contract/auth/event schemas and tenant eligibility remain unverified against a live tenant or vendor-authoritative schema, and "unsupported type"/"forged/stale/duplicate envelope"/"retries"/"missing identity" unit-test requirements are receiver-side concerns this pass deliberately does not implement. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `not-started` | Reviewed during the same work session that advanced QLT-001/004/005/006/009/012/013/014/015/016. Deliberately left `not-started`/blocked: the event-subscription authentication/verification scheme for Qualtrics webhooks is unverified in this codebase (no prior sandbox evidence), and the task-level guidance explicitly directs against inventing a webhook/event contract without vendor-contract verification. No event DTO, subscription client or receiver code was added. Remaining blocker unchanged: [Q8] current full subscription contract/auth/event schemas and tenant eligibility must be verified against vendor documentation (or a live/sandboxed tenant) before any implementation is attempted. |
+| 2026-11-13 | `partial` | After an explicit go/no-go call, implemented subscription management only (create/list/delete) against the publicly documented Event Subscriptions API, explicitly excluding any receiver/signature-verification server. Checked the unit/contract/integration, security/cancellation/resource-ownership, and documentation/consumer-example completion gates; status moves from `not-started` to `partial` (not `implemented`): the [Q8] live-tenant schema/auth verification remains open, and the receiver-side unit-test requirements (forged/stale/duplicate envelope, retries, missing identity) are out of scope by design. |
