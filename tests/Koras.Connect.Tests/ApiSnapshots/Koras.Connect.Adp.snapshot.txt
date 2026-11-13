@@ -97,11 +97,24 @@ abstract class Koras.Connect.Adp.AdpTimeAndAttendanceCapabilityStatement
   property System.String Statement {get}
   property System.Boolean TimeOffReadsImplemented {get}
   property System.Boolean TimecardOperationsImplemented {get}
+abstract class Koras.Connect.Adp.Events.AdpEventEnvelopeParser
+  method System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Events.AdpEventSummary> ParseEvents(System.Text.Json.JsonElement envelope)
+sealed class Koras.Connect.Adp.Events.AdpEventSummary
+  ctor(System.String EventItemId, System.String WorkerAssociateOid)
+  property System.String EventItemId {get+init}
+  property System.String WorkerAssociateOid {get+init}
+  method Koras.Connect.Adp.Events.AdpEventSummary <Clone>$()
+  method System.Void Deconstruct(System.String& EventItemId, System.String& WorkerAssociateOid)
+  method System.Boolean Equals(Koras.Connect.Adp.Events.AdpEventSummary other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 abstract class Koras.Connect.Adp.Events.AdpWebhookAuthentication
   method System.String GetDeliveryKey(System.Text.Json.JsonElement envelope)
   method System.Boolean VerifyPublisherHeader(System.String header, System.String clientId, System.String clientSecret)
 sealed class Koras.Connect.Adp.Events.NotificationEnvelope
   ctor()
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Events.AdpEventSummary> Events {get+init}
   property System.String MessageId {get+init}
   property System.Text.Json.JsonElement Payload {get+init}
   method Koras.Connect.Adp.Events.NotificationEnvelope FromPolledMessage(System.String messageId, System.Text.Json.JsonElement payload)

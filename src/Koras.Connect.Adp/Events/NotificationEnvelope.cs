@@ -12,6 +12,11 @@ public sealed class NotificationEnvelope
     public required string MessageId { get; init; }
     public required JsonElement Payload { get; init; }
 
+    /// <summary>Safe, tolerant parse of <see cref="Payload"/>'s <c>events</c> array via
+    /// <see cref="AdpEventEnvelopeParser.ParseEvents"/> (ADP-018). Empty when the payload does not carry the
+    /// documented shape &#8212; never guessed, and the full raw <see cref="Payload"/> remains available regardless.</summary>
+    public IReadOnlyList<AdpEventSummary> Events { get; init; } = [];
+
     /// <summary>Builds an envelope from a webhook delivery body shaped like the documented
     /// <c>{"meta":{"orgID":...,"messageId":...}}</c> envelope used by <see cref="AdpWebhookAuthentication.GetDeliveryKey"/>.</summary>
     public static NotificationEnvelope FromWebhookDelivery(JsonElement envelope)
@@ -19,7 +24,7 @@ public sealed class NotificationEnvelope
         var meta = envelope.GetProperty("meta");
         var id = meta.GetProperty("messageId").GetString();
         if (string.IsNullOrWhiteSpace(id)) throw new JsonException("Webhook delivery is missing a message id.");
-        return new NotificationEnvelope { MessageId = id, Payload = envelope.Clone() };
+        return new NotificationEnvelope { MessageId = id, Payload = envelope.Clone(), Events = AdpEventEnvelopeParser.ParseEvents(envelope) };
     }
 
     /// <summary>Builds an envelope from one polled <see cref="AdpOperation.EventNotifications"/> message, using the
@@ -28,6 +33,6 @@ public sealed class NotificationEnvelope
     public static NotificationEnvelope FromPolledMessage(string messageId, JsonElement payload)
     {
         if (string.IsNullOrWhiteSpace(messageId)) throw new ArgumentException("A message id is required.", nameof(messageId));
-        return new NotificationEnvelope { MessageId = messageId, Payload = payload.Clone() };
+        return new NotificationEnvelope { MessageId = messageId, Payload = payload.Clone(), Events = AdpEventEnvelopeParser.ParseEvents(payload) };
     }
 }
