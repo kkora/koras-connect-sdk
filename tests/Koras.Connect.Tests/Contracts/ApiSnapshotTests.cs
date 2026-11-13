@@ -18,7 +18,7 @@ namespace Koras.Connect.Tests;
 public sealed class ApiSnapshotTests
 {
     private static string RepoRoot([CallerFilePath] string callerFile = "")
-        => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", ".."));
+        => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", "..", ".."));
 
     [Theory]
     [InlineData("Koras.Connect.Abstractions")]

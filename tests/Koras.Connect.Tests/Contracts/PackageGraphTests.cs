@@ -12,7 +12,7 @@ namespace Koras.Connect.Tests;
 public sealed class PackageGraphTests
 {
     private static string RepoRoot([CallerFilePath] string callerFile = "")
-        => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", ".."));
+        => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", "..", ".."));
 
     /// <summary>The only internal project-to-project edges this split authorizes. Every other project pair must
     /// NOT reference each other, enforcing that Abstractions has no dependents it depends on, that neither provider
