@@ -32,6 +32,44 @@ public sealed class DiagnosticsAndCorrelationTests
     }
 
     [Fact]
+    public async Task AMaliciousOversizedOrControlCharacterLadenRequestIdIsSanitizedBeforeCapture()
+    {
+        var oversized = new string('x', 10_000);
+        using var http = new HttpClient(new Handler(_ =>
+        {
+            var response = Reply("""{"error":"denied"}""", HttpStatusCode.Forbidden);
+            response.Headers.TryAddWithoutValidation("request-id", oversized + "\r\nSet-Cookie: injected=1");
+            return response;
+        }));
+        var transport = new IntegrationTransport(http, new Token());
+
+        var failure = await Assert.ThrowsAsync<IntegrationRequestException>(() => transport.ReadJsonAsync(new("https://api.test/thing")));
+
+        var captured = Assert.Single(failure.Headers["request-id"]);
+        Assert.True(captured.Length <= 200, $"Captured correlation value was {captured.Length} characters; it must be bounded.");
+        Assert.DoesNotContain('\r', captured);
+        Assert.DoesNotContain('\n', captured);
+    }
+
+    [Fact]
+    public async Task OnlyTheAllowlistedCorrelationHeadersAreEverCapturedNeverAnArbitraryResponseHeader()
+    {
+        using var http = new HttpClient(new Handler(_ =>
+        {
+            var response = Reply("""{"error":"denied"}""", HttpStatusCode.Forbidden);
+            response.Headers.TryAddWithoutValidation("x-employee-ssn", "123-45-6789");
+            response.Headers.TryAddWithoutValidation("set-cookie", "session=super-secret");
+            return response;
+        }));
+        var transport = new IntegrationTransport(http, new Token());
+
+        var failure = await Assert.ThrowsAsync<IntegrationRequestException>(() => transport.ReadJsonAsync(new("https://api.test/thing")));
+
+        Assert.False(failure.Headers.ContainsKey("x-employee-ssn"));
+        Assert.False(failure.Headers.ContainsKey("set-cookie"));
+    }
+
+    [Fact]
     public async Task ExhaustedRetryCarriesCorrelationHeadersToo()
     {
         using var http = new HttpClient(new Handler(_ =>

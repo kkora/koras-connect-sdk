@@ -88,15 +88,27 @@ public sealed class IntegrationTransport
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
         }, cancellationToken);
+    /// <summary>Correlation-header values are truncated to this length and stripped of control characters before
+    /// capture, so a malicious or misbehaving server cannot bloat logs or inject control sequences through a
+    /// request-id-style header.</summary>
+    private const int MaxCorrelationHeaderLength = 200;
+
     /// <summary>Extracts the fixed, sanitized correlation-header allowlist from a response. Never includes the body
     /// or any header outside this allowlist, successful or not, so a failed <see cref="IntegrationRequestException"/>
-    /// carries the same correlation evidence a success would.</summary>
+    /// carries the same correlation evidence a success would. Every captured value is bounded and control-character-free
+    /// regardless of what the server actually sent.</summary>
     private static Dictionary<string, string[]> SafeHeaders(HttpResponseMessage response)
     {
         var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
         foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id" })
-            if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.ToArray();
+            if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.Select(SanitizeCorrelationValue).ToArray();
         return safeHeaders;
+    }
+
+    private static string SanitizeCorrelationValue(string value)
+    {
+        var withoutControlChars = string.Concat(value.Where(c => !char.IsControl(c)));
+        return withoutControlChars.Length > MaxCorrelationHeaderLength ? withoutControlChars[..MaxCorrelationHeaderLength] : withoutControlChars;
     }
     /// <summary>Copies a successful GET response to a caller-owned stream. No replay after any output has been written.</summary>
     public Task CopyToAsync(Uri address, Stream output, CancellationToken cancellationToken = default)
