@@ -4,7 +4,7 @@ title: "Configuration validation"
 category: "sdk"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 332, Skipped 3 (live-sandbox, unrelated), Failed 0. The acceptance criterion's second clause — "DI and direct construction enforce the same rules" — had only ever been verified by code inspection, never empirically. New `ConfigurationValidationConsistencyTests.cs` (3 tests) drives both the DI path (`AddKorasAdp`/`AddKorasSuccessFactors`/`AddKorasQualtrics`'s static pre-validation) and the direct-construction path (`AdpWorkersClient`/`SuccessFactorsClient`/`QualtricsClient`) with the same invalid input and asserts the exact same exception type and message from both. Doing so surfaced a real discrepancy: `QualtricsClient`'s constructor re-implemented its own, independent, weaker check (a bare `ArgumentException` with one generic combined message) instead of calling the same `QualtricsOptions.Validate()` the DI extension already called — unlike ADP's `AdpWorkersClient` and SAP's `SuccessFactorsClient`, which already shared one validation method between both paths. Fixed by making the constructor delegate to `Validate()`, matching the other two providers' existing pattern; the new test now proves all three providers reject an identical bad root identically through both paths. |
+| Remaining work / blockers | No functional gap found for this ticket beyond the one fixed above. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added the shared `IValidatableOptions`/`OptionsValidationException` contract in `src/Koras.Connect/Abstractions/Validation.cs`. `TransportOptions` and `ClientCredentialsOptions` now explicitly implement `IValidatableOptions` (their existing `Validate()` methods were already structurally compatible; `TransportOptions.Validate()` was widened from `internal` to `public` to satisfy the interface). Still open: neither type throws the new field-level `OptionsValidationException` yet — they still throw bare `ArgumentException`/`ArgumentOutOfRangeException` — and there is no `IValidateOptions<T>`/DI-time-eager-validation integration, so direct construction and DI-time validation are not yet provably identical. `dotnet build`/`dotnet test` (55 baseline tests) pass unaffected. |
 | 2026-11-12 | `partial` | `ClientCredentialsOptions.Validate()` and `TransportOptions.Validate()` now throw `OptionsValidationException` listing every violated field by name (not just the first), instead of a bare `ArgumentException`/`ArgumentOutOfRangeException`. `Koras.Connect.Adp.AdpConnector.TryValidateConfigurationAsync`'s catch clause was updated to also catch `OptionsValidationException` so its existing short-circuit-before-network behavior (`AdpConnectorTests.MissingCredentialsShortCircuitBeforeAnyNetworkCall`) is unaffected. Covered by new field-level-message tests in `tests/Koras.Connect.Tests/DiagnosticsAndCorrelationTests.cs`. Still open: no `IValidateOptions<T>`/DI-time-eager-validation integration. `dotnet build`/`dotnet test` pass (197 passed, 3 intentionally skipped, 0 failed). |
+| 2026-11-12 | `implemented` | Closed the "DI and direct construction enforce the same rules" gap with an empirical cross-path test, which found and fixed a real discrepancy in `QualtricsClient`'s constructor (see validation evidence above). Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |

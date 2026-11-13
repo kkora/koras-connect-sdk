@@ -53,9 +53,11 @@ public sealed partial class QualtricsClient
     private readonly int _maxPages;
     public QualtricsClient(IntegrationTransport transport, QualtricsOptions options)
     {
+        // Delegates to the same Validate() the AddKorasQualtrics DI extension calls, so direct construction and
+        // DI-time registration reject an identical bad configuration with the identical OptionsValidationException
+        // and per-field messages - not two independently-maintained checks that could silently drift apart.
+        options.Validate();
         _transport = transport; _root = EndpointSafety.ValidateRoot(options.ApiRoot); _maxPages = options.MaxPages;
-        if (!_root.AbsolutePath.EndsWith("/API/v3/", StringComparison.Ordinal) || _maxPages is < 1 or > 100000)
-            throw new ArgumentException("Configure an explicit tenant API v3 root and bounded page count.", nameof(options));
     }
     public static QualtricsClient Create(HttpClient http, IAccessTokenSource apiTokens, QualtricsOptions options, TransportOptions? transport = null)
         => new(new IntegrationTransport(http, new HeaderTokenAuthenticator("X-API-TOKEN", apiTokens), transport), options);
