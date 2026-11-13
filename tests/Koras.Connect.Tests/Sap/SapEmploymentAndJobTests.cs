@@ -81,4 +81,37 @@ public sealed class SapEmploymentAndJobTests
         Assert.Equal("a",jobs[0].AdditionalData!["custom"].GetString());
         Assert.Equal("b",jobs[1].AdditionalData!["custom"].GetString());
     }
+
+    [Fact] public async Task EnumerateJobsAsyncForwardsFromAndToDateRangeInTheQueryString()
+    {
+        using var http=new HttpClient(new Handler((r,ct)=>
+        {
+            Assert.Equal("/odata/v2/EmpJob",r.RequestUri!.AbsolutePath);
+            Assert.Contains("fromDate=2026-01-01",r.RequestUri.Query);
+            Assert.Contains("toDate=2026-12-31",r.RequestUri.Query);
+            return Task.FromResult(Json("""{"d":{"results":[]}}"""));
+        }));
+        var c=Client(http);
+        await foreach(var j in c.EnumerateJobsAsync(new(FromDate:new(2026,1,1),ToDate:new(2026,12,31)))) { }
+    }
+
+    [Fact] public async Task SameDayJobsWithDifferentSequenceNumbersPreserveDistinctOrderingIdentity()
+    {
+        // SAP-009 "same-day sequences": two EmpJob records sharing a startDate are only distinguishable by
+        // seqNumber - both must survive enumeration as distinct entries (ordering itself is covered by
+        // SapManagerResolutionTests.IsMoreCurrent via ManagerAssignment; this test pins the raw EmpJob read).
+        using var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("""
+        {"d":{"results":[
+            {"userId":"synthetic-1","seqNumber":1,"startDate":"2026-06-01T00:00:00Z","jobTitle":"Engineer I"},
+            {"userId":"synthetic-1","seqNumber":2,"startDate":"2026-06-01T00:00:00Z","jobTitle":"Engineer II"}
+        ]}}
+        """))));
+        var c=Client(http);
+        var jobs=new List<EmpJob>();
+        await foreach(var j in c.EnumerateJobsAsync()) jobs.Add(j);
+        Assert.Equal(2,jobs.Count);
+        Assert.Equal(jobs[0].StartDate!.Value.GetString(),jobs[1].StartDate!.Value.GetString());
+        Assert.NotEqual(jobs[0].SequenceNumber,jobs[1].SequenceNumber);
+        Assert.Equal("Engineer II",jobs.Single(j=>j.SequenceNumber==2).JobTitle);
+    }
 }

@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P5"
 status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -53,9 +53,9 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.cs` (`EnumerateJobsAsync`) |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapEmploymentAndJobTests.cs` |
-| Remaining work / blockers | EmpJob entity schema/RBP and effective-date contract remain unverified against a live tenant; "future/past jobs" effective-date windowing relies on the existing generic `ODataQuery` asOf/from/to parameters, not a job-specific as-of API |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "future/past jobs" and "same-day sequences" unit-test-requirement gaps. Added `EnumerateJobsAsyncForwardsFromAndToDateRangeInTheQueryString` (confirms `fromDate`/`toDate` reach the `EmpJob` request) and `SameDayJobsWithDifferentSequenceNumbersPreserveDistinctOrderingIdentity` (two records sharing a `startDate`, distinguished only by `seqNumber`, both survive enumeration as distinct entries) to `tests/Koras.Connect.Tests/Sap/SapEmploymentAndJobTests.cs`. Full suite: 524 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. EmpJob entity schema/RBP and effective-date contract remain unverified against a live tenant; "future/past jobs" effective-date windowing relies on the existing generic `ODataQuery` asOf/from/to parameters, not a job-specific as-of API. |
 | Acceptance / completion | Unit-level only: `EnumerateJobsAcceptsSequenceNumberAsStringOrNumberAndPreservesUnknownFields` in `SapEmploymentAndJobTests.cs` covers `seqNumber` as both a JSON string and number, and unknown-field preservation via `AdditionalData`. Live/sandbox acceptance not recorded. |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Added `SuccessFactorsClient.EnumerateJobsAsync` convenience wrapper over `EnumerateAsync<EmpJob>`, plus dedicated unit tests in `tests/Koras.Connect.Tests/SapEmploymentAndJobTests.cs` covering string-vs-number `seqNumber` and unknown-field preservation. Manager-relationship edge cases (missing manager, same-day sequences via `ManagerAssignment`) are covered separately under SAP-011. `verification` remains `unverified` - no live-tenant evidence was gathered. |
+| 2026-11-13 | `implemented` | Added `EnumerateJobsAsyncForwardsFromAndToDateRangeInTheQueryString` and `SameDayJobsWithDifferentSequenceNumbersPreserveDistinctOrderingIdentity`, closing the "future/past jobs" and "same-day sequences" unit-test-requirement gaps. `verification` moves from `unverified` to `partial`: these are local, deterministic protocol tests, not live-tenant evidence; the EmpJob schema/RBP contract against a real tenant remains a standing external blocker. |
