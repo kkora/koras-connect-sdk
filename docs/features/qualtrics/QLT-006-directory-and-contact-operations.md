@@ -7,7 +7,7 @@ phase: "P6"
 status: "partial"
 baseline_status: "Not started"
 verification: "unverified"
-last_updated: "2026-11-12"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -54,8 +54,8 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "duplicate external IDs" and "Create/UpdateContact 403/404" unit-test-requirement gaps by adding `CreateContactClassifiesForbiddenAndDuplicateExternalIdWithoutLeakingBody` (403/409, the 409 simulating a provider rejecting a duplicate `extRef`) and `UpdateContactClassifiesForbiddenAndNotFoundWithoutLeakingBody` (403/404) to `tests/Koras.Connect.Tests/Qualtrics/QualtricsExpansionTests.cs`. Both assert the failure classifies into `QualtricsApiException` with the correct `StatusCode` and never leaks the provider's response body, matching the existing pattern already used for `GetContactAsync`. Full suite: 479 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | "Invalid IDs" and "missing fields" are covered (`CreateContactRejectsInvalidDirectoryIdLocally`, `CreateContactRejectsMissingRequiredFieldLocallyBeforeAnyHttpCall`); "opt-out/consent" is covered by `ListContactsPagesAndPreservesUnknownFieldsAndNullVersusOmission`'s three-state `Unsubscribed` assertions; "uncertain write outcome" has no dedicated test yet. The [Q6] XM Directory license/permission/schema verification blocker remains open against a live tenant (see above), so status stays `partial`, not `implemented`. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `QualtricsContact` DTO and `ListContactsAsync`/`ListContactsPageAsync`/`GetContactAsync` (read, default-enabled) plus `CreateContactAsync`/`UpdateContactAsync` (write, explicit `writesEnabled` opt-in gate, following the SAP `SuccessFactorsClient.UpsertAsync` pattern) in `src/Koras.Connect.Qualtrics/QualtricsDirectoryClient.cs`. **Endpoint shape (`GET/POST /directories/{directoryId}/contacts`, `GET/PUT /directories/{directoryId}/contacts/{contactId}`) is based on the publicly documented Qualtrics API v3 contract; it is NOT verified against a live tenant** — every new public member's XML doc states this explicitly. Covered by `tests/Koras.Connect.Tests/QualtricsExpansionTests.cs` (`ListContactsPagesAndPreservesUnknownFieldsAndNullVersusOmission`, `CreateContactRequiresExplicitOptIn`, `CreateContactRejectsMissingRequiredFieldLocallyBeforeAnyHttpCall`, `CreateContactRejectsInvalidDirectoryIdLocally`, `GetContactClassifiesForbiddenAndNotFoundWithoutLeakingBody`, `UpdateContactRequiresExplicitOptInAndSendsPut`). Status moves to `partial` (not `implemented`) specifically because the [Q6] XM Directory license/permission/schema verification blocker is still open; `dotnet build`/`dotnet test` passing as of this revision. |
+| 2026-11-13 | `partial` | Added `CreateContactClassifiesForbiddenAndDuplicateExternalIdWithoutLeakingBody` and `UpdateContactClassifiesForbiddenAndNotFoundWithoutLeakingBody`, closing the "duplicate external IDs" and "Create/UpdateContact 403/404" unit-test-requirement gaps. "Uncertain write outcome" remains the one still-open unit-test requirement; status stays `partial` pending that plus the standing [Q6] live-tenant blocker. |

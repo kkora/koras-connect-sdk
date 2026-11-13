@@ -479,6 +479,35 @@ public sealed class QualtricsExpansionTests
         Assert.Equal(1, calls);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.Conflict)]
+    public async Task CreateContactClassifiesForbiddenAndDuplicateExternalIdWithoutLeakingBody(HttpStatusCode status)
+    {
+        // QLT-006 "duplicate external IDs": a 409 Conflict is how Qualtrics would reject a contact create whose
+        // extRef already exists in the directory; it must classify the same as any other write failure, not leak
+        // the provider's response body, and never be silently retried (CreateContactAsync is a POST).
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-create-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var contact = new QualtricsContact { Email = "dup@example.com", ExternalReference = "ext-123" };
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.CreateContactAsync("DIR_1", contact, writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-create-detail", ex.ToString());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task UpdateContactClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-update-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var contact = new QualtricsContact { Email = "x@example.com" };
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.UpdateContactAsync("DIR_1", "CID_1", contact, writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-update-detail", ex.ToString());
+    }
+
     [Fact]
     public async Task ListMailingListsPagesUsingTheSharedPagingHelper()
     {
