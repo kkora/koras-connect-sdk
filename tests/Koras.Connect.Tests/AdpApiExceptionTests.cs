@@ -91,6 +91,43 @@ public sealed class AdpApiExceptionTests
     }
 
     [Fact]
+    public async Task ExcessiveRetryAfterOnAThrottledWorkerSearchFailsWithoutRetryAndClassifiesAsThrottleException()
+    {
+        // The server's own Retry-After hint (1 hour) exceeds the configured retry budget (default 30s MaxDelay),
+        // so IntegrationTransport must fail on the first attempt rather than actually waiting an hour, and the
+        // failure must still classify cleanly through AdpApiException instead of surfacing a raw transport error.
+        var calls = 0;
+        using var http = new HttpClient(new Handler(_ =>
+        {
+            calls++;
+            var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests) { Content = new StringContent("{\"error\":\"rate_limited\"}") };
+            response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromHours(1));
+            return response;
+        }));
+        var client = new Koras.Connect.Adp.Workers.AdpWorkersClient(new(http, new Token()), new(new("https://api.test")));
+        var ex = await Assert.ThrowsAsync<AdpApiException>(() => client.SearchWorkersAsync("associateOID eq 'w1'"));
+        Assert.Equal("ThrottleException", ex.Category);
+        Assert.Equal(1, calls); // failed fast instead of actually honoring an hour-long Retry-After
+    }
+
+    [Fact]
+    public async Task MalformedOrHostileProviderErrorBodyNeverLeaksIntoTheClassifiedExceptionOrItsMessage()
+    {
+        // A failure response's body is never read by IntegrationTransport (only status/headers drive
+        // classification), so a malformed or deliberately hostile body must neither break classification nor
+        // appear anywhere in the resulting AdpApiException.
+        const string hostileBody = "{not-json: [unterminated \"ssn\":\"123-45-6789\" <script>alert(1)</script>";
+        using var http = new HttpClient(new Handler(_ => new(HttpStatusCode.BadGateway) { Content = new StringContent(hostileBody) }));
+        var client = new Koras.Connect.Adp.Workers.AdpWorkersClient(new(http, new Token()), new(new("https://api.test")));
+        var ex = await Assert.ThrowsAsync<AdpApiException>(() => client.SearchWorkersAsync("associateOID eq 'w1'"));
+        Assert.Equal("TransportException", ex.Category);
+        var rendered = ex.ToString() + " " + ex.Message;
+        Assert.DoesNotContain("ssn", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("script", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("123-45-6789", rendered);
+    }
+
+    [Fact]
     public async Task SubmitEventAsyncAndGetWorkersPageAsyncStillSurfaceTheRawIntegrationRequestExceptionUnchanged()
     {
         // Documented, pinned behavior: write submissions and raw pagination reads are not reclassified, so existing

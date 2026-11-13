@@ -4,10 +4,10 @@ title: "Structured errors and rate-limit handling"
 category: "adp"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 231, Skipped 3, Failed 0, Total 234 (includes `AdpApiExceptionTests` and the new `AdpCorrelationTests`) |
-| Remaining work / blockers | **Closed this pass:** `IntegrationTransport` now captures the allowlisted response headers (`request-id`/`x-request-id`/`adp-msg-msgid`) on failure too, and `tests/Koras.Connect.Tests/AdpCorrelationTests.cs` proves the full pipeline end to end through both `AdpOperationsClient.ReadAsync` and `AdpWorkersClient.GetWorkerAsync` against a mocked 403 response carrying a `request-id` header, asserting `AdpApiException.Details.CorrelationId` matches, that an explicit caller-supplied id still overrides the header default, and that a response with no correlation header yields `null` rather than a fabricated id. `SubmitEventAsync` (write events) and `AdpWorkersClient.GetWorkersPageAsync` remain intentionally unreclassified, matching their pre-existing, separately-tested contract. No malformed-provider-error-body or excessive-Retry-After edge case from the original spec list was separately exercised. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added two tests to `AdpApiExceptionTests.cs` closing the last two unit-test-requirement gaps: (1) `ExcessiveRetryAfterOnAThrottledWorkerSearchFailsWithoutRetryAndClassifiesAsThrottleException` — a server Retry-After of 1 hour (exceeding the default 30s `MaxDelay`) through `AdpWorkersClient.SearchWorkersAsync` fails on the first attempt (asserted via call count) rather than actually waiting, and still classifies as `ThrottleException`; (2) `MalformedOrHostileProviderErrorBodyNeverLeaksIntoTheClassifiedExceptionOrItsMessage` — a 502 response whose body is deliberately malformed/hostile (unterminated JSON, a fake SSN, an embedded `<script>` tag) neither breaks classification nor appears anywhere in `AdpApiException.Message`/`ToString()`, confirming the pre-existing architectural guarantee that failure classification never reads the response body. Full suite: 367 passed, 3 skipped, 0 failed, plus one unrelated pre-existing timing flake in `ResiliencePolicyTests` that passes in isolation (`dotnet test --filter FullyQualifiedName~ResiliencePolicyTests`: 10/10) — not an ADP-010 regression. |
+| Remaining work / blockers | No further engineering gap identified. Per-operation official ADP error schemas/tenant samples and a verified numeric rate limit remain external blockers (see above) — this SDK's own `MaxDelay`/`MaxRetries` are configuration, not a documented ADP limit. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `Koras.Connect.Adp.AdpApiException : Koras.Connect.Exceptions.IntegrationException` (`src/Koras.Connect.Adp/AdpApiException.cs`), which classifies a failed `IntegrationRequestException` via `IntegrationExceptionClassifier.Classify` and carries the ADP operation name, a `Category` (the classified subtype's name, e.g. `AuthenticationException`/`ThrottleException`), and an optional correlation id. Wired into `AdpOperationsClient.ReadAsync/GetMetadataAsync/ReadSpendingAccountEnrollmentsAsync/ReadNotificationAsync/AcknowledgeNotificationAsync` and `AdpWorkersClient.SearchWorkersAsync/GetMetadataAsync/GetWorkerAsync/EnumerateWorkersAsync`, each via a private `GuardAsync` wrapper. Tests in `tests/Koras.Connect.Tests/AdpApiExceptionTests.cs` cover classification of 401/403/404/429(/Retry-After)/5xx into the expected category, end-to-end classification through `AdpOperationsClient` (401) and `AdpWorkersClient` (502), and an explicit regression test (`SubmitEventAsyncAndGetWorkersPageAsyncStillSurfaceTheRawIntegrationRequestExceptionUnchanged`) proving the two pinned-behavior call sites are untouched. Also added `AdpEntitlementTracker`-based deny-before-network via `AuthorizationException` (see ADP-021). Remains `partial`: correlation-id capture on failure paths is architecturally bounded by `IntegrationTransport` (see remaining-work note), and not every call site is wrapped. |
 | 2026-11-12 | `partial` | `src/Koras.Connect/Transport/IntegrationTransport.cs`'s `IntegrationRequestException` now carries `Headers` populated on both the retry-exhausted and immediate-failure paths (not only on success), and `AdpApiException.Classify` defaults `correlationId` from that allowlist (`request-id`/`x-request-id`/`adp-msg-msgid`) when the caller does not supply one. Added `tests/Koras.Connect.Tests/AdpCorrelationTests.cs`, which drives a full mocked-handler HTTP round trip (not a direct `Classify` call) through both `AdpOperationsClient.ReadAsync` and `AdpWorkersClient.GetWorkerAsync` against a 403 response carrying a `request-id` header and asserts the resulting `AdpApiException.Details.CorrelationId` matches, plus an explicit-override test and a no-header-means-null test. This closes the "correlation-id on failure is architecturally bounded" gap recorded in the row above. Still `partial`: `SubmitEventAsync`/`GetWorkersPageAsync` remain intentionally unreclassified (pinned contract), and no malformed-provider-error-body or excessive-Retry-After case is separately tested. |
+| 2026-11-13 | `implemented` | Closed the remaining two unit-test-requirement gaps (excessive Retry-After, malformed/hostile provider error body) recorded above. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented` since every functional requirement and listed unit-test case is now exercised. `verification` moved from `unverified` to `partial`: per-operation official error schemas and a verified numeric rate limit remain external blockers. |
