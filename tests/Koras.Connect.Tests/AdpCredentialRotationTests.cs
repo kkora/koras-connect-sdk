@@ -10,6 +10,7 @@ using Koras.Connect.Adp;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit;
 namespace Koras.Connect.Tests;
 
@@ -84,6 +85,42 @@ public sealed class AdpCredentialRotationTests
         stopwatch.Stop();
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Token acquisition should fail fast on its own timeout, took {stopwatch.Elapsed}.");
         Assert.False(generous.IsCancellationRequested); // the outer token never fired; the bound came from acquisitionTimeout
+    }
+
+    private sealed class FakeOptionsMonitor<T> : IOptionsMonitor<T>
+    {
+        public T CurrentValue { get; set; }
+        public FakeOptionsMonitor(T initial) => CurrentValue = initial;
+        public T Get(string? name) => CurrentValue;
+        public IDisposable? OnChange(Action<T, string?> listener) => null;
+    }
+
+    private sealed record AdpTenantSecrets(string ClientId, string ClientSecret);
+
+    [Fact]
+    public async Task OptionsMonitorCredentialProviderObservesAConfigurationReloadOnTheNextTokenAcquisition()
+    {
+        // Simulates the standard .NET configuration-reload primitive (IOptionsMonitor<T>, as produced by
+        // services.Configure<T>(...) over a reloadable IConfiguration), not just an in-memory delegate swap, closing
+        // ADP-003's "no external secret-manager/reload integration wired" gap for the provider-source-configuration
+        // shape itself (the actual secret store behind it remains host-owned and unverified here, as documented).
+        var secret = "secret-a";
+        var monitor = new FakeOptionsMonitor<AdpTenantSecrets>(new AdpTenantSecrets("id", secret));
+        var calls = new List<string>();
+        using var http = new HttpClient(new Handler(r =>
+        {
+            calls.Add(BasicSecret(r));
+            return new(HttpStatusCode.OK) { Content = new StringContent("""{"access_token":"t","expires_in":3600}""") };
+        }));
+        var provider = new AdpOptionsMonitorCredentialProvider<AdpTenantSecrets>(monitor,
+            s => new ClientCredentialsOptions(new Uri("https://auth.test"), s.ClientId, s.ClientSecret));
+        using var source = new AdpRotatingTokenSource(provider, () => http, TimeSpan.FromSeconds(10));
+
+        await source.GetTokenAsync();
+        monitor.CurrentValue = new AdpTenantSecrets("id", "secret-b"); // simulated reload, no provider/source recreation
+        await source.GetTokenAsync();
+
+        Assert.Equal(["secret-a", "secret-b"], calls);
     }
 
     [Fact]

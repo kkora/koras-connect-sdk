@@ -4,10 +4,10 @@ title: "Secure client credentials configuration"
 category: "adp"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpCredentialRotationTests`) |
-| Remaining work / blockers | No external secret-manager/reload integration wired; rotation is demonstrated only against an in-memory `ICredentialProvider`. Live rotation against a real secret store is unverified. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "provider-source configuration" functional requirement and the "no external secret-manager/reload integration wired" gap by adding `AdpOptionsMonitorCredentialProvider<TOptions>` (`src/Koras.Connect.Adp/AdpOptionsMonitorCredentialProvider.cs`), bridging the standard .NET configuration-reload primitive `IOptionsMonitor<TOptions>` (as produced by `services.Configure<TOptions>(...)` over a reloadable `IConfiguration`) to `ICredentialProvider<ClientCredentialsOptions>` — every call re-reads `IOptionsMonitor<TOptions>.CurrentValue` and projects it, so a host configuration reload is observed on the next token acquisition without recreating the provider or `AdpRotatingTokenSource`. Added `OptionsMonitorCredentialProviderObservesAConfigurationReloadOnTheNextTokenAcquisition` in `tests/Koras.Connect.Tests/AdpCredentialRotationTests.cs`, driving the same end-to-end reacquire-on-change assertion as the existing `DelegatingCredentialProvider`-based test, but through a minimal `IOptionsMonitor<T>` test double instead of a hand-rolled delegate — demonstrating the standard reload shape itself, not just an in-memory swap. Required adding a `Microsoft.Extensions.Options` package reference to `Koras.Connect.Adp.csproj` (kept out of the dependency-free `Koras.Connect.Abstractions`, so the adapter lives in ADP's own owning package instead of the shared `ICredentialProvider<T>` interface). Updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt`. Full suite: 369 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified for the provider-source-configuration shape. Rotation against an actual external secret store (Key Vault, AWS Secrets Manager, etc.) behind an `IOptionsMonitor<T>` remains host-owned and unverified here — this SDK only proves it observes whatever `CurrentValue` the host's configuration system reports. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `Koras.Connect.Adp.AdpRotatingTokenSource` (`src/Koras.Connect.Adp/AdpRotatingTokenSource.cs`), which resolves `ClientCredentialsOptions` through a caller-supplied `ICredentialProvider<ClientCredentialsOptions>` on every cache miss and swaps the underlying `ClientCredentialsTokenSource` when the resolved value changes, plus an explicit `Invalidate()` that forwards to `ClientCredentialsTokenSource.Invalidate()` for an out-of-band rotation signal. Wired a new `AdpServiceCollectionExtensions.AddKorasAdpWithRotatingCredentials` registration path (kept as a distinctly named method rather than an `AddKorasAdp` overload, because a target-typed `new(...)` credentials argument is otherwise ambiguous between the fixed and provider-based overloads — see CS0121 in build history). The original fixed-credential `AddKorasAdp` now delegates to it via `StaticCredentialProvider`, so existing callers are unaffected. Tests added in `tests/Koras.Connect.Tests/AdpCredentialRotationTests.cs`: rotation on a changed resolved credential, `Invalidate()` forcing reacquisition without a credential change, and DI registration/duplicate-registration behavior without any network call. Still `partial`: no live secret-manager/reload integration has been exercised, and rotation correctness beyond this in-memory provider is unverified. |
+| 2026-11-13 | `implemented` | Added `AdpOptionsMonitorCredentialProvider<TOptions>`, closing the "provider-source configuration" functional requirement with an adapter over the standard `IOptionsMonitor<TOptions>` reload primitive rather than only the generic in-memory `DelegatingCredentialProvider`. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: rotation against an actual external secret store remains host-owned and unverified. |

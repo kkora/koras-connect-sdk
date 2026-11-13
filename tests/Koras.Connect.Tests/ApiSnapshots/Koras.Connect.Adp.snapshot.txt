@@ -64,6 +64,9 @@ sealed class Koras.Connect.Adp.AdpOperationsClient
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitChangeManagerAsync(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitEventAsync(Koras.Connect.Adp.AdpOperation operation, System.Text.Json.JsonElement envelope, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitModifyDepartmentAllocationsAsync(System.String associateOid, System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.OrganizationDepartment> departments, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.AdpOptionsMonitorCredentialProvider<TOptions>
+  ctor(Microsoft.Extensions.Options.IOptionsMonitor<TOptions> monitor, System.Func<TOptions, Koras.Connect.Authentication.ClientCredentialsOptions> project)
+  method System.Threading.Tasks.ValueTask<Koras.Connect.Authentication.ClientCredentialsOptions> GetAsync(System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Adp.AdpRotatingTokenSource
   ctor(Koras.Connect.Abstractions.ICredentialProvider<Koras.Connect.Authentication.ClientCredentialsOptions> credentials, System.Func<System.Net.Http.HttpClient> httpClientFactory, System.TimeSpan acquisitionTimeout, System.TimeProvider clock = null)
   method System.Void Dispose()
