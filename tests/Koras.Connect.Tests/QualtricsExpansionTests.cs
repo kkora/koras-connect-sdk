@@ -154,6 +154,34 @@ public sealed class QualtricsExpansionTests
     // ---------- QLT-004: reusable paging ----------
 
     [Fact]
+    public async Task CancellingMidEnumerationStopsPromptlyAfterTheAlreadyYieldedItemsWithoutFetchingTheNextPage()
+    {
+        // SDK-007 "cancellation after partial traversal": the first page's item must already have reached the
+        // caller before cancellation takes effect, and no HTTP call for a subsequent page may follow.
+        var calls = 0;
+        using var cts = new CancellationTokenSource();
+        using var h = new HttpClient(new Handler((r, ct) =>
+        {
+            calls++;
+            return Task.FromResult(Json("""{"result":{"elements":[{"id":"SV_one"}],"nextPage":"https://qualtrics.test/API/v3/surveys?offset=1"}}"""));
+        }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var surveys = new List<SurveySummary>();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var s in c.EnumerateSurveysAsync(cts.Token))
+            {
+                surveys.Add(s);
+                cts.Cancel(); // cancel only after the first item is already in hand
+            }
+        });
+
+        Assert.Equal("SV_one", Assert.Single(surveys).Id);
+        Assert.Equal(1, calls); // the second page's HTTP call never happened
+    }
+
+    [Fact]
     public async Task EmptyPageWithValidNextLinkContinuesToTheNextPage()
     {
         var calls = 0;
