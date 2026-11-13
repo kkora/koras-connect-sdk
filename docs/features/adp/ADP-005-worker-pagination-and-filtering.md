@@ -4,10 +4,10 @@ title: "Worker pagination and filtering"
 category: "adp"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,22 +44,23 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `AdpWorkerFilterTests.cs` (11 new tests). Closed the two remaining functional-requirement gaps: (1) a typed filter whitelist — `WorkerFilter`/`WorkerFilterField`/`WorkerFilterOperator` in `src/Koras.Connect.Adp/Workers/WorkerFilter.cs`, rendering a safe OData `$filter` fragment (single-quote doubling) for 4 whitelisted fields (`associateOID`, `person/legalName/givenName`, `person/legalName/familyName1`, `workAssignments/jobTitle`), exposed as a new `AdpWorkersClient.SearchWorkersAsync(WorkerFilter,...)` overload alongside the existing raw-string escape hatch; (2) explicit HTTP 202 rejection — `AdpWorkersClient.ReadWorkersResponseAsync` now inspects `IntegrationJsonResponse.StatusCode` and throws `NotSupportedException` instead of attempting to parse a body, across all three worker-read surfaces (`GetWorkersPageAsync`, `SearchWorkersAsync`, `GetWorkerAsync`). This required one supporting change in the shared `Koras.Connect.Core` transport: `IntegrationTransport.SendResponseAsync` previously only skipped its unconditional JSON parse for 204 No Content, so a 202 with an empty/non-JSON body crashed with an unrelated `JsonReaderException` before the 202 check could run — extended the existing no-body special case to also cover 202 Accepted (both conventionally bodyless or carry a status-polling body this SDK does not interpret). The existing pinned behavior that `GetWorkersPageAsync` surfaces a raw `IntegrationRequestException` unchanged on failure is explicitly re-tested and still holds after the internal switch from `ReadJsonAsync` to `SendResponseAsync`. Updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the new public surface (`WorkerFilter`, `WorkerFilterField`, `WorkerFilterOperator`, the new `SearchWorkersAsync` overload). Full suite: 361 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified for the two closed functional requirements. Acceptance criteria's live-sandbox half ("filters cannot inject query parameters" is synthetic-tested; an actual authorized ADP population/async-protocol check) requires sandbox access not available here — stays an explicit, standing blocker. The SDK's own 1-100 page-size bound is still explicitly documented as an SDK choice, not a universal ADP maximum (external blockers above). |
+| Acceptance / completion | Not recorded; the live-sandbox half of the acceptance criteria cannot be satisfied without authorized access. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added the typed `WorkerFilter` whitelist and explicit HTTP 202 rejection across all worker-read surfaces (with a supporting `Koras.Connect.Core` transport fix so 202 is detectable without a spurious JSON-parse exception). Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented` since both outstanding functional requirements are now met. `verification` moved from `unverified` to `partial`: the live-sandbox acceptance half remains blocked. |

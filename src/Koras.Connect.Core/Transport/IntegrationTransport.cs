@@ -84,7 +84,11 @@ public sealed class IntegrationTransport
         => ExecuteAsync(method, address, payload, headers, async (response, ct) =>
         {
             var safeHeaders = SafeHeaders(response);
-            if (response.StatusCode == HttpStatusCode.NoContent) return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
+            // 202 Accepted conventionally carries no resource body (or a status-polling body callers must opt into
+            // interpreting themselves), same as 204 No Content - skip the unconditional parse so a caller branching
+            // on IntegrationJsonResponse.StatusCode never has to catch an unrelated JsonException to detect it.
+            if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.Accepted)
+                return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
         }, cancellationToken);

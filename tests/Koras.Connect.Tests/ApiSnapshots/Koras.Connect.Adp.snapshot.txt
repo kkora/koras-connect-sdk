@@ -96,6 +96,7 @@ sealed class Koras.Connect.Adp.Workers.AdpWorkersClient
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(Koras.Connect.Abstractions.ContinuationToken token, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetWorkersPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(Koras.Connect.Adp.Workers.WorkerFilter filter, System.Int32 skip = 0, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(System.String filter, System.Int32 skip = 0, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Adp.Workers.AdpWorkersOptions
   ctor(System.Uri ApiRoot, System.Int32 PageSize = 100)
@@ -225,6 +226,20 @@ sealed class Koras.Connect.Adp.Workers.Worker
   property Koras.Connect.Adp.Workers.Person Person {get+set}
   property System.Collections.Generic.List<Koras.Connect.Adp.Workers.WorkAssignment> WorkAssignments {get+set}
   property Koras.Connect.Adp.Workers.Identifier WorkerId {get+set}
+sealed class Koras.Connect.Adp.Workers.WorkerFilter
+  ctor(Koras.Connect.Adp.Workers.WorkerFilterField field, Koras.Connect.Adp.Workers.WorkerFilterOperator operator, System.String value)
+  property Koras.Connect.Adp.Workers.WorkerFilterField Field {get}
+  property Koras.Connect.Adp.Workers.WorkerFilterOperator Operator {get}
+  property System.String Value {get}
+  method System.String ToODataFilter()
+enum Koras.Connect.Adp.Workers.WorkerFilterField
+  enum-value AssociateOid = 0
+  enum-value LegalGivenName = 1
+  enum-value LegalFamilyName = 2
+  enum-value WorkAssignmentJobTitle = 3
+enum Koras.Connect.Adp.Workers.WorkerFilterOperator
+  enum-value Equals = 0
+  enum-value Contains = 1
 sealed class Koras.Connect.Adp.Workers.WorkerIdentity
   ctor(System.String AssociateOid, System.String GivenName, System.String FamilyName, System.String ExternalId)
   property System.String AssociateOid {get+init}

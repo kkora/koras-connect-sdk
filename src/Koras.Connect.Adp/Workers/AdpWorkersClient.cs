@@ -34,7 +34,24 @@ public sealed class AdpWorkersClient
         if (size is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(take));
         var root = _options.ApiRoot.AbsoluteUri.TrimEnd('/');
         var uri = new Uri($"{root}/hr/v2/workers?$top={size}&$skip={skip}");
-        return _transport.ReadJsonAsync(uri, cancellationToken: cancellationToken);
+        return ReadWorkersResponseAsync(uri, cancellationToken);
+    }
+
+    /// <summary>Reads a worker-read response, failing explicitly rather than attempting to parse a body if ADP
+    /// answers with HTTP 202 Accepted &#8212; a documented possibility for an asynchronous retrieval protocol this
+    /// SDK does not implement (ADP-005). Preserves the existing contract that a failure status still surfaces the
+    /// raw <see cref="IntegrationRequestException"/> unchanged (handled by <see cref="IntegrationTransport"/> itself
+    /// before this method's <c>consume</c> callback runs), since this calls the same underlying send path as
+    /// <see cref="IntegrationTransport.ReadJsonAsync"/>, only additionally inspecting the success status code.</summary>
+    private async Task<JsonDocument> ReadWorkersResponseAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        var response = await _transport.SendResponseAsync(HttpMethod.Get, uri, cancellationToken: cancellationToken);
+        if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
+        {
+            response.Body.Dispose();
+            throw new NotSupportedException("ADP returned HTTP 202 Accepted for a worker read, indicating an asynchronous retrieval protocol this SDK does not implement. Only the synchronous worker-read contract is supported.");
+        }
+        return response.Body;
     }
 
     /// <summary>Resumable, typed adapter over <see cref="GetWorkersPageAsync(int,int?,CancellationToken)"/>: wraps the
@@ -69,14 +86,23 @@ public sealed class AdpWorkersClient
     {
         if (string.IsNullOrWhiteSpace(filter)) throw new ArgumentException("Filter is required.", nameof(filter));
         if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-        return GuardAsync("SearchWorkers", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}"), cancellationToken: cancellationToken));
+        return GuardAsync("SearchWorkers", () => ReadWorkersResponseAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}"), cancellationToken));
+    }
+
+    /// <summary>Typed-whitelist overload of <see cref="SearchWorkersAsync(string,int,CancellationToken)"/>: builds
+    /// the <c>$filter</c> fragment from a <see cref="WorkerFilter"/> instead of requiring the caller to hand-escape
+    /// OData filter syntax (ADP-005).</summary>
+    public Task<JsonDocument> SearchWorkersAsync(WorkerFilter filter, int skip = 0, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        return SearchWorkersAsync(filter.ToODataFilter(), skip, cancellationToken);
     }
     public Task<JsonDocument> GetMetadataAsync(CancellationToken cancellationToken = default)
         => GuardAsync("GetWorkersMetadata", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/meta"), cancellationToken: cancellationToken));
     public async Task<Worker?> GetWorkerAsync(string associateOid, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(associateOid) || associateOid is "." or ".." || associateOid.Contains('/') || associateOid.Contains('\\')) throw new ArgumentException("Associate OID is required.", nameof(associateOid));
-        using var doc = await GuardAsync("GetWorker", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/{Uri.EscapeDataString(associateOid)}"), cancellationToken: cancellationToken));
+        using var doc = await GuardAsync("GetWorker", () => ReadWorkersResponseAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/{Uri.EscapeDataString(associateOid)}"), cancellationToken));
         if (!doc.RootElement.TryGetProperty("workers", out var workers) || workers.ValueKind != JsonValueKind.Array) throw new JsonException("Expected workers array.");
         return workers.GetArrayLength() == 0 ? null : workers[0].Deserialize<Worker>();
     }
