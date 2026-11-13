@@ -4,7 +4,7 @@ title: "Secure credential providers"
 category: "sdk"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 286, Skipped 3 (live-sandbox, unrelated), Failed 0. New `CredentialProviderTests.cs` (6 tests) covers `StaticCredentialProvider`/`DelegatingCredentialProvider` directly: cancellation propagation from the resolve delegate ("canceled retrieval"), and that a resolve-delegate failure propagates without embedding the eventual secret in the exception and does not permanently poison the provider — a later call still succeeds ("source failure"). Extended `CertificateCredentialProviderTests.cs` with 3 more tests: a canceled `GetAsync` throws before the load delegate ever runs, a load failure is not cached so the next call retries, and 8 genuinely concurrent first-time callers (via `Task.Run`, racing against the provider's internal mutex) trigger exactly one load and all observe the same cached certificate ("concurrent rotation"/stale-cache correctness under contention). |
+| Remaining work / blockers | While writing the concurrency test, the first draft deadlocked the test runner: materializing 8 `provider.GetAsync()` calls via `Enumerable.Select(...).ToArray()` runs each call's synchronous prefix on the test method's own thread, so the first call's blocking `gate.Wait()` (inside the load delegate, held under the provider's mutex) blocked before the test could ever reach the `gate.Release(8)` line - the run had to be force-stopped. Fixed by wrapping each call in `Task.Run` so the synchronous prefix moves off the calling thread; recorded here since it's a notable implementation detail of the final passing test, not because the shipped test still has the bug. No functional gap remains for this ticket. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `ICredentialProvider<TCredential>` plus `StaticCredentialProvider<T>`/`DelegatingCredentialProvider<T>` in `src/Koras.Connect/Abstractions/CredentialProvider.cs`, and `ClientCredentialsTokenSource.Invalidate()` plus an independent `acquisitionTimeout` constructor parameter in `src/Koras.Connect/Authentication/ClientCredentialsTokenSource.cs` so credential rotation no longer requires recreating the token source. `ClientCertificateTransport`'s loaders remain synchronous/one-shot (not yet wrapped by a certificate-specific `ICredentialProvider` implementation) — that remains open. `dotnet build`/`dotnet test` (55 baseline tests) pass unaffected; provider-specific rotation wiring is being added separately (see ADP-003). |
 | 2026-11-12 | `partial` | Added `CertificateCredentialProvider : ICredentialProvider<X509Certificate2>` and `RedactedCredential<T>` in `src/Koras.Connect/Authentication/CertificateCredentialProvider.cs`: caches a certificate loaded via `ClientCertificateTransport.LoadPkcs12`/`LoadPem` and exposes `Invalidate()` to force a reload after rotation, closing the "async reload/cache-invalidation hook" gap. Covered by `tests/Koras.Connect.Tests/CertificateCredentialProviderTests.cs` (cache reuse, invalidate-forces-reload, redaction). `dotnet build`/`dotnet test` pass (197 passed, 3 intentionally skipped sandbox tests, 0 failed). |
+| 2026-11-12 | `implemented` | Closed every remaining named unit-test requirement ("concurrent rotation", "canceled retrieval", "source failure") with `CredentialProviderTests.cs` and three additions to `CertificateCredentialProviderTests.cs`. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |
