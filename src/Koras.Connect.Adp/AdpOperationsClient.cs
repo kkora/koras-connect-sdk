@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Koras.Connect.Abstractions;
+using Koras.Connect.Adp.Workers;
 using Koras.Connect.Exceptions;
 using Koras.Connect.Transport;
 namespace Koras.Connect.Adp;
@@ -32,6 +33,35 @@ public static class AdpOperationCatalog
         new(AdpOperation.OrganizationDepartments, "GET", "/hr/v1/organization-departments", false, false),
         new(AdpOperation.EventNotifications, "GET", "/core/v1/event-notification-messages", false, false)
     });
+
+    /// <summary>Documented candidate CAR scope string for the small subset of operations where the official WFN
+    /// guides cited in docs/features/KORAS-CONNECT-SDK-MASTER-FEATURES.md section 13 (refs A1/A2) name the
+    /// canonical grant path explicitly: "The readable A2 guide identifies .../worker.workAssignment.modify ...
+    /// A1 identifies .../worker.reportsTo.modify ... and .../worker.workAssignment.assignedOrganizationalUnits.modify".
+    /// This is a <b>documented candidate scope, not a confirmed tenant grant</b> &#8212; the same caution the master
+    /// spec repeats ("Treat these as historical documented canonical candidates; actual current CAR approval,
+    /// actor/population and product applicability still require authorized confirmation"). Enabling an
+    /// <see cref="AdpOperation"/> or calling it never depends on this value. Every operation without an explicitly
+    /// documented candidate in that section maps to <c>null</c> here rather than a guessed string &#8212; the master
+    /// spec explicitly warns "Never synthesize remaining scope strings by concatenating event names."</summary>
+    public static IReadOnlyDictionary<AdpOperation, string?> CandidateScopes { get; } = new Dictionary<AdpOperation, string?>
+    {
+        [AdpOperation.ModifyWorkAssignment] = "/hr/workerInformationManagement/workerManagement/workAssignmentManagement/worker.workAssignment.modify",
+        [AdpOperation.ChangeManager] = "/hr/workerInformationManagement/workerManagement/workRelationshipManagement/worker.reportsTo.modify",
+        [AdpOperation.ModifyDepartmentAllocations] = "/hr/workerInformationManagement/workerManagement/workAssignmentManagement/worker.workAssignment.assignedOrganizationalUnits.modify",
+        [AdpOperation.Hire] = null,
+        [AdpOperation.Rehire] = null,
+        [AdpOperation.TerminateAssignment] = null,
+        [AdpOperation.ChangePersonalEmail] = null,
+        [AdpOperation.ChangePayDataInput] = null,
+        [AdpOperation.PayrollInstructions] = null,
+        [AdpOperation.PayDistributions] = null,
+        [AdpOperation.TimeOffBalances] = null,
+        [AdpOperation.TimeOffRequests] = null,
+        [AdpOperation.OrganizationDepartments] = null,
+        [AdpOperation.EventNotifications] = null,
+        [AdpOperation.SpendingAccountEnrollments] = null,
+    };
 }
 /// <summary>Documented endpoint dispatch; vendor-specific payloads must be validated against the customer's current metadata.
 /// No automatic write retries or claims of tenant authorization. JsonDocument results belong to the caller.</summary>
@@ -72,6 +102,20 @@ public sealed class AdpOperationsClient
             throw new ArgumentException("A nonempty ADP events array of objects is required. Validate event contents against authorized ADP metadata.", nameof(envelope));
         return _transport.SendJsonAsync(HttpMethod.Post, Address(c, null), envelope, cancellationToken: cancellationToken);
     }
+
+    /// <summary>Convenience submission for <see cref="AdpOperation.ChangeManager"/>: builds the documented events
+    /// envelope via <see cref="ChangeManagerCommand.Build"/> (which rejects a missing subject/target identity
+    /// locally, before any HTTP call) and submits it through <see cref="SubmitEventAsync"/>.</summary>
+    public Task<JsonDocument> SubmitChangeManagerAsync(string associateOid, ManagerRelationship manager, CancellationToken cancellationToken = default)
+        => SubmitEventAsync(AdpOperation.ChangeManager, ChangeManagerCommand.Build(associateOid, manager), cancellationToken);
+
+    /// <summary>Convenience submission for <see cref="AdpOperation.ModifyDepartmentAllocations"/>: builds the
+    /// documented events envelope via <see cref="ModifyDepartmentAllocationsCommand.Build"/> (which rejects a
+    /// missing subject identity or allocation itemID locally, before any HTTP call) and submits it through
+    /// <see cref="SubmitEventAsync"/>.</summary>
+    public Task<JsonDocument> SubmitModifyDepartmentAllocationsAsync(string associateOid, IReadOnlyList<OrganizationDepartment> departments, CancellationToken cancellationToken = default)
+        => SubmitEventAsync(AdpOperation.ModifyDepartmentAllocations, ModifyDepartmentAllocationsCommand.Build(associateOid, departments), cancellationToken);
+
     public Task<JsonDocument> ReadSpendingAccountEnrollmentsAsync(string associateOid, DateOnly effectiveDate, CancellationToken cancellationToken = default)
     {
         var c = Contract(AdpOperation.SpendingAccountEnrollments);

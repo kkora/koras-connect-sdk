@@ -24,17 +24,25 @@ public sealed class AdpApiException : IntegrationException
         Category = category;
     }
 
-    /// <summary>Classifies a failed ADP call by HTTP status. <paramref name="correlationId"/> should be the value
-    /// already captured from one of the allowlisted response headers when the caller still has access to them;
-    /// <paramref name="retryAfter"/> is the server's own Retry-After hint for a 429 response, when available. Both
-    /// are optional because <see cref="IntegrationTransport"/> only preserves response headers on successful
-    /// responses today, so a terminal failure frequently has neither.</summary>
+    /// <summary>Classifies a failed ADP call by HTTP status. <paramref name="correlationId"/> defaults to the first
+    /// populated allowlisted header already captured on <paramref name="failure"/>.<see cref="IntegrationRequestException.Headers"/>
+    /// (checked in the order <c>request-id</c>, <c>x-request-id</c>, <c>adp-msg-msgid</c>) when not explicitly
+    /// supplied; pass it explicitly only to override that default. <paramref name="retryAfter"/> is the server's
+    /// own Retry-After hint for a 429 response, when available.</summary>
     public static AdpApiException Classify(string operation, IntegrationRequestException failure, string? correlationId = null, TimeSpan? retryAfter = null)
     {
         if (string.IsNullOrWhiteSpace(operation)) throw new ArgumentException("An operation name is required.", nameof(operation));
         ArgumentNullException.ThrowIfNull(failure);
+        correlationId ??= CorrelationIdFrom(failure.Headers);
         var classified = IntegrationExceptionClassifier.Classify(failure.ResponseStatus, failure.Attempts, correlationId, retryAfter);
         return new AdpApiException(operation, classified.GetType().Name, $"ADP operation '{operation}' failed: {classified.Message}", classified.Details, failure);
+    }
+
+    private static string? CorrelationIdFrom(IReadOnlyDictionary<string, string[]> headers)
+    {
+        foreach (var name in new[] { "request-id", "x-request-id", "adp-msg-msgid" })
+            if (headers.TryGetValue(name, out var values) && values.Length > 0) return values[0];
+        return null;
     }
 
     /// <summary>Classifies a failed ADP call for a documented <see cref="AdpOperation"/>.</summary>

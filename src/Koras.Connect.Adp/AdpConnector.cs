@@ -121,6 +121,7 @@ public sealed class AdpConnector : IConnector
                 throw new ArgumentException("Certificate is not currently valid.");
         }
         catch (ArgumentException) { return false; }
+        catch (Koras.Connect.Abstractions.OptionsValidationException) { return false; }
         return true;
     }
 

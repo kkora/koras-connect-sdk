@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Koras.Connect.Abstractions;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Transport;
 using Xunit;
@@ -9,6 +10,41 @@ namespace Koras.Connect.Tests;
 
 public sealed class WorkersTests
 {
+    [Fact]
+    public async Task PageAdapterExposesAContinuationTokenUntilTheLastPage()
+    {
+        var calls = 0;
+        using var http = new HttpClient(new StubHandler(_ =>
+        {
+            calls++;
+            var body = calls == 1 ? """{"workers":[{"id":"a"},{"id":"b"}]}""" : calls == 2 ? """{"workers":[{"id":"c"}]}""" : """{"workers":[]}""";
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+        }));
+        var client = new AdpWorkersClient(new IntegrationTransport(http, new FixedToken()), new AdpWorkersOptions(new Uri("https://example.test"), 2));
+
+        var first = await client.GetWorkersPageAsPageAsync(take: 2);
+        Assert.Equal(2, first.Items.Count);
+        Assert.NotNull(first.Next);
+        Assert.Equal("ADP", first.Next!.Provider);
+
+        var second = await client.GetWorkersPageAsPageAsync(first.Next!);
+        Assert.Single(second.Items);
+        Assert.NotNull(second.Next);
+
+        var third = await client.GetWorkersPageAsPageAsync(second.Next!);
+        Assert.Empty(third.Items);
+        Assert.Null(third.Next);
+        Assert.Equal(3, calls);
+    }
+
+    [Fact]
+    public async Task PageAdapterRejectsAContinuationTokenFromAnotherProvider()
+    {
+        using var http = new HttpClient(new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"workers":[]}""") }));
+        var client = new AdpWorkersClient(new IntegrationTransport(http, new FixedToken()), new AdpWorkersOptions(new Uri("https://example.test")));
+        var foreignToken = new ContinuationToken("SomeOtherProvider", "fingerprint", "0");
+        await Assert.ThrowsAsync<ArgumentException>(() => client.GetWorkersPageAsPageAsync(foreignToken));
+    }
     [Fact]
     public async Task EnumeratesMultiplePagesWithoutLeakingDocumentLifetime()
     {

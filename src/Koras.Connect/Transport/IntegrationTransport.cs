@@ -4,14 +4,31 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Koras.Connect.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Koras.Connect.Transport;
 
-public sealed class IntegrationRequestException(HttpStatusCode statusCode, int attempts)
+/// <summary>Stable event IDs for the optional <see cref="ILogger"/> passed into <see cref="IntegrationTransport"/>.
+/// Every associated log message is address/body/token/employee-data free by construction &#8212; only method, status
+/// code, attempt count and retry delay are ever logged.</summary>
+public static class DiagnosticEvents
+{
+    public static readonly EventId RequestRetried = new(1001, "Koras.Connect.RequestRetried");
+    public static readonly EventId RequestFailed = new(1002, "Koras.Connect.RequestFailed");
+    public static readonly EventId DeadlineExceeded = new(1003, "Koras.Connect.DeadlineExceeded");
+}
+
+public sealed class IntegrationRequestException(HttpStatusCode statusCode, int attempts, IReadOnlyDictionary<string, string[]>? headers = null)
     : HttpRequestException($"Integration endpoint returned HTTP {(int)statusCode} after {attempts} attempt(s).", null, statusCode)
 {
     public HttpStatusCode ResponseStatus { get; } = statusCode;
     public int Attempts { get; } = attempts;
+
+    /// <summary>The same allowlisted, sanitized response headers (for example <c>request-id</c>) that a successful
+    /// response carries on <see cref="IntegrationJsonResponse.Headers"/> &#8212; captured here too so a failed call
+    /// still has a correlation id available to classify into, where the server provided one. Never contains the
+    /// response body.</summary>
+    public IReadOnlyDictionary<string, string[]> Headers { get; } = headers ?? new Dictionary<string, string[]>();
 }
 public sealed record IntegrationJsonResponse(JsonDocument Body, IReadOnlyDictionary<string, string[]> Headers, HttpStatusCode StatusCode) : IDisposable
 {
@@ -29,9 +46,14 @@ public sealed record TransportOptions : Koras.Connect.Abstractions.IValidatableO
     public TimeSpan RequestTimeout { get; init; } = TimeSpan.FromSeconds(100);
     public void Validate()
     {
-        if (MaxRetries is < 0 or > 10 || BaseDelay < TimeSpan.Zero || MaxDelay < BaseDelay || MaxDelay > TimeSpan.FromMinutes(5)
-            || RequestTimeout <= TimeSpan.Zero || RequestTimeout > TimeSpan.FromMinutes(30))
-            throw new ArgumentOutOfRangeException(nameof(TransportOptions));
+        var failures = new List<string>();
+        if (MaxRetries is < 0 or > 10) failures.Add($"{nameof(MaxRetries)}: must be between 0 and 10.");
+        if (BaseDelay < TimeSpan.Zero) failures.Add($"{nameof(BaseDelay)}: must not be negative.");
+        if (MaxDelay < BaseDelay) failures.Add($"{nameof(MaxDelay)}: must not be less than {nameof(BaseDelay)}.");
+        if (MaxDelay > TimeSpan.FromMinutes(5)) failures.Add($"{nameof(MaxDelay)}: must not exceed 5 minutes.");
+        if (RequestTimeout <= TimeSpan.Zero) failures.Add($"{nameof(RequestTimeout)}: must be positive.");
+        if (RequestTimeout > TimeSpan.FromMinutes(30)) failures.Add($"{nameof(RequestTimeout)}: must not exceed 30 minutes.");
+        if (failures.Count > 0) throw new Koras.Connect.Abstractions.OptionsValidationException(nameof(TransportOptions), failures);
     }
 }
 /// <summary>Safe JSON transport. Only GET requests are automatically retried. Hosts own HttpClient and token source lifetimes.</summary>
@@ -45,14 +67,16 @@ public sealed class IntegrationTransport
     private readonly IRequestAuthenticator _authentication;
     private readonly TransportOptions _options;
     private readonly TimeProvider _clock;
-    public IntegrationTransport(HttpClient httpClient, IAccessTokenSource tokens, TransportOptions? options = null, TimeProvider? timeProvider = null)
-        : this(httpClient, new BearerTokenAuthenticator(tokens), options, timeProvider) { }
-    public IntegrationTransport(HttpClient httpClient, IRequestAuthenticator authentication, TransportOptions? options = null, TimeProvider? timeProvider = null)
+    private readonly ILogger? _logger;
+    public IntegrationTransport(HttpClient httpClient, IAccessTokenSource tokens, TransportOptions? options = null, TimeProvider? timeProvider = null, ILogger? logger = null)
+        : this(httpClient, new BearerTokenAuthenticator(tokens), options, timeProvider, logger) { }
+    public IntegrationTransport(HttpClient httpClient, IRequestAuthenticator authentication, TransportOptions? options = null, TimeProvider? timeProvider = null, ILogger? logger = null)
     {
         _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _authentication = authentication ?? throw new ArgumentNullException(nameof(authentication));
         _options = options ?? new(); _options.Validate();
         _clock = timeProvider ?? TimeProvider.System;
+        _logger = logger;
     }
     public Task<JsonDocument> ReadJsonAsync(Uri address, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
         => SendJsonAsync(HttpMethod.Get, address, null, headers, cancellationToken);
@@ -63,13 +87,21 @@ public sealed class IntegrationTransport
         IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
         => ExecuteAsync(method, address, payload, headers, async (response, ct) =>
         {
-            var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-            foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id" })
-                if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.ToArray();
+            var safeHeaders = SafeHeaders(response);
             if (response.StatusCode == HttpStatusCode.NoContent) return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
         }, cancellationToken);
+    /// <summary>Extracts the fixed, sanitized correlation-header allowlist from a response. Never includes the body
+    /// or any header outside this allowlist, successful or not, so a failed <see cref="IntegrationRequestException"/>
+    /// carries the same correlation evidence a success would.</summary>
+    private static Dictionary<string, string[]> SafeHeaders(HttpResponseMessage response)
+    {
+        var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id" })
+            if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.ToArray();
+        return safeHeaders;
+    }
     /// <summary>Copies a successful GET response to a caller-owned stream. No replay after any output has been written.</summary>
     public Task CopyToAsync(Uri address, Stream output, CancellationToken cancellationToken = default)
     {
@@ -108,7 +140,10 @@ public sealed class IntegrationTransport
                 HttpResponseMessage response;
                 try { response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct); }
                 catch (HttpRequestException) when (method == HttpMethod.Get && attempt < _options.MaxRetries)
-                { await Task.Delay(Backoff(attempt), _clock, ct); continue; }
+                {
+                    _logger?.LogWarning(DiagnosticEvents.RequestRetried, "Request attempt {Attempt} failed to connect; retrying.", attempt + 1);
+                    await Task.Delay(Backoff(attempt), _clock, ct); continue;
+                }
                 using (response)
                 {
                     Requests.Add(1, new KeyValuePair<string, object?>("http.response.status_code", (int)response.StatusCode));
@@ -120,11 +155,17 @@ public sealed class IntegrationTransport
                         var retry = response.Headers.RetryAfter;
                         var delay = retry?.Delta ?? (retry?.Date - DateTimeOffset.UtcNow) ?? Backoff(attempt);
                         // Never retry sooner than a server's requested delay. Fail if outside the configured budget.
-                        if (delay > _options.MaxDelay) throw new IntegrationRequestException(response.StatusCode, attempt + 1);
+                        if (delay > _options.MaxDelay) throw new IntegrationRequestException(response.StatusCode, attempt + 1, SafeHeaders(response));
+                        _logger?.LogWarning(DiagnosticEvents.RequestRetried, "Request attempt {Attempt} received HTTP {StatusCode}; retrying after {Delay}.",
+                            attempt + 1, (int)response.StatusCode, delay);
                         await Task.Delay(delay < TimeSpan.Zero ? TimeSpan.Zero : delay, _clock, ct); continue;
                     }
                     if (!response.IsSuccessStatusCode)
-                    { activity?.SetStatus(ActivityStatusCode.Error); throw new IntegrationRequestException(response.StatusCode, attempt + 1); }
+                    {
+                        activity?.SetStatus(ActivityStatusCode.Error);
+                        _logger?.LogError(DiagnosticEvents.RequestFailed, "Request failed with HTTP {StatusCode} after {Attempts} attempt(s).", (int)response.StatusCode, attempt + 1);
+                        throw new IntegrationRequestException(response.StatusCode, attempt + 1, SafeHeaders(response));
+                    }
                     return await consume(response, ct);
                 }
             }
@@ -132,6 +173,7 @@ public sealed class IntegrationTransport
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
+            _logger?.LogError(DiagnosticEvents.DeadlineExceeded, "The configured request timeout elapsed before the operation completed.");
             throw new DeadlineExceededException("The configured request timeout elapsed before the operation completed.");
         }
     }

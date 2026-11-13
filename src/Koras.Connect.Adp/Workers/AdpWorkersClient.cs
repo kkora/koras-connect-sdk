@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Koras.Connect.Abstractions;
 using Koras.Connect.Adp;
 using Koras.Connect.Transport;
 
@@ -33,6 +35,34 @@ public sealed class AdpWorkersClient
         var root = _options.ApiRoot.AbsoluteUri.TrimEnd('/');
         var uri = new Uri($"{root}/hr/v2/workers?$top={size}&$skip={skip}");
         return _transport.ReadJsonAsync(uri, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>Resumable, typed adapter over <see cref="GetWorkersPageAsync(int,int?,CancellationToken)"/>: wraps the
+    /// one requested page as a <see cref="Page{T}"/> whose <see cref="Page{T}.Next"/> opaquely encodes the skip
+    /// offset for the following page, or <c>null</c> once a page returns no workers. Pass that token to
+    /// <see cref="GetWorkersPageAsPageAsync(ContinuationToken,CancellationToken)"/> to resume &#8212; a caller can
+    /// persist just the token rather than re-running <see cref="EnumerateTypedWorkersAsync"/> from the start.</summary>
+    public async Task<Page<Worker>> GetWorkersPageAsPageAsync(int skip = 0, int? take = null, CancellationToken cancellationToken = default)
+    {
+        var size = take ?? _options.PageSize;
+        using var document = await GuardAsync("GetWorkersPage", () => GetWorkersPageAsync(skip, take, cancellationToken));
+        if (!document.RootElement.TryGetProperty("workers", out var workers) || workers.ValueKind != JsonValueKind.Array)
+            throw new JsonException("ADP response did not contain a workers array.");
+        var items = workers.EnumerateArray().Select(w => w.Deserialize<Worker>() ?? throw new JsonException("Null worker.")).ToArray();
+        var next = items.Length == 0 ? null
+            : new ContinuationToken("ADP", $"workers:top={size}", (skip + items.Length).ToString(CultureInfo.InvariantCulture));
+        return new Page<Worker>(items, next);
+    }
+
+    /// <summary>Resumes paging from a <see cref="ContinuationToken"/> previously returned by
+    /// <see cref="GetWorkersPageAsPageAsync(int,int?,CancellationToken)"/>.</summary>
+    public Task<Page<Worker>> GetWorkersPageAsPageAsync(ContinuationToken token, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(token);
+        if (token.Provider != "ADP") throw new ArgumentException("Continuation token belongs to a different provider.", nameof(token));
+        if (!int.TryParse(token.OpaqueValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var skip) || skip < 0)
+            throw new ArgumentException("Continuation token has an invalid opaque value.", nameof(token));
+        return GetWorkersPageAsPageAsync(skip, take: null, cancellationToken);
     }
 
     public Task<JsonDocument> SearchWorkersAsync(string filter, int skip = 0, CancellationToken cancellationToken = default)

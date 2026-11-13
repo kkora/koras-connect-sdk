@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Koras.Connect.Abstractions;
+using Koras.Connect.Exceptions;
 using Koras.Connect.Transport;
 
 namespace Koras.Connect.Authentication;
@@ -11,9 +12,12 @@ public sealed record ClientCredentialsOptions(Uri Endpoint, string ClientId, str
     public override string ToString() => "ClientCredentialsOptions { credentials = [REDACTED] }";
     public void Validate()
     {
-        if (!Endpoint.IsAbsoluteUri || Endpoint.Scheme != Uri.UriSchemeHttps || Endpoint.UserInfo.Length != 0) throw new ArgumentException("Token endpoint must use HTTPS.");
-        if (string.IsNullOrWhiteSpace(ClientId) || string.IsNullOrWhiteSpace(ClientSecret))
-            throw new ArgumentException("Client ID and secret are required.");
+        var failures = new List<string>();
+        if (!Endpoint.IsAbsoluteUri || Endpoint.Scheme != Uri.UriSchemeHttps || Endpoint.UserInfo.Length != 0)
+            failures.Add($"{nameof(Endpoint)}: must be an absolute HTTPS URI without user information.");
+        if (string.IsNullOrWhiteSpace(ClientId)) failures.Add($"{nameof(ClientId)}: is required.");
+        if (string.IsNullOrWhiteSpace(ClientSecret)) failures.Add($"{nameof(ClientSecret)}: is required.");
+        if (failures.Count > 0) throw new OptionsValidationException(nameof(ClientCredentialsOptions), failures);
     }
 }
 
@@ -54,7 +58,10 @@ public sealed class ClientCredentialsTokenSource : IAccessTokenSource, IDisposab
             request.Content = new FormUrlEncodedContent(values);
             using var response = await _http.SendAsync(request, ct);
             if (!response.IsSuccessStatusCode)
-                throw new HttpRequestException($"OAuth token endpoint returned HTTP {(int)response.StatusCode}.");
+                // The OAuth endpoint rejected these credentials or this request; distinct from a malformed-but-200
+                // response, which stays a JsonException below since it is a contract failure, not an auth failure.
+                throw new AuthenticationException($"OAuth token endpoint returned HTTP {(int)response.StatusCode}.",
+                    new ErrorDetails($"oauth_http_{(int)response.StatusCode}"));
             await using var body = await response.Content.ReadAsStreamAsync(ct);
             using var payload = await JsonDocument.ParseAsync(body, cancellationToken: ct);
             var root = payload.RootElement;
