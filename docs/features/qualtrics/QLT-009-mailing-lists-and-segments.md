@@ -7,7 +7,7 @@ phase: "P6"
 status: "partial"
 baseline_status: "Not started"
 verification: "unverified"
-last_updated: "2026-11-12"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -54,8 +54,8 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "missing list"/"denied permission" unit-test-requirement gap by adding `GetMailingListClassifiesForbiddenAndNotFoundWithoutLeakingBody` (403/404) and `CreateMailingListClassifiesForbiddenAndConflictWithoutLeakingBody` (403/409) to `tests/Koras.Connect.Tests/Qualtrics/QualtricsExpansionTests.cs`, matching the classification pattern already used for contacts/surveys. Full suite: 483 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | "Dynamic changes", "duplicate membership", "consent changes" and "partial failure" remain unaddressed - mailing lists in this SDK are static groups only, with no dedicated membership-mutation or segment API yet. Segments (the other half of this feature) remain entirely unaddressed; the [Q7] segment-retrieval schema blocker is still open. Status stays `partial`. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `QualtricsMailingList` DTO and `ListMailingListsAsync`/`GetMailingListAsync` (read, default-enabled) plus `CreateMailingListAsync` (write, explicit `writesEnabled` opt-in) in `src/Koras.Connect.Qualtrics/QualtricsDirectoryClient.cs`, reusing the shared paging engine from QLT-004. **Endpoint shape (`GET/POST /directories/{directoryId}/mailinglists`, `GET /directories/{directoryId}/mailinglists/{mailingListId}`) is based on the publicly documented Qualtrics API v3 contract; it is NOT verified against a live tenant.** Covered by `tests/Koras.Connect.Tests/QualtricsExpansionTests.cs` (`ListMailingListsPagesUsingTheSharedPagingHelper`, `CreateMailingListRequiresNameLocallyAndExplicitOptIn`). Segments (the other half of this feature) remain entirely unaddressed — the [Q7] segment-retrieval schema blocker noted below is still open and no segment model/method was added, so this is deliberately `partial`, not `implemented`. `dotnet build`/`dotnet test` passing as of this revision. |
+| 2026-11-13 | `partial` | Added `GetMailingListClassifiesForbiddenAndNotFoundWithoutLeakingBody` and `CreateMailingListClassifiesForbiddenAndConflictWithoutLeakingBody`, closing the "missing list"/"denied permission" unit-test-requirement gap. Dynamic-membership mutation, segments, and the [Q7] schema blocker remain open; status stays `partial`. |

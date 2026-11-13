@@ -520,6 +520,32 @@ public sealed class QualtricsExpansionTests
         Assert.Equal(1, calls);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task GetMailingListClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        // QLT-009 "missing list" / "denied permission": GetMailingListAsync must classify the same way as
+        // GetContactAsync/GetSurveyAsync, not leak the provider's response body.
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-list-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.GetMailingListAsync("DIR_1", "ML_1"));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-list-detail", ex.ToString());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.Conflict)]
+    public async Task CreateMailingListClassifiesForbiddenAndConflictWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-list-create-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.CreateMailingListAsync("DIR_1", new QualtricsMailingList { Name = "VIP" }, writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-list-create-detail", ex.ToString());
+    }
+
     [Fact]
     public async Task CreateMailingListRequiresNameLocallyAndExplicitOptIn()
     {
