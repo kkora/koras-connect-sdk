@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P5"
 status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -53,9 +53,9 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.cs` (`EnumerateEmploymentAsync`) |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapEmploymentAndJobTests.cs` |
-| Remaining work / blockers | Entity/field RBP and target-population behavior for EmpEmployment remain unverified against a live tenant; composite-key documentation is based on the EmpJob/EmpEmployment shapes already in code, not a reviewed metadata contract |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "invisible records" unit-test-requirement gap and added a dedicated query-option test for employment reads (previously only exercised the default, query-less call). Added `EnumerateEmploymentAsyncForwardsFilterAndAsOfDateInTheQueryString` (confirms `$filter`/`asOfDate` reach the `EmpEmployment` request) and `EnumerateEmploymentAsyncTreatsAnRbpFilteredEmptyResultTheSameAsLegitimatelyNoRecords` (an RBP-filtered-away record is, by SAP's documented collection-query behavior, indistinguishable from a legitimately-empty result - a plain 200 with an empty array; the SDK must not special-case or error on it) to `tests/Koras.Connect.Tests/Sap/SapEmploymentAndJobTests.cs`. Full suite: 522 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Entity/field RBP and target-population behavior for EmpEmployment remain unverified against a live tenant; composite-key documentation is based on the EmpJob/EmpEmployment shapes already in code, not a reviewed metadata contract. |
 | Acceptance / completion | Unit-level only: `EnumerateEmploymentPreservesConcurrentRecordsOpenEndedDatesAndUnknownFields` in `SapEmploymentAndJobTests.cs` covers concurrent employments (same userId, different startDate), absent endDate, both `/Date(ms)/` and ISO-8601 date shapes, and `AdditionalData` preservation. Live/sandbox acceptance not recorded. |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Added `SuccessFactorsClient.EnumerateEmploymentAsync` convenience wrapper over `EnumerateAsync<EmpEmployment>`, plus dedicated unit tests in `tests/Koras.Connect.Tests/SapEmploymentAndJobTests.cs` covering concurrent employments, open-ended (absent) endDate, both SAP date shapes and unknown-field preservation. `verification` remains `unverified` - no live-tenant evidence was gathered. |
+| 2026-11-13 | `implemented` | Added `EnumerateEmploymentAsyncForwardsFilterAndAsOfDateInTheQueryString` and `EnumerateEmploymentAsyncTreatsAnRbpFilteredEmptyResultTheSameAsLegitimatelyNoRecords`, closing the "invisible records" unit-test-requirement gap. `verification` moves from `unverified` to `partial`: these are local, deterministic protocol tests, not live-tenant evidence; RBP/target-population behavior against a real tenant remains a standing external blocker. |

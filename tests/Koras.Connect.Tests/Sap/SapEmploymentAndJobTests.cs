@@ -37,6 +37,33 @@ public sealed class SapEmploymentAndJobTests
         Assert.Equal(DateTimeOffset.Parse("2025-06-01T00:00:00Z"),SapDates.ParseUtc(employments[1].StartDate!.Value));
     }
 
+    [Fact] public async Task EnumerateEmploymentAsyncForwardsFilterAndAsOfDateInTheQueryString()
+    {
+        using var http=new HttpClient(new Handler((r,ct)=>
+        {
+            Assert.Equal("/odata/v2/EmpEmployment",r.RequestUri!.AbsolutePath);
+            Assert.Contains("asOfDate=2026-01-01",r.RequestUri.Query);
+            Assert.Contains("$filter=userId%20eq%20",r.RequestUri.Query);
+            Assert.Contains("synthetic-1",r.RequestUri.Query);
+            return Task.FromResult(Json("""{"d":{"results":[]}}"""));
+        }));
+        var c=Client(http);
+        await foreach(var e in c.EnumerateEmploymentAsync(new(Filter:"userId eq 'synthetic-1'",AsOfDate:new(2026,1,1)))) { }
+    }
+
+    [Fact] public async Task EnumerateEmploymentAsyncTreatsAnRbpFilteredEmptyResultTheSameAsLegitimatelyNoRecords()
+    {
+        // SAP-008 "invisible records": SAP's documented collection-query behavior returns a plain 200 with an
+        // empty array when the caller lacks permission to see matching records - indistinguishable, by design,
+        // from a query that legitimately matches nothing. The SDK must not treat this as an error or special-case
+        // it; this test pins that an empty page is simply an empty enumeration, nothing more.
+        using var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("""{"d":{"results":[]}}"""))));
+        var c=Client(http);
+        var employments=new List<EmpEmployment>();
+        await foreach(var e in c.EnumerateEmploymentAsync(new(Filter:"userId eq 'denied-user'"))) employments.Add(e);
+        Assert.Empty(employments);
+    }
+
     [Fact] public async Task EnumerateJobsAcceptsSequenceNumberAsStringOrNumberAndPreservesUnknownFields()
     {
         using var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("""
