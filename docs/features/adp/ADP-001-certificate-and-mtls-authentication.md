@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P2"
 status: "implemented"
 baseline_status: "Implemented but unverified"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "blocked"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `implemented` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Fixed `ClientCertificateTransport.LoadPem` (PersistKeySet re-import) after a Windows SChannel mTLS handshake failure surfaced during an opt-in, individually-filtered live sandbox read (see ADP-020). `SecurityAndLifecycleTests.cs` PEM/PFX/rotation tests pass; checked off the "unit, contract and integration checks pass" completion-evidence gate accordingly. Acceptance/live-sandbox-as-a-recorded-gate remains unresolved — see external blockers. |
+| 2026-11-13 | `implemented` | Audited this pass's options and confirmed the remaining gap is genuinely blocked on real-world authorization (ADP app/certificate registration and sandbox TLS verification), not an engineering gap — no credentials, certificate registration or tenant access exist in this environment to attempt a new live handshake beyond the one opt-in run already recorded above. No further implementation attempted this pass. `verification` set to `blocked` (from `unverified`) to reflect this accurately rather than implying work is merely outstanding. |
