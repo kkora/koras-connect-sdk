@@ -1,3 +1,18 @@
+sealed class Koras.Connect.Qualtrics.ContactChange
+  ctor()
+  property System.Text.Json.JsonElement Email {get+set}
+  property System.Text.Json.JsonElement ExternalReference {get+set}
+  property System.Text.Json.JsonElement FirstName {get+set}
+  property System.Boolean HasAnyChange {get}
+  property System.Text.Json.JsonElement Language {get+set}
+  property System.Text.Json.JsonElement LastName {get+set}
+  property System.Text.Json.JsonElement Unsubscribed {get+set}
+  method Koras.Connect.Qualtrics.ContactChange SetEmail(System.String value)
+  method Koras.Connect.Qualtrics.ContactChange SetExternalReference(System.String value)
+  method Koras.Connect.Qualtrics.ContactChange SetFirstName(System.String value)
+  method Koras.Connect.Qualtrics.ContactChange SetLanguage(System.String value)
+  method Koras.Connect.Qualtrics.ContactChange SetLastName(System.String value)
+  method Koras.Connect.Qualtrics.ContactChange SetUnsubscribed(System.Nullable<System.Boolean> value)
 sealed class Koras.Connect.Qualtrics.ExportProgress
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
@@ -54,6 +69,7 @@ sealed class Koras.Connect.Qualtrics.QualtricsClient
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsMailingList> ListMailingListsAsync(System.String directoryId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.SurveySummary>> ListSurveysPageAsync(Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> StartResponseExportAsync(System.String surveyId, Koras.Connect.Qualtrics.ResponseExportOptions options = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateContactAsync(System.String directoryId, System.String contactId, Koras.Connect.Qualtrics.ContactChange change, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateContactAsync(System.String directoryId, System.String contactId, Koras.Connect.Qualtrics.QualtricsContact contact, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.ExportProgress> WaitForExportAsync(System.String surveyId, System.String progressId, System.Nullable<System.TimeSpan> pollingInterval = null, System.Int32 maxPolls = 120, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Qualtrics.QualtricsConcurrencyLimiter

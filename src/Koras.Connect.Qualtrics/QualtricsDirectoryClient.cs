@@ -44,6 +44,40 @@ public sealed class QualtricsMailingList
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalData { get; set; }
 }
 
+/// <summary>A partial update to a <see cref="QualtricsContact"/>: only fields the caller explicitly touched via a
+/// <c>Set*</c> method are serialized into the outgoing request body, leaving every other field untouched server-side.
+/// This avoids the data-loss risk of sending a full <see cref="QualtricsContact"/> on a PUT, where a field the caller
+/// never meant to change (left at its CLR default, e.g. <c>null</c>) would overwrite the contact's existing value.
+/// Each field uses the same three-state <see cref="JsonElement"/> encoding as <see cref="QualtricsContact.Unsubscribed"/>
+/// so a caller can distinguish "leave untouched" (never call the setter) from "explicitly clear to null" (call the
+/// setter with <c>null</c>). Endpoint shape based on the publicly documented Qualtrics API v3 contract; NOT verified
+/// against a live tenant.</summary>
+public sealed class ContactChange
+{
+    [JsonPropertyName("firstName"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement FirstName { get; private set; }
+    [JsonPropertyName("lastName"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement LastName { get; private set; }
+    [JsonPropertyName("email"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Email { get; private set; }
+    [JsonPropertyName("extRef"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement ExternalReference { get; private set; }
+    [JsonPropertyName("language"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Language { get; private set; }
+    [JsonPropertyName("unsubscribed"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Unsubscribed { get; private set; }
+
+    public ContactChange SetFirstName(string? value) { FirstName = ToElement(value); return this; }
+    public ContactChange SetLastName(string? value) { LastName = ToElement(value); return this; }
+    public ContactChange SetEmail(string? value) { Email = ToElement(value); return this; }
+    public ContactChange SetExternalReference(string? value) { ExternalReference = ToElement(value); return this; }
+    public ContactChange SetLanguage(string? value) { Language = ToElement(value); return this; }
+    public ContactChange SetUnsubscribed(bool? value) { Unsubscribed = value is null ? ToElement((string?)null) : JsonSerializer.SerializeToElement(value.Value); return this; }
+
+    /// <summary>True once at least one <c>Set*</c> call has touched a field; an empty change would be a no-op PUT
+    /// that should never be sent.</summary>
+    public bool HasAnyChange =>
+        FirstName.ValueKind != JsonValueKind.Undefined || LastName.ValueKind != JsonValueKind.Undefined ||
+        Email.ValueKind != JsonValueKind.Undefined || ExternalReference.ValueKind != JsonValueKind.Undefined ||
+        Language.ValueKind != JsonValueKind.Undefined || Unsubscribed.ValueKind != JsonValueKind.Undefined;
+
+    private static JsonElement ToElement(string? value) => JsonSerializer.SerializeToElement(value);
+}
+
 public sealed partial class QualtricsClient
 {
     /// <summary>Lists every contact in a directory. Endpoint shape based on publicly documented Qualtrics API v3 contract
@@ -106,6 +140,26 @@ public sealed partial class QualtricsClient
         {
             using var doc = await _transport.SendJsonAsync(HttpMethod.Put, ContactAddress(directoryId, contactId),
                 JsonSerializer.SerializeToElement(contact), cancellationToken: cancellationToken);
+        }
+        catch (IntegrationRequestException failure) { throw QualtricsApiException.FromTransportFailure(failure); }
+    }
+
+    /// <summary>Updates only the fields explicitly set on <paramref name="change"/>, leaving every other field on the
+    /// contact untouched server-side. Prefer this over the full-<see cref="QualtricsContact"/> overload when only a
+    /// subset of fields is known to be changing, since sending a full contact risks silently clearing fields the
+    /// caller never meant to touch. Explicit opt-in write; <paramref name="writesEnabled"/> must be set to <c>true</c>
+    /// by the caller after verifying directory write permissions. Endpoint shape based on the publicly documented
+    /// Qualtrics API v3 contract (<c>PUT /directories/{directoryId}/contacts/{contactId}</c>); NOT verified against a
+    /// live tenant.</summary>
+    public async Task UpdateContactAsync(string directoryId, string contactId, ContactChange change, bool writesEnabled = false, CancellationToken cancellationToken = default)
+    {
+        if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying XM Directory contact-update support and permissions.");
+        ArgumentNullException.ThrowIfNull(change);
+        if (!change.HasAnyChange) throw new ArgumentException("ContactChange has no fields set; nothing to update.", nameof(change));
+        try
+        {
+            using var doc = await _transport.SendJsonAsync(HttpMethod.Put, ContactAddress(directoryId, contactId),
+                JsonSerializer.SerializeToElement(change), cancellationToken: cancellationToken);
         }
         catch (IntegrationRequestException failure) { throw QualtricsApiException.FromTransportFailure(failure); }
     }

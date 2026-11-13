@@ -7,7 +7,7 @@ phase: "P6"
 status: "partial"
 baseline_status: "Not started"
 verification: "unverified"
-last_updated: "2026-11-12"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -54,8 +54,8 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `ContactChange` (`src/Koras.Connect.Qualtrics/QualtricsDirectoryClient.cs`), a typed partial-update over `QualtricsContact` where only fields touched via a `Set*` method are serialized into the outgoing PUT body (the same three-state `JsonElement` encoding already used for `Unsubscribed`, extended to every field), avoiding the data-loss risk of sending a full `QualtricsContact` on an update and accidentally nulling out fields the caller never meant to change. Added a `UpdateContactAsync(string, string, ContactChange, bool, CancellationToken)` overload alongside the existing full-contact one; it rejects an empty change locally (`ArgumentException`, no HTTP call) and requires the same explicit `writesEnabled` opt-in. Covered by `tests/Koras.Connect.Tests/Qualtrics/QualtricsExpansionTests.cs` (`ContactChangeOnlySerializesFieldsThatWereExplicitlySet`, `ContactChangeCanExplicitlyClearAFieldToNullDistinctFromLeavingItUntouched`, `UpdateContactAsyncWithContactChangeRequiresAtLeastOneFieldAndExplicitOptIn`, `UpdateContactAsyncWithContactChangeClassifiesForbiddenAndNotFoundWithoutLeakingBody`). Regenerated the committed `Koras.Connect.Qualtrics.snapshot.txt` API baseline for the new public type/overload. Full suite: 489 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | "Missing/duplicate external ID" and "sensitive attributes" are covered by QLT-006's contact tests; "custom fields" and "opted-out contact" are covered by QLT-012's mapper tests. The [Q6] tenant schema/permissions/consent-policy verification against a live tenant remains an external blocker (see above), so status stays `partial`, not `implemented`. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `QualtricsContact` (`src/Koras.Connect.Qualtrics/QualtricsDirectoryClient.cs`): identity fields (`Id`, `FirstName`, `LastName`, `Email`, `ExternalReference`, `Language`), an `Unsubscribed` field modeled as a non-nullable `JsonElement` so field-absent (`JsonValueKind.Undefined`), field-explicit-null (`JsonValueKind.Null`) and field-present-with-value are all distinguishable (a `bool?` or `JsonElement?` cannot make the first two distinctions — confirmed empirically: System.Text.Json's `Nullable<T>` wrapper collapses an explicit JSON `null` to CLR `null` before the inner converter runs), with `[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]` so an unset field is omitted from outgoing payloads rather than throwing on the unrepresentable `Undefined` sentinel, and `[JsonExtensionData] AdditionalData` preserving every other field Qualtrics returns. **Endpoint shape based on the publicly documented Qualtrics API v3 contract; NOT verified against a live tenant**, so status moves to `partial`, not `implemented`, pending the tenant schema/permission/consent-policy review noted below. Covered by `tests/Koras.Connect.Tests/QualtricsExpansionTests.cs` (`ListContactsPagesAndPreservesUnknownFieldsAndNullVersusOmission`, `QualtricsContactMapperGoldenFixtureDistinguishesNullFromOmissionAtTheSourceDtoLevel`). `dotnet build`/`dotnet test` passing as of this revision. |
+| 2026-11-13 | `partial` | Added the typed `ContactChange` partial-update type and its `UpdateContactAsync` overload, closing the proposed "QualtricsContact/ContactChange" public-contract gap recorded above. The [Q6] live-tenant schema/permission/consent-policy review remains open, so status stays `partial`. |

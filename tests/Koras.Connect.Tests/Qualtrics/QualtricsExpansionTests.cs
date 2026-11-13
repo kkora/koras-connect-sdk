@@ -509,6 +509,60 @@ public sealed class QualtricsExpansionTests
     }
 
     [Fact]
+    public void ContactChangeOnlySerializesFieldsThatWereExplicitlySet()
+    {
+        // QLT-015: a ContactChange with only FirstName touched must serialize to a body containing exactly that
+        // field - no lastName/email/etc. defaults leaking in as JSON nulls that would wipe the contact's existing
+        // values on a PUT.
+        var change = new ContactChange().SetFirstName("Updated");
+        var json = JsonSerializer.Serialize(change);
+        using var parsed = JsonDocument.Parse(json);
+        Assert.Equal("Updated", parsed.RootElement.GetProperty("firstName").GetString());
+        Assert.False(parsed.RootElement.TryGetProperty("lastName", out _));
+        Assert.False(parsed.RootElement.TryGetProperty("email", out _));
+        Assert.False(parsed.RootElement.TryGetProperty("unsubscribed", out _));
+    }
+
+    [Fact]
+    public void ContactChangeCanExplicitlyClearAFieldToNullDistinctFromLeavingItUntouched()
+    {
+        var untouched = new ContactChange();
+        var clearedToNull = new ContactChange().SetLanguage(null);
+        Assert.False(untouched.HasAnyChange);
+        Assert.True(clearedToNull.HasAnyChange);
+        using var parsed = JsonDocument.Parse(JsonSerializer.Serialize(clearedToNull));
+        Assert.Equal(JsonValueKind.Null, parsed.RootElement.GetProperty("language").ValueKind);
+    }
+
+    [Fact]
+    public async Task UpdateContactAsyncWithContactChangeRequiresAtLeastOneFieldAndExplicitOptIn()
+    {
+        var calls = 0;
+        using var h = new HttpClient(new Handler((r, ct) => { calls++; return Task.FromResult(Json("null")); }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        await Assert.ThrowsAsync<ArgumentException>(() => c.UpdateContactAsync("DIR_1", "CID_1", new ContactChange(), writesEnabled: true));
+        Assert.Equal(0, calls);
+        var change = new ContactChange().SetEmail("new@example.com");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => c.UpdateContactAsync("DIR_1", "CID_1", change));
+        Assert.Equal(0, calls);
+        await c.UpdateContactAsync("DIR_1", "CID_1", change, writesEnabled: true);
+        Assert.Equal(1, calls);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task UpdateContactAsyncWithContactChangeClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-change-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var change = new ContactChange().SetFirstName("X");
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.UpdateContactAsync("DIR_1", "CID_1", change, writesEnabled: true));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-change-detail", ex.ToString());
+    }
+
+    [Fact]
     public async Task ListMailingListsPagesUsingTheSharedPagingHelper()
     {
         var calls = 0;
