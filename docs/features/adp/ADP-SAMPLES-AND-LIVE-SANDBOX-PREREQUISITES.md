@@ -9,7 +9,7 @@ checkout at the repository root.
 
 ## Running the offline samples
 
-All five sample projects are fully offline by default: every HTTP call is answered by an in-process mocked
+All seven sample projects are fully offline by default: every HTTP call is answered by an in-process mocked
 `HttpMessageHandler`, never a live ADP tenant. None are referenced from `Koras.Connect.slnx` (matching the existing
 `samples/Qualtrics.SurveyExport`/`samples/PackageConsumer` precedent), so run each directly:
 
@@ -19,6 +19,8 @@ dotnet run --project samples/ADP.WorkerExport
 dotnet run --project samples/ADP.ConnectionTest
 dotnet run --project samples/ADP.WorkerWrites
 dotnet run --project samples/ADP.WorkerRetrieval
+dotnet run --project samples/ADP.IncrementalSync
+dotnet run --project samples/ADP.EventNotifications
 ```
 
 | Sample | Demonstrates |
@@ -28,6 +30,8 @@ dotnet run --project samples/ADP.WorkerRetrieval
 | `ADP.ConnectionTest` | Three `AdpConnector.DiagnoseAsync` scenarios: a healthy 3-stage pass, a locally-rejected expired certificate that never reaches the network, and an Authentication-stage failure (ADP-012). |
 | `ADP.WorkerWrites` | The typed write-command builders — `ChangeManagerCommand`, `ModifyDepartmentAllocationsCommand`, `TerminateAssignmentCommand`, `ChangePayDataInputCommand` — and their two safety gates: an explicit payroll opt-in rejected locally with zero network calls when omitted, and an `AdpEntitlementTracker`-recorded denial rejected before any request is sent (ADP-013/ADP-014/ADP-015/ADP-021). Every submission below still only reaches a mocked endpoint, never a live tenant. |
 | `ADP.WorkerRetrieval` | The read surface: single-worker read (found/not-found), "retrieve all" via automatic paging, a typed `WorkerFilter` combined with a best-effort typed `WorkerSort`, resumable paging via a persisted `ContinuationToken` (through its terminal empty page), typed catalog reads (organization departments, time-off balances), worker metadata, and the explicit HTTP 202 rejection (ADP-004/ADP-005/ADP-013/ADP-016/ADP-019). |
+| `ADP.IncrementalSync` | Full-snapshot reconciliation against a real, durable `FileWorkerFingerprintStore`: a first scan with nothing committed, a second scan where only the worker that actually changed is yielded (confirmed by reloading the snapshot from disk), and an interrupted scan proving the prior committed snapshot survives on disk untouched (ADP-006). The fingerprint file is a real temporary file, deleted when the sample finishes. |
+| `ADP.EventNotifications` | Webhook publisher-header verification (valid vs. tampered), safely parsing a notification envelope's `events[]` array without trusting its payload, polling as the alternative delivery mechanism, treating any notification only as a trigger to re-read the named worker from source, explicit acknowledgement only after that re-read succeeds, and duplicate-message-id suppression (ADP-006/ADP-018). |
 
 `tests/Koras.Connect.Tests/AdpSampleWalkthroughTests.cs` exercises the same scenarios continuously in CI as a
 regression complement; the `samples/` projects are the literal runnable deliverable, not a replacement for it.
