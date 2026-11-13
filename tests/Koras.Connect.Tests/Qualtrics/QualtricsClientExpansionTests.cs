@@ -26,6 +26,22 @@ public sealed class QualtricsClientExpansionTests
         var c=QualtricsClient.Create(h,new Token(),new(QualtricsRoot));var surveys=new List<SurveySummary>();await foreach(var survey in c.EnumerateSurveysAsync()) surveys.Add(survey);
         Assert.Equal("SV_synthetic",Assert.Single(surveys).Id);Assert.True(surveys[0].AdditionalData!["future"].GetBoolean());Assert.Equal(2,calls);
     }
+    [Fact] public async Task TwoClientInstancesWithDifferentTokenSourcesNeverLeakEachOthersToken()
+    {
+        // QLT-001 "cross-account isolation": each QualtricsClient captures its own IAccessTokenSource instance
+        // (HeaderTokenAuthenticator holds no static/shared state), so a host juggling two Qualtrics accounts in the
+        // same process can never have one account's request accidentally carry the other account's token.
+        var seenA=new List<string>();var seenB=new List<string>();
+        using var hA=new HttpClient(new Handler((r,ct)=>{seenA.Add(r.Headers.GetValues("X-API-TOKEN").Single());return Task.FromResult(Json("""{"result":{"elements":[],"nextPage":null}}"""));}));
+        using var hB=new HttpClient(new Handler((r,ct)=>{seenB.Add(r.Headers.GetValues("X-API-TOKEN").Single());return Task.FromResult(Json("""{"result":{"elements":[],"nextPage":null}}"""));}));
+        var clientA=QualtricsClient.Create(hA,new FixedToken("account-a-token"),new(QualtricsRoot));
+        var clientB=QualtricsClient.Create(hB,new FixedToken("account-b-token"),new(QualtricsRoot));
+        await clientA.ListSurveysPageAsync();await clientB.ListSurveysPageAsync();await clientA.ListSurveysPageAsync();
+        Assert.All(seenA,t=>Assert.Equal("account-a-token",t));Assert.All(seenB,t=>Assert.Equal("account-b-token",t));
+        Assert.Equal(2,seenA.Count);Assert.Single(seenB);
+    }
+    private sealed class FixedToken(string value) : IAccessTokenSource
+    { public ValueTask<string> GetTokenAsync(CancellationToken ct = default) => ValueTask.FromResult(value); }
     [Fact] public async Task QualtricsExportUsesProgressThenFileIdAndStreamsWithoutExtraction()
     {
         var calls=0;using var h=new HttpClient(new Handler(async(r,ct)=>
