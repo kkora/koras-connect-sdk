@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Remaining work / blockers | **Deliberately deferred, not attempted this pass.** This is the last ticket in the SDK-001..SDK-020 sweep and, unlike the other P7 tickets (SDK-012/SDK-015), it isn't blocked on external procurement — it genuinely requires standing up a new documentation-site toolchain from nothing (`eng/*` has no site generator, templates, or link/accessibility-checking tooling of any kind today, confirmed by this pass's own repo-wide audits across SDK-016/017/018/019). Building that properly means choosing and configuring a static-site generator that can pull API references from the XML doc comments every package already generates (`GenerateDocumentationFile=true` in `Directory.Build.props`, confirmed present), wiring link-checking and accessibility checks, and deciding how samples/capability matrices surface in navigation — a real toolchain/technology choice (DocFX vs. Docusaurus vs. a hand-rolled static generator) that deserves its own planning pass rather than a rushed scaffold at the tail of a 20-ticket sweep. Doing it hastily would risk shipping a half-built site that creates more review/maintenance burden than the markdown docs it would replace. Following up: plan and implement as its own piece of work, picking a toolchain deliberately; `docs/features/**/*.md`'s existing per-feature trackers and `CHANGELOG.md` (SDK-019) are the versioned-docs source this site would need to render from. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `not-started` | Audited and confirmed no documentation-site toolchain exists anywhere in the repo. Deliberately deferred rather than rushed: this needs a real technology choice (static-site generator) and its own planning pass, not a scaffold bolted on at the end of an unrelated sweep. No implementation attempted; status intentionally left `not-started`. Logged as the final followup of this pass. |
