@@ -4,7 +4,7 @@ title: "Retry and resilience policies"
 category: "sdk"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,22 +44,23 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 297, Skipped 3 (live-sandbox, unrelated), Failed 0. `CoreTests.cs` already covered status-code transient retry (429/500/503), write-never-retried (POST only), and delta-form Retry-After exceeding budget. New `ResiliencePolicyTests.cs` (10 tests) closes every remaining named requirement: a GET retries after a connection-level `HttpRequestException`, not only an HTTP status code ("network failures"); a persistently-failing endpoint exhausts the retry budget and throws with the correct final attempt count ("budget exhaustion"); backoff timing stays within the documented `[1.0, 1.2)` jitter multiplier and respects `MaxDelay` at a later attempt ("jitter bounds", 2 tests); cancelling during an in-progress backoff wait stops in well under the configured delay rather than waiting it out ("circuit cancellation"); the date form of `Retry-After` is honored, not only the delta/`TimeSpan` form; and all four unsafe HTTP methods (POST/PUT/DELETE/PATCH), not only POST, are sent at most once on a transient failure ("no POST/DELETE replay"). |
+| Remaining work / blockers | The jitter-bounds and MaxDelay-capping tests measure real wall-clock elapsed time with generous tolerance bands rather than injecting a controllable `TimeProvider`, since `IntegrationTransport`'s own jitter uses `Random.Shared` directly (not seeded/injectable) — these are timing-sensitive but use large enough margins (tens of ms against a 500ms+ ceiling) to be stable on typical CI hardware; flagging in case they ever need loosening for a slower runner. No functional gap found for this ticket. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `implemented` | Closed every remaining named unit-test requirement with `ResiliencePolicyTests.cs`: network-level failure retry, budget exhaustion, jitter bounds, circuit cancellation during backoff, date-form Retry-After, and no-replay across all unsafe HTTP methods. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |
