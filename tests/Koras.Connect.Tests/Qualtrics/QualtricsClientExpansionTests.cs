@@ -42,6 +42,19 @@ public sealed class QualtricsClientExpansionTests
     }
     private sealed class FixedToken(string value) : IAccessTokenSource
     { public ValueTask<string> GetTokenAsync(CancellationToken ct = default) => ValueTask.FromResult(value); }
+    [Theory] [InlineData("")] [InlineData("   ")] [InlineData("\t")]
+    public async Task BlankOrWhitespaceOnlyTokenIsRejectedBeforeAnyHttpSend(string blankToken)
+    {
+        // QLT-008 "offline/missing-token behavior": a caller-supplied token source that resolves to an empty or
+        // whitespace-only string must fail locally before the request ever reaches the wire - never sent as a
+        // vacuous X-API-TOKEN header. The handler below throws if ever invoked, catching a regression that
+        // started sending the request anyway.
+        var called = false;
+        using var h=new HttpClient(new Handler((r,ct)=>{called=true;return Task.FromResult(Json("""{"result":{"elements":[],"nextPage":null}}"""));}));
+        var c=QualtricsClient.Create(h,new FixedToken(blankToken),new(QualtricsRoot));
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>c.ListSurveysPageAsync());
+        Assert.False(called);
+    }
     [Fact] public async Task QualtricsExportUsesProgressThenFileIdAndStreamsWithoutExtraction()
     {
         var calls=0;using var h=new HttpClient(new Handler(async(r,ct)=>

@@ -4,10 +4,10 @@ title: "Contract and sandbox testing"
 category: "qualtrics"
 priority: "P0"
 phase: "P6"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "offline/missing-token behavior" unit-test-requirement gap by adding `BlankOrWhitespaceOnlyTokenIsRejectedBeforeAnyHttpSend` (empty string, spaces-only, tab-only) to `tests/Koras.Connect.Tests/Qualtrics/QualtricsClientExpansionTests.cs`, asserting `HeaderTokenAuthenticator`'s existing blank-token guard throws `InvalidOperationException` before the handler is ever invoked. The other four named requirements already had dedicated coverage, now consolidated as evidence here: schema drift -> `ListContactsPagesAndPreservesUnknownFieldsAndNullVersusOmission` (unknown-field preservation) and `QualtricsDoesNotDownloadFailedOrIncompleteExports` (unrecognized export status); continuation cycles -> `EnumerateSurveysCycleAndBoundsStillEnforcedAfterPagingExtraction`; leaked errors -> every `Assert.DoesNotContain(...)` classification test across the Qualtrics suite; interrupted download -> QLT-003's `DownloadInterruptedMidStreamPreservesPartialBytesAndLeavesTheOutputStreamOpen`. Full suite: 492 passed, 3 skipped, 0 failed. |
+| Remaining work | No further engineering gap identified. A live opt-in sandbox harness (data center/token/permitted survey/directory and disposable records) remains an external blocker (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `BlankOrWhitespaceOnlyTokenIsRejectedBeforeAnyHttpSend`, closing the last open unit-test requirement ("offline/missing-token behavior"); the other four were already covered and are now cited as evidence. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: a live opt-in sandbox harness remains a standing external blocker. |
