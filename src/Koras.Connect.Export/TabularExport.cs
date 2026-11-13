@@ -4,7 +4,10 @@ using System.Text.Json;
 using System.Xml;
 namespace Koras.Connect.Export;
 
-/// <summary>Stream-oriented exports with caller-selected fields; no implicit filesystem or persistence.</summary>
+/// <summary>Stream-oriented exports with caller-selected fields; no implicit filesystem or persistence. Rows are
+/// never buffered as a whole population, so a canceled write leaves whatever was already streamed in the
+/// destination; the caller owns the stream and must treat a canceled export's destination as incomplete and
+/// invalid, not attempt to resume or trust it.</summary>
 public static class TabularExport
 {
     public static Task WriteJsonAsync<T>(Stream output, IEnumerable<T> records, CancellationToken cancellationToken = default)

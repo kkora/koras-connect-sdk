@@ -4,7 +4,7 @@ title: "Cancellation and timeout support"
 category: "sdk"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 313, Skipped 3 (live-sandbox, unrelated), Failed 0. New `CancellationAndTimeoutTests.cs` (4 tests) strengthens the existing `SecurityAndLifecycleTests.DeadlineCancelsInFlightResponse` test, which only asserted the generic `OperationCanceledException` base type (a plain caller cancellation would also satisfy that) — adds an assertion that the configured deadline specifically throws `DeadlineExceededException`, and a companion test proving an explicit caller cancellation is never misreported as that subtype, finally making "deadline versus caller token" a real distinguishing test rather than one that happened to pass either way. Also closes both gaps this ticket's own prior status history flagged as open: cancellation during an in-flight token acquisition now propagates promptly from the caller's own token rather than only through `ClientCredentialsTokenSource`'s internal `acquisitionTimeout` ("during auth"), and a cancellation partway through a streamed export leaves whatever was already written in the destination stream intact rather than silently discarding it ("partial destination") — `TabularExport`'s class-level doc comment now states explicitly that a canceled destination must be treated as incomplete and invalid by the caller, closing the acceptance criterion's "partial outputs are documented invalid" clause literally (as documentation, not just behavior). |
+| Remaining work / blockers | No functional gap found for this ticket. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | `IntegrationTransport` (`src/Koras.Connect/Transport/IntegrationTransport.cs`) now takes an optional `TimeProvider`, threads it through every `Task.Delay` call for deterministic retry-timing tests, and distinguishes its own configured deadline from caller cancellation: when the linked timeout (not the caller's token) fires, it now throws `Koras.Connect.Exceptions.DeadlineExceededException` (an `OperationCanceledException` subclass, so existing `catch (OperationCanceledException)`/`Assert.ThrowsAnyAsync<OperationCanceledException>` callers are unaffected — verified against the existing `DeadlineCancelsInFlightResponse` test, which still passes). `TabularExport.WriteXml`/`WriteExcel` gained true async, cancellable `WriteXmlAsync`/`WriteExcelAsync` overloads (both `IEnumerable` and `IAsyncEnumerable` row sources) alongside the original synchronous methods, so cancellation now interrupts actual I/O rather than only the between-row check. `ClientCredentialsTokenSource.GetTokenAsync` now bounds token acquisition with its own independent timeout (see SDK-006). Remaining gap: no explicit test yet asserts a canceled export leaves the destination stream marked/documented invalid mid-write. `dotnet build`/`dotnet test` (55 baseline tests) pass unaffected. |
 | 2026-11-12 | `partial` | `IntegrationRequestException` now captures the allowlisted correlation headers on failure, not only success (see SDK-009/SDK-011 entries); `IntegrationTransport` gained an optional `ILogger` constructor parameter logging retry/failure/deadline events (see SDK-011). No change to the cancellation/timeout mechanics themselves this round; the canceled-mid-export-stream gap noted above remains open. `dotnet build`/`dotnet test` pass (197 passed, 3 intentionally skipped, 0 failed). |
+| 2026-11-12 | `implemented` | Closed both previously-flagged gaps (during-auth cancellation, partial-destination-on-cancel) and strengthened the deadline-vs-caller-token test to actually assert the distinguishing exception type rather than the shared base type. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |
