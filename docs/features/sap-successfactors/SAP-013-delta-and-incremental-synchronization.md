@@ -4,10 +4,10 @@ title: "Delta and incremental synchronization"
 category: "sap-successfactors"
 priority: "P0"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SapDeltaSync.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapDeltaSyncTests.cs` (3 tests) |
-| Remaining work / blockers | Timezone-specific handling, "visibility shrink" (a previously-visible record disappearing from a later scan) and future-effective records are not separately tested; the exact per-entity modification-time field name is still host-supplied, not derived from metadata |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "visibility shrink" and "future-effective records" unit-test-requirement gaps. Added `ARecordMissingFromTheNewScanProducesNoChangeSignalAtAll` to `tests/Koras.Connect.Tests/Sap/SapDeltaSyncTests.cs`, pinning a real, deliberate scope boundary: `Reconciliation.DetectChangesAsync` only reports keys it actually observes in the new scan, so a previously-fingerprinted key that the filtered scan no longer returns (deleted, moved outside the filter, or newly RBP-hidden) produces neither a change nor a deletion entry - a host needing deletion detection must run separate full-snapshot reconciliation, never infer deletion from absence here. Added `AFutureModifiedAtRecordStillAdvancesTheCheckpointToItsOwnValue`, confirming `SapDeltaSync` tracks modification time only and has no concept of "effective date" to reject or special-case. Full suite: 529 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Timezone-specific handling remains implicit in `SapDates`'s UTC-normalization policy (SAP-015), not separately re-tested here. The exact per-entity modification-time field name remains host-supplied, not derived from metadata; the exact modified-field/filter/retention contract per entity [S3] against a live tenant remains a standing external blocker. |
 | Acceptance / completion | Unit-level only: `OverlapWindowDedupsUnchangedRecordsButStillDetectsALateArrivingSameTimestampChange` composes `Reconciliation.DetectChangesAsync` end-to-end and proves overlap-window dedup plus a same-timestamp content change is still caught; `FailedScanNeverProducesAnAdvancedCheckpoint` proves a mid-scan failure never yields an advanced checkpoint (the checkpoint is only returned after the full enumeration completes). Live/sandbox acceptance not recorded. |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `SapDeltaCheckpoint { EntityName, ModificationField, LastValue }`, `SapDeltaFilters.BuildFilter` (modification-time lower bound + overlap window) and `SapDeltaSync.RunAsync` composing `SuccessFactorsClient.EnumerateAsync` with `Koras.Connect.Synchronization.Reconciliation.DetectChangesAsync`, in `src/Koras.Connect.Sap.SuccessFactors/SapDeltaSync.cs`. Tests in `tests/Koras.Connect.Tests/SapDeltaSyncTests.cs` cover overlap-window dedup, a late-arriving same-timestamp change, and failed-scan-does-not-advance-checkpoint. Kept `partial`: timezone/visibility-shrink/future-effective-record cases remain untested. |
+| 2026-11-13 | `implemented` | Added `ARecordMissingFromTheNewScanProducesNoChangeSignalAtAll` and `AFutureModifiedAtRecordStillAdvancesTheCheckpointToItsOwnValue`, closing the "visibility shrink" and "future-effective records" unit-test-requirement gaps - the former documents that deletion detection is explicitly out of scope for this delta-only helper. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: the exact modified-field/filter/retention contract per entity [S3] against a live tenant remains a standing external blocker. |

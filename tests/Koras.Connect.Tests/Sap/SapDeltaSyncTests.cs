@@ -52,6 +52,40 @@ public sealed class SapDeltaSyncTests
         Assert.Equal(new DateTimeOffset(2026,1,1,0,0,0,TimeSpan.Zero), originalCheckpoint.LastValue);
     }
 
+    [Fact] public async Task ARecordMissingFromTheNewScanProducesNoChangeSignalAtAll()
+    {
+        // SAP-013 "visibility shrink": a key present in previousFingerprints that the new, filtered scan never
+        // yields again (deleted, moved outside the filter, or RBP now hides it) produces NEITHER a change NOR a
+        // deletion signal - Reconciliation.DetectChangesAsync only reports additions/modifications it actually
+        // observes. This is a deliberate scope boundary of this delta-only helper, not a defect: a host that needs
+        // deletion detection must run separate full-snapshot reconciliation, never infer deletion from absence here.
+        var t0 = new DateTimeOffset(2026,1,10,12,0,0,TimeSpan.Zero);
+        var stillPresent = new DeltaRecord("r1","unchanged",t0);
+        var previous = new Dictionary<string,string>
+        {
+            ["r1"] = Fingerprint(stillPresent),
+            ["r2-no-longer-returned"] = "some-previously-recorded-fingerprint",
+        };
+        var checkpoint = new SapDeltaCheckpoint("Entity","modifiedAt", t0.AddMinutes(-5));
+        var (changes, next) = await SapDeltaSync.RunAsync(From([stillPresent]), r=>r.Id, r=>r.ModifiedAt, previous, checkpoint);
+        Assert.Empty(changes); // no addition/modification, and critically no deletion entry for r2-no-longer-returned
+        Assert.Equal(checkpoint.LastValue, next.LastValue); // nothing observed to advance the checkpoint past its start
+    }
+
+    [Fact] public async Task AFutureModifiedAtRecordStillAdvancesTheCheckpointToItsOwnValue()
+    {
+        // SAP-013 "future-effective records": SapDeltaSync tracks modification time only - it has no concept of
+        // "effective date" and must not reject or special-case a record whose modification timestamp is ahead of
+        // the checkpoint's previous high-water mark (for example a future-dated transaction entered today).
+        var checkpointStart = new DateTimeOffset(2026,1,10,12,0,0,TimeSpan.Zero);
+        var future = new DateTimeOffset(2027,6,1,0,0,0,TimeSpan.Zero);
+        var futureRecord = new DeltaRecord("r1","future-dated-transaction",future);
+        var checkpoint = new SapDeltaCheckpoint("Entity","modifiedAt", checkpointStart);
+        var (changes, next) = await SapDeltaSync.RunAsync(From([futureRecord]), r=>r.Id, r=>r.ModifiedAt, new Dictionary<string,string>(), checkpoint);
+        Assert.Single(changes);
+        Assert.Equal(future, next.LastValue);
+    }
+
     private static async IAsyncEnumerable<DeltaRecord> FailingAfterFirst([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         yield return new DeltaRecord("r1","first", new DateTimeOffset(2026,1,2,0,0,0,TimeSpan.Zero));
