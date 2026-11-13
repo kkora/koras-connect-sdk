@@ -1,7 +1,7 @@
 namespace Koras.Connect.Adp.Workers;
 
 /// <summary>The worker fields this SDK whitelists for a typed <see cref="WorkerFilter"/>, each mapped to the
-/// documented WFN path used by <see cref="AdpWorkersClient.SearchWorkersAsync(WorkerFilter,int,CancellationToken)"/>.
+/// documented WFN path used by <see cref="AdpWorkersClient.SearchWorkersAsync(WorkerFilter,int,WorkerSort,CancellationToken)"/>.
 /// Schema source: "Worker list / search" row (S1/S2) in <c>docs/features/ADP-FEATURE-MATRIX.md</c>, which notes
 /// authorized worker population and tenant metadata determine which filters actually work; this whitelist only
 /// bounds which <em>syntax</em> the SDK will build on the caller's behalf, not which filters a given tenant grants.</summary>
@@ -22,7 +22,7 @@ public enum WorkerFilterOperator
 
 /// <summary>A single, typed worker search predicate that renders to a safe OData <c>$filter</c> fragment without
 /// requiring the caller to hand-escape ADP's filter syntax. Complements, rather than replaces, the existing raw
-/// <see cref="AdpWorkersClient.SearchWorkersAsync(string,int,CancellationToken)"/> overload, which remains the
+/// <see cref="AdpWorkersClient.SearchWorkersAsync(string,int,WorkerSort,CancellationToken)"/> overload, which remains the
 /// escape hatch for metadata-approved filters this whitelist does not cover.</summary>
 public sealed class WorkerFilter
 {

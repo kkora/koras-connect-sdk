@@ -141,9 +141,9 @@ sealed class Koras.Connect.Adp.Workers.AdpWorkersClient
   method System.Threading.Tasks.Task<Koras.Connect.Adp.Workers.Worker> GetWorkerAsync(System.String associateOid, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(Koras.Connect.Abstractions.ContinuationToken token, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetWorkersPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(Koras.Connect.Adp.Workers.WorkerFilter filter, System.Int32 skip = 0, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(System.String filter, System.Int32 skip = 0, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetWorkersPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, Koras.Connect.Adp.Workers.WorkerSort sort = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(Koras.Connect.Adp.Workers.WorkerFilter filter, System.Int32 skip = 0, Koras.Connect.Adp.Workers.WorkerSort sort = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(System.String filter, System.Int32 skip = 0, Koras.Connect.Adp.Workers.WorkerSort sort = null, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Adp.Workers.AdpWorkersOptions
   ctor(System.Uri ApiRoot, System.Int32 PageSize = 100)
   property System.Uri ApiRoot {get+init}
@@ -224,6 +224,9 @@ sealed class Koras.Connect.Adp.Workers.QuantityValue
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
   property Koras.Connect.Adp.Workers.CodeValue UnitCode {get+set}
   property System.Nullable<System.Double> Value {get+set}
+enum Koras.Connect.Adp.Workers.SortDirection
+  enum-value Ascending = 0
+  enum-value Descending = 1
 sealed class Koras.Connect.Adp.Workers.SpendingAccountEnrollment
   ctor()
   property System.Nullable<System.Text.Json.JsonElement> AccountBasedCoverage {get+set}
@@ -308,3 +311,8 @@ sealed class Koras.Connect.Adp.Workers.WorkerIdentity
 sealed class Koras.Connect.Adp.Workers.WorkerIdentityMapper
   ctor()
   method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Adp.Workers.WorkerIdentity> Map(Koras.Connect.Adp.Workers.Worker source)
+sealed class Koras.Connect.Adp.Workers.WorkerSort
+  ctor(Koras.Connect.Adp.Workers.WorkerFilterField field, Koras.Connect.Adp.Workers.SortDirection direction = Ascending)
+  property Koras.Connect.Adp.Workers.SortDirection Direction {get}
+  property Koras.Connect.Adp.Workers.WorkerFilterField Field {get}
+  method System.String ToODataOrderBy()

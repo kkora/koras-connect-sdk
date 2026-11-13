@@ -27,15 +27,20 @@ public sealed class AdpWorkersClient
         _options = options;
     }
 
-    public Task<JsonDocument> GetWorkersPageAsync(int skip = 0, int? take = null, CancellationToken cancellationToken = default)
+    public Task<JsonDocument> GetWorkersPageAsync(int skip = 0, int? take = null, WorkerSort? sort = null, CancellationToken cancellationToken = default)
     {
         if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
         var size = take ?? _options.PageSize;
         if (size is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(take));
         var root = _options.ApiRoot.AbsoluteUri.TrimEnd('/');
-        var uri = new Uri($"{root}/hr/v2/workers?$top={size}&$skip={skip}");
+        var uri = new Uri($"{root}/hr/v2/workers?$top={size}&$skip={skip}{OrderByQuery(sort)}");
         return ReadWorkersResponseAsync(uri, cancellationToken);
     }
+
+    /// <summary>Renders the optional <c>&amp;$orderby=...</c> query fragment for <paramref name="sort"/>, or an
+    /// empty string when none is supplied. See <see cref="WorkerSort"/>'s own remarks for why this is best-effort
+    /// and unconfirmed against any official ADP schema.</summary>
+    private static string OrderByQuery(WorkerSort? sort) => sort is null ? "" : $"&$orderby={Uri.EscapeDataString(sort.ToODataOrderBy())}";
 
     /// <summary>Reads a worker-read response, failing explicitly rather than attempting to parse a body if ADP
     /// answers with HTTP 202 Accepted &#8212; a documented possibility for an asynchronous retrieval protocol this
@@ -54,15 +59,18 @@ public sealed class AdpWorkersClient
         return response.Body;
     }
 
-    /// <summary>Resumable, typed adapter over <see cref="GetWorkersPageAsync(int,int?,CancellationToken)"/>: wraps the
-    /// one requested page as a <see cref="Page{T}"/> whose <see cref="Page{T}.Next"/> opaquely encodes the skip
-    /// offset for the following page, or <c>null</c> once a page returns no workers. Pass that token to
+    /// <summary>Resumable, typed adapter over <see cref="GetWorkersPageAsync(int,int?,WorkerSort?,CancellationToken)"/>:
+    /// wraps the one requested page as a <see cref="Page{T}"/> whose <see cref="Page{T}.Next"/> opaquely encodes
+    /// the skip offset for the following page, or <c>null</c> once a page returns no workers. Pass that token to
     /// <see cref="GetWorkersPageAsPageAsync(ContinuationToken,CancellationToken)"/> to resume &#8212; a caller can
-    /// persist just the token rather than re-running <see cref="EnumerateTypedWorkersAsync"/> from the start.</summary>
+    /// persist just the token rather than re-running <see cref="EnumerateTypedWorkersAsync"/> from the start.
+    /// Deliberately has no <see cref="WorkerSort"/> parameter: a continuation token only encodes a skip offset, so
+    /// resuming with a sort order that differs from (or simply postdates server-side changes under) the original
+    /// request's ordering is unverified behavior this SDK does not want to silently paper over.</summary>
     public async Task<Page<Worker>> GetWorkersPageAsPageAsync(int skip = 0, int? take = null, CancellationToken cancellationToken = default)
     {
         var size = take ?? _options.PageSize;
-        using var document = await GuardAsync("GetWorkersPage", () => GetWorkersPageAsync(skip, take, cancellationToken));
+        using var document = await GuardAsync("GetWorkersPage", () => GetWorkersPageAsync(skip, take, cancellationToken: cancellationToken));
         if (!document.RootElement.TryGetProperty("workers", out var workers) || workers.ValueKind != JsonValueKind.Array)
             throw new JsonException("ADP response did not contain a workers array.");
         var items = workers.EnumerateArray().Select(w => w.Deserialize<Worker>() ?? throw new JsonException("Null worker.")).ToArray();
@@ -82,20 +90,20 @@ public sealed class AdpWorkersClient
         return GetWorkersPageAsPageAsync(skip, take: null, cancellationToken);
     }
 
-    public Task<JsonDocument> SearchWorkersAsync(string filter, int skip = 0, CancellationToken cancellationToken = default)
+    public Task<JsonDocument> SearchWorkersAsync(string filter, int skip = 0, WorkerSort? sort = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(filter)) throw new ArgumentException("Filter is required.", nameof(filter));
         if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-        return GuardAsync("SearchWorkers", () => ReadWorkersResponseAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}"), cancellationToken));
+        return GuardAsync("SearchWorkers", () => ReadWorkersResponseAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers?$top={_options.PageSize}&$skip={skip}&$filter={Uri.EscapeDataString(filter)}{OrderByQuery(sort)}"), cancellationToken));
     }
 
-    /// <summary>Typed-whitelist overload of <see cref="SearchWorkersAsync(string,int,CancellationToken)"/>: builds
-    /// the <c>$filter</c> fragment from a <see cref="WorkerFilter"/> instead of requiring the caller to hand-escape
-    /// OData filter syntax (ADP-005).</summary>
-    public Task<JsonDocument> SearchWorkersAsync(WorkerFilter filter, int skip = 0, CancellationToken cancellationToken = default)
+    /// <summary>Typed-whitelist overload of <see cref="SearchWorkersAsync(string,int,WorkerSort?,CancellationToken)"/>:
+    /// builds the <c>$filter</c> fragment from a <see cref="WorkerFilter"/> instead of requiring the caller to
+    /// hand-escape OData filter syntax (ADP-005).</summary>
+    public Task<JsonDocument> SearchWorkersAsync(WorkerFilter filter, int skip = 0, WorkerSort? sort = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(filter);
-        return SearchWorkersAsync(filter.ToODataFilter(), skip, cancellationToken);
+        return SearchWorkersAsync(filter.ToODataFilter(), skip, sort, cancellationToken);
     }
     public Task<JsonDocument> GetMetadataAsync(CancellationToken cancellationToken = default)
         => GuardAsync("GetWorkersMetadata", () => _transport.ReadJsonAsync(new Uri($"{_options.ApiRoot.AbsoluteUri.TrimEnd('/')}/hr/v2/workers/meta"), cancellationToken: cancellationToken));
