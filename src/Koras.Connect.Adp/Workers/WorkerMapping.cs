@@ -2,8 +2,13 @@ using Koras.Connect.Abstractions;
 namespace Koras.Connect.Adp.Workers;
 
 /// <summary>Neutral worker identity projection. Fields not selected here remain on the source <see cref="Worker"/>
-/// unchanged; this mapper never mutates or discards the source model, it only reports what it could project.</summary>
-public sealed record WorkerIdentity(string AssociateOid, string GivenName, string FamilyName, string? ExternalId);
+/// unchanged; this mapper never mutates or discards the source model, it only reports what it could project.
+/// <see cref="ProfileVersion"/> identifies the mapping-rule revision that produced this instance (ADP-007: "version
+/// profiles"), so a caller who persists a projection can detect when <see cref="WorkerIdentityMapper"/>'s field
+/// selection or omission/failure rules change in a later SDK version, rather than silently reinterpreting old data
+/// under new rules.</summary>
+public sealed record WorkerIdentity(string AssociateOid, string GivenName, string FamilyName, string? ExternalId,
+    string ProfileVersion = WorkerIdentityMapper.ProfileVersion);
 
 /// <summary>Maps a raw <see cref="Worker"/> to a neutral <see cref="WorkerIdentity"/>. A worker with no legal name on
 /// record is <see cref="MappingResult{TTarget}.Omitted"/> rather than guessed; a worker with a legal name but missing
@@ -11,6 +16,12 @@ public sealed record WorkerIdentity(string AssociateOid, string GivenName, strin
 /// <see cref="Identifier"/> is preserved as <c>null</c>, not fabricated.</summary>
 public sealed class WorkerIdentityMapper : IRecordMapper<Worker, WorkerIdentity>
 {
+    /// <summary>Identifies this mapper's current field-selection and omission/failure rules. Bump this whenever a
+    /// change to <see cref="Map"/> would alter the projection produced for the same input worker, so a caller
+    /// comparing a freshly mapped <see cref="WorkerIdentity"/> against a previously persisted one can detect the
+    /// rule change instead of assuming the shape is stable across SDK versions.</summary>
+    public const string ProfileVersion = "1";
+
     public MappingResult<WorkerIdentity> Map(Worker source)
     {
         ArgumentNullException.ThrowIfNull(source);

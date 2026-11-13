@@ -241,13 +241,14 @@ enum Koras.Connect.Adp.Workers.WorkerFilterOperator
   enum-value Equals = 0
   enum-value Contains = 1
 sealed class Koras.Connect.Adp.Workers.WorkerIdentity
-  ctor(System.String AssociateOid, System.String GivenName, System.String FamilyName, System.String ExternalId)
+  ctor(System.String AssociateOid, System.String GivenName, System.String FamilyName, System.String ExternalId, System.String ProfileVersion = 1)
   property System.String AssociateOid {get+init}
   property System.String ExternalId {get+init}
   property System.String FamilyName {get+init}
   property System.String GivenName {get+init}
+  property System.String ProfileVersion {get+init}
   method Koras.Connect.Adp.Workers.WorkerIdentity <Clone>$()
-  method System.Void Deconstruct(System.String& AssociateOid, System.String& GivenName, System.String& FamilyName, System.String& ExternalId)
+  method System.Void Deconstruct(System.String& AssociateOid, System.String& GivenName, System.String& FamilyName, System.String& ExternalId, System.String& ProfileVersion)
   method System.Boolean Equals(Koras.Connect.Adp.Workers.WorkerIdentity other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()

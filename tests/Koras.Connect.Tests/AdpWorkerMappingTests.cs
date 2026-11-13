@@ -79,4 +79,12 @@ public sealed class AdpWorkerMappingTests
         var assignments = new[] { new WorkAssignment { ItemId = "1", JobTitle = "Mystery", HireDate = null } };
         Assert.Null(EffectiveAssignmentSelector.SelectEffective(assignments, new DateOnly(2026, 1, 1)));
     }
+
+    [Fact]
+    public void SuccessfulMappingIsStampedWithTheMapperProfileVersion()
+    {
+        var worker = Parse("""{"associateOID":"w1","person":{"legalName":{"givenName":"Ada","familyName1":"Lovelace"}},"workAssignments":[]}""");
+        var result = new WorkerIdentityMapper().Map(worker);
+        Assert.Equal(WorkerIdentityMapper.ProfileVersion, result.Value!.ProfileVersion);
+    }
 }

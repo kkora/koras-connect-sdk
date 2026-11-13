@@ -4,10 +4,10 @@ title: "Worker schema mapping"
 category: "adp"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
 | Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpWorkerMappingTests`) |
-| Remaining work / blockers | Mapper profiles are unversioned (a single `WorkerIdentityMapper` shape); no official ADP schema/code-table evidence has been attached, so field meanings are not tenant-confirmed. |
+| Remaining work / blockers | No further engineering gap identified. No official ADP schema/code-table evidence has been attached, so field meanings are not tenant-confirmed. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Added `Koras.Connect.Adp.Workers.WorkerIdentityMapper` implementing `IRecordMapper<Worker, WorkerIdentity>` and `EffectiveAssignmentSelector.SelectEffective` (`src/Koras.Connect.Adp/Workers/WorkerMapping.cs`). The mapper returns `MappingResult<WorkerIdentity>.Omitted(...)` when legal name is entirely absent, `Failure([...])` with field-level `FieldError`s when given/family name is present-but-incomplete, and `Success(...)` with a `null` `ExternalId` when `workerID` is masked/absent (never fabricated). `EffectiveAssignmentSelector` picks the assignment with the latest `hireDate` on or before the target date whose `terminationDate` (if any) is on or after it. Golden-fixture tests added in `tests/Koras.Connect.Tests/AdpWorkerMappingTests.cs` cover missing legal name, incomplete name, masked/absent identifier, multiple overlapping assignments, no assignment covering the date, and missing/unparseable hire dates. Kept at `implemented` rather than fully accepted because no official ADP schema/code-table evidence or live tenant validation backs the mapped field semantics. |
+| 2026-11-13 | `implemented` | Closed the "mapper profiles are unversioned" gap: added `WorkerIdentityMapper.ProfileVersion` (currently `"1"`) and a corresponding `ProfileVersion` field on `WorkerIdentity` (default-valued from the mapper's constant, so every successfully mapped instance is stamped with the rule revision that produced it) — bump the constant whenever a future change to `Map` would alter the projection for the same input, so a caller comparing against a previously persisted projection can detect the rule change. Added `SuccessfulMappingIsStampedWithTheMapperProfileVersion` and updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the new record field (the new `public const` on the mapper itself is a literal field, invisible to this repo's reflection-based property/method/ctor snapshot, by the same mechanism as every other `const` in this package). Full suite: 363 passed, 3 skipped, 0 failed. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates. `verification` moved from `unverified` to `partial`: no official schema/code-table evidence is available to close the remaining gate. |
