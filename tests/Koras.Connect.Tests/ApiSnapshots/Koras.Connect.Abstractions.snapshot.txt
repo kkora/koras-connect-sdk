@@ -1,0 +1,136 @@
+sealed class Koras.Connect.Abstractions.ConnectionDiagnostic
+  ctor(Koras.Connect.Abstractions.DiagnosticStage Stage, Koras.Connect.Abstractions.DiagnosticOutcome Outcome, System.String SanitizedCode, System.String CorrelationId, System.DateTimeOffset Timestamp, System.String RecommendedNextStep = null)
+  property System.String CorrelationId {get+init}
+  property Koras.Connect.Abstractions.DiagnosticOutcome Outcome {get+init}
+  property System.String RecommendedNextStep {get+init}
+  property System.String SanitizedCode {get+init}
+  property Koras.Connect.Abstractions.DiagnosticStage Stage {get+init}
+  property System.DateTimeOffset Timestamp {get+init}
+  method Koras.Connect.Abstractions.ConnectionDiagnostic <Clone>$()
+  method System.Void Deconstruct(Koras.Connect.Abstractions.DiagnosticStage& Stage, Koras.Connect.Abstractions.DiagnosticOutcome& Outcome, System.String& SanitizedCode, System.String& CorrelationId, System.DateTimeOffset& Timestamp, System.String& RecommendedNextStep)
+  method System.Boolean Equals(Koras.Connect.Abstractions.ConnectionDiagnostic other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Abstractions.ConnectorDescriptor
+  ctor(System.String Provider, System.String Product, System.String ApiVersion, System.Collections.Generic.IReadOnlyList<System.String> SupportedOperations, System.Collections.Generic.IReadOnlyDictionary<System.String, Koras.Connect.Abstractions.EntitlementEvidence> Entitlements)
+  property System.String ApiVersion {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, Koras.Connect.Abstractions.EntitlementEvidence> Entitlements {get+init}
+  property System.String Product {get+init}
+  property System.String Provider {get+init}
+  property System.Collections.Generic.IReadOnlyList<System.String> SupportedOperations {get+init}
+  method Koras.Connect.Abstractions.ConnectorDescriptor <Clone>$()
+  method System.Void Deconstruct(System.String& Provider, System.String& Product, System.String& ApiVersion, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& SupportedOperations, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[Koras.Connect.Abstractions.EntitlementEvidence, Koras.Connect.Abstractions, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]& Entitlements)
+  method System.Boolean Equals(Koras.Connect.Abstractions.ConnectorDescriptor other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Abstractions.ContinuationToken
+  ctor(System.String Provider, System.String QueryFingerprint, System.String OpaqueValue, System.Nullable<System.DateTimeOffset> ExpiresAt = null)
+  property System.Nullable<System.DateTimeOffset> ExpiresAt {get+init}
+  property System.String OpaqueValue {get+init}
+  property System.String Provider {get+init}
+  property System.String QueryFingerprint {get+init}
+  method Koras.Connect.Abstractions.ContinuationToken <Clone>$()
+  method System.Void Deconstruct(System.String& Provider, System.String& QueryFingerprint, System.String& OpaqueValue, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ExpiresAt)
+  method System.Boolean Equals(Koras.Connect.Abstractions.ContinuationToken other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Abstractions.DelegatingCredentialProvider<TCredential>
+  ctor(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TCredential>> resolve)
+  method System.Threading.Tasks.ValueTask<TCredential> GetAsync(System.Threading.CancellationToken cancellationToken = null)
+enum Koras.Connect.Abstractions.DiagnosticOutcome
+  enum-value Passed = 0
+  enum-value Failed = 1
+  enum-value Skipped = 2
+enum Koras.Connect.Abstractions.DiagnosticStage
+  enum-value Configuration = 0
+  enum-value Authentication = 1
+  enum-value Connectivity = 2
+sealed class Koras.Connect.Abstractions.EntitlementEvidence
+  ctor(Koras.Connect.Abstractions.EntitlementState State, System.Nullable<System.DateTimeOffset> RecordedAt = null, System.String Reference = null)
+  property System.Nullable<System.DateTimeOffset> RecordedAt {get+init}
+  property System.String Reference {get+init}
+  property Koras.Connect.Abstractions.EntitlementState State {get+init}
+  method Koras.Connect.Abstractions.EntitlementEvidence <Clone>$()
+  method System.Void Deconstruct(Koras.Connect.Abstractions.EntitlementState& State, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& RecordedAt, System.String& Reference)
+  method System.Boolean Equals(Koras.Connect.Abstractions.EntitlementEvidence other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+enum Koras.Connect.Abstractions.EntitlementState
+  enum-value Unknown = 0
+  enum-value Configured = 1
+  enum-value Verified = 2
+  enum-value Denied = 3
+sealed class Koras.Connect.Abstractions.FieldError
+  ctor(System.String Field, System.String Reason)
+  property System.String Field {get+init}
+  property System.String Reason {get+init}
+  method Koras.Connect.Abstractions.FieldError <Clone>$()
+  method System.Void Deconstruct(System.String& Field, System.String& Reason)
+  method System.Boolean Equals(Koras.Connect.Abstractions.FieldError other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+interface Koras.Connect.Abstractions.IConnector
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+interface Koras.Connect.Abstractions.ICredentialProvider<TCredential>
+  method System.Threading.Tasks.ValueTask<TCredential> GetAsync(System.Threading.CancellationToken cancellationToken = null)
+interface Koras.Connect.Abstractions.IRecordMapper<TSource, TTarget>
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Map(TSource source)
+interface Koras.Connect.Abstractions.IValidatableOptions
+  method System.Void Validate()
+sealed class Koras.Connect.Abstractions.MappingResult<TTarget>
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.FieldError> Errors {get}
+  property System.Boolean IsOmitted {get}
+  property System.Boolean IsSuccess {get}
+  property System.String OmittedReason {get}
+  property TTarget Value {get}
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Failure(System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.FieldError> errors)
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Omitted(System.String reason)
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Success(TTarget value)
+sealed class Koras.Connect.Abstractions.OptionsValidationException
+  ctor(System.String optionsTypeName, System.Collections.Generic.IReadOnlyList<System.String> failures)
+  ctor(System.String optionsTypeName, System.String failure)
+  property System.Collections.Generic.IReadOnlyList<System.String> Failures {get}
+sealed class Koras.Connect.Abstractions.Page<T>
+  ctor(System.Collections.Generic.IReadOnlyList<T> Items, Koras.Connect.Abstractions.ContinuationToken Next)
+  property System.Collections.Generic.IReadOnlyList<T> Items {get+init}
+  property Koras.Connect.Abstractions.ContinuationToken Next {get+init}
+  method Koras.Connect.Abstractions.Page<T> <Clone>$()
+  method System.Void Deconstruct(IReadOnlyList`1& Items, Koras.Connect.Abstractions.ContinuationToken& Next)
+  method System.Boolean Equals(Koras.Connect.Abstractions.Page<T> other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Abstractions.StaticCredentialProvider<TCredential>
+  ctor(TCredential value)
+  method System.Threading.Tasks.ValueTask<TCredential> GetAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Export.ExportColumn<T>
+  ctor(System.String Name, System.Func<T, System.Object> Select, System.String NullText = , System.String Format = null)
+  property System.String Format {get+init}
+  property System.String Name {get+init}
+  property System.String NullText {get+init}
+  property System.Func<T, System.Object> Select {get+init}
+  method Koras.Connect.Export.ExportColumn<T> <Clone>$()
+  method System.Void Deconstruct(System.String& Name, Func`2& Select, System.String& NullText, System.String& Format)
+  method System.Boolean Equals(Koras.Connect.Export.ExportColumn<T> other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Export.ExportSchema<T>
+  ctor(System.Collections.Generic.IReadOnlyList<Koras.Connect.Export.ExportColumn<T>> columns, System.Globalization.CultureInfo culture = null)
+  property System.Collections.Generic.IReadOnlyList<System.String> ColumnNames {get}
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Export.ExportColumn<T>> Columns {get}
+  property System.Globalization.CultureInfo Culture {get}
+  method System.Collections.Generic.IReadOnlyList<System.String> Project(T record)
+interface Koras.Connect.Export.IExportProvider
+  property System.String Format {get}
+  method System.Threading.Tasks.Task WriteAsync(System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<T> records, Koras.Connect.Export.ExportSchema<T> schema, System.Threading.CancellationToken cancellationToken = null)
+interface Koras.Connect.Transport.IAccessTokenSource
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+interface Koras.Connect.Transport.IRequestAuthenticator
+  method System.Threading.Tasks.ValueTask AuthenticateAsync(System.Net.Http.HttpRequestMessage request, System.Threading.CancellationToken cancellationToken = null)
