@@ -106,6 +106,10 @@ abstract class Koras.Connect.Adp.Export.WorkerExportProjection
   method Koras.Connect.Export.ExportSchema<Koras.Connect.Adp.Workers.Worker> CreateSchema(System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null)
   method System.Threading.Tasks.Task ExportAsync(Koras.Connect.Export.IExportProvider provider, System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Adp.Workers.Worker> workers, System.Collections.Generic.IReadOnlyCollection<System.String> includeColumns, System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task ExportAsync(Koras.Connect.Export.IExportProvider provider, System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Adp.Workers.Worker> workers, System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.FileWorkerFingerprintStore
+  ctor(System.String path)
+  method System.Threading.Tasks.Task CommitAsync(System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> fingerprints, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> LoadAsync(System.Threading.CancellationToken cancellationToken = null)
 interface Koras.Connect.Adp.IWorkerFingerprintStore
   method System.Threading.Tasks.Task CommitAsync(System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> fingerprints, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> LoadAsync(System.Threading.CancellationToken cancellationToken = null)

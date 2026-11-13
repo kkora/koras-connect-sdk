@@ -4,10 +4,10 @@ title: "Worker changes and incremental sync"
 category: "adp"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpChangeDetectorTests`) |
-| Remaining work / blockers | No caller-owned persistent `IWorkerFingerprintStore` implementation exists yet (only an in-memory test double); real host wiring and a durable notification-id inbox remain to be built and exercised against a live tenant. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "no caller-owned persistent `IWorkerFingerprintStore` implementation exists yet" gap by adding `FileWorkerFingerprintStore` (`src/Koras.Connect.Adp/FileWorkerFingerprintStore.cs`) — writes the new snapshot to a temporary file beside the target then atomically replaces it via `File.Move(..., overwrite: true)`, satisfying the interface's own documented "never partially written" contract without a database dependency. Tests in `tests/Koras.Connect.Tests/FileWorkerFingerprintStoreTests.cs`: empty-before-first-commit, round trip, a second commit fully replacing (not merging into) the first, missing parent directories created on first commit, no leftover temp file after a successful commit, and an already-canceled commit leaving the prior committed snapshot completely untouched. Full suite: 424 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified for the fingerprint-store half. A durable notification-id inbox (for `HandleNotificationAsync`'s `seenMessageIds` set) remains caller-owned and unimplemented here by design — that set's persistence is host infrastructure, not a documented SDK deliverable — and no live-tenant exercise of either path has been performed. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `Koras.Connect.Adp.AdpChangeDetector` and `IWorkerFingerprintStore` (`src/Koras.Connect.Adp/AdpChangeDetector.cs`), composing `AdpWorkersClient.EnumerateTypedWorkersAsync` with `Koras.Connect.Synchronization.Reconciliation.DetectChangesAsync`. `HandleNotificationAsync` treats a notification only as a trigger to re-read one worker from source (never trusting the notification payload), suppressing duplicate message ids via a caller-owned `ISet<string>`; `ScanAsync`/`CommitAsync` are deliberately separate so a scan that throws or is canceled mid-drain never reaches the commit step. Tests added in `tests/Koras.Connect.Tests/AdpChangeDetectorTests.cs`: `DuplicateMessageIdSuppressesSecondReReadWithoutIssuingARequest`, `OutOfOrderNotificationsEachTriggerAnIndependentReReadFromTheSourceOfTruth`, `FullyDrainedScanCanBeCommittedAndReflectsOnlyChangedWorkers`, and `InterruptedScanNeverPartiallyCommitsAndThePriorSnapshotSurvives` (a scan that fails mid-page leaves a seeded prior snapshot completely untouched). Still `partial`: no real durable store or production notification pipeline has been wired or verified against a live tenant. |
+| 2026-11-13 | `implemented` | Added `FileWorkerFingerprintStore`, closing the "no caller-owned persistent store exists yet" gap with an atomic-rename-based implementation. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: the notification-id durable inbox remains caller-owned/unimplemented by design, and no live-tenant exercise has occurred. |
