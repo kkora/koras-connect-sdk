@@ -152,6 +152,19 @@ public sealed class SapClientExpansionTests
         using var payload=JsonDocument.Parse("""{"personIdExternal":"synthetic"}""");
         await Assert.ThrowsAnyAsync<Exception>(()=>c.UpsertAsync("PerPerson",[payload.RootElement],writesEnabled:true));
     }
+    [Fact] public async Task MixedBatchReturnsIndependentPerRowOutcomesWithinOneHttp200Response()
+    {
+        // SAP-006 "mixed batches": a single upsert call covering several rows must report each row's own
+        // success/failure independently - one failing row must never be conflated with, or suppress, another
+        // row's success within the same HTTP 200 response.
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("""{"d":[{"key":"ok-1","status":"OK","editStatus":"INSERTED","httpCode":201,"index":0,"message":null},{"key":null,"status":"ERROR","editStatus":null,"httpCode":403,"index":1,"message":"private-row-detail"},{"key":"ok-2","status":"OK","editStatus":"UPDATED","httpCode":204,"index":2,"message":null}]}"""))));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var a=JsonDocument.Parse("""{"personIdExternal":"a"}"""); using var b=JsonDocument.Parse("""{"personIdExternal":"b"}"""); using var cc=JsonDocument.Parse("""{"personIdExternal":"c"}""");
+        var result=await c.UpsertAsync("PerPerson",[a.RootElement,b.RootElement,cc.RootElement],writesEnabled:true);
+        Assert.Equal(3,result.Count);
+        Assert.True(result[0].Succeeded);Assert.False(result[1].Succeeded);Assert.True(result[2].Succeeded);
+        Assert.DoesNotContain("private-row-detail",result[1].ToString());
+    }
     [Fact] public async Task UpsertResultPreservesEditStatusDistinguishingInsertFromUpdate()
     {
         // Confirmed against the official SAP SuccessFactors API Reference Guide (2H 2026), section 6.3.6.4.1
