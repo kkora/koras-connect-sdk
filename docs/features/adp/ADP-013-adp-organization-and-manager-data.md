@@ -4,10 +4,10 @@ title: "ADP organization and manager data"
 category: "adp"
 priority: "P1"
 phase: "P3 extension"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 231, Skipped 3, Failed 0, Total 234 (includes `AdpTypedModelsTests` and the new `AdpWriteCommandTests`) |
-| Remaining work / blockers | **Closed this pass:** typed write-command builders (`ChangeManagerCommand`, `ModifyDepartmentAllocationsCommand`) now assemble the submit-ready envelope from the already-modeled `ManagerRelationship`/`OrganizationDepartment`/`Identifier` shapes. Still open: no cycle-safe traversal helper for reporting-relationship graphs, and no official schema evidence that the vendor events envelope shape (`events[].data.eventContext`/`transform`, cited from `docs/features/ADP-FEATURE-MATRIX.md`) matches the exact current tenant contract for either write. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "cycle-safe traversal helper" gap by adding `ManagerChainTraversal.WalkUpAsync` (`src/Koras.Connect.Adp/Workers/ManagerChainTraversal.cs`), an `IAsyncEnumerable<Worker>` that walks upward through a caller-supplied resolver (this SDK has no server-side "manager of" endpoint), selecting each hop's reporting relationship via the same `EffectiveAssignmentSelector` logic ADP-007 already uses, and stopping the instant a previously visited identifier would be revisited rather than looping forever on a non-hierarchical/cyclical ADP data-entry error. Tests in `tests/Koras.Connect.Tests/ManagerChainTraversalTests.cs` cover a normal multi-hop walk to the top, an A-reports-to-B/B-reports-to-A cycle (asserts each node visited exactly once, never revisits the start), an unresolvable mid-chain manager, a worker with no work assignments, an unresolvable starting worker, and rejecting an empty starting identifier before any resolution. Updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the new public type. Full suite: 411 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. No official schema evidence that the vendor events envelope shape (`events[].data.eventContext`/`transform`, cited from `docs/features/ADP-FEATURE-MATRIX.md`) matches the exact current tenant contract for either write remains an external blocker, unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added typed `OrganizationDepartment`/`OrganizationDepartmentsResponse` for the existing `GET /hr/v1/organization-departments` response and `ManagerRelationship`/`WorkAssignmentTypedExtensions.GetManagerRelationships()` for the existing `reportsTo` shape already present on `WorkAssignment` (`src/Koras.Connect.Adp/Workers/OrganizationDepartment.cs`, `ManagerRelationship.cs`, `CodeValue.cs`), both following the exact `[JsonExtensionData]`-preserving pattern already used in `Worker.cs`. No new HTTP endpoint was introduced. Tests in `tests/Koras.Connect.Tests/AdpTypedModelsTests.cs` cover unknown-field round-trip and a missing/empty collection for organization departments, plus manager-relationship deserialization (including when `reportsTo` is entirely absent). Still `partial`: no typed write envelope for `ChangeManager` and no official vendor schema citation. |
 | 2026-11-12 | `partial` | Added `ChangeManagerCommand.Build` and `ModifyDepartmentAllocationsCommand.Build` (`src/Koras.Connect.Adp/Workers/AdpWriteCommands.cs`), which assemble the `AdpOperation.ChangeManager`/`ModifyDepartmentAllocations` events envelope purely from already-modeled fields (`Identifier.Value`, `ManagerRelationship.WorkerId/ReportsToWorkerName/ReportingRelationshipCode`, `OrganizationDepartment.ItemId/NameCode`) and reject a missing subject/target identity with `ArgumentException` before any HTTP call. Wired as `AdpOperationsClient.SubmitChangeManagerAsync`/`SubmitModifyDepartmentAllocationsAsync`, which build the envelope and dispatch it through the existing `SubmitEventAsync`. Tests in `tests/Koras.Connect.Tests/AdpWriteCommandTests.cs` cover the exact envelope shape produced, local rejection of missing identity with a handler that throws if the network is ever reached, and that the convenience methods wire the built envelope through unmodified. No typed write schema was added for Hire/Rehire/Termination/ChangePayDataInput/ChangePersonalEmail, per the master spec's caution against inventing unverified field schemas. Still `partial`: no cycle-safe traversal helper, and the vendor events envelope shape is not confirmed against live tenant metadata. |
+| 2026-11-13 | `implemented` | Added `ManagerChainTraversal.WalkUpAsync`, closing the "cycle-safe traversal helper" gap recorded above. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: the vendor events envelope shape remains unconfirmed against live tenant metadata. |

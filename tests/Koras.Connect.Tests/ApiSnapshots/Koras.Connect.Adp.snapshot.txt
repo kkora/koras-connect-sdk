@@ -149,6 +149,8 @@ sealed class Koras.Connect.Adp.Workers.LegalName
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
   property System.String FamilyName {get+set}
   property System.String GivenName {get+set}
+abstract class Koras.Connect.Adp.Workers.ManagerChainTraversal
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Adp.Workers.Worker> WalkUpAsync(System.String startingAssociateOid, System.Func<System.String, System.Threading.CancellationToken, System.Threading.Tasks.Task<Koras.Connect.Adp.Workers.Worker>> resolveWorker, System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Adp.Workers.ManagerRelationship
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
