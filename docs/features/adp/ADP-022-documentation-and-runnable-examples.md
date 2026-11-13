@@ -4,10 +4,10 @@ title: "Documentation and runnable examples"
 category: "adp"
 priority: "P0"
 phase: "P3-P4"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -49,13 +49,13 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 - [x] Required unit, contract and integration checks pass at the recorded revision.
 - [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 231, Skipped 3, Failed 0, Total 234 (includes `AdpSampleWalkthroughTests`); `dotnet run --project samples/ADP.Authentication`, `dotnet run --project samples/ADP.WorkerExport` and `dotnet run --project samples/ADP.ConnectionTest` each executed successfully end to end, fully offline, from this checkout |
-| Remaining work / blockers | **Closed this pass:** the earlier scope restriction that blocked `samples/`/`Koras.Connect.slnx` no longer applies. Added three real standalone console projects: `samples/ADP.Authentication`, `samples/ADP.WorkerExport`, `samples/ADP.ConnectionTest`, each following the exact `samples/Qualtrics.SurveyExport` pattern (project-reference-only `.csproj`, top-level-statement `Program.cs`, no network access). Checked first whether `samples/Qualtrics.SurveyExport`/`samples/PackageConsumer` are referenced from `Koras.Connect.slnx` — neither is (only `src/*` and `tests/Koras.Connect.Tests` are) — so, per the task's own instruction, the three new projects were **not** added to `Koras.Connect.slnx` either; they build and run standalone via `dotnet run --project samples/<name>`. `tests/Koras.Connect.Tests/AdpSampleWalkthroughTests.cs` is left in place unmodified (out of this session's "new files only" test scope) as a continuously-run regression complement, not a substitute, now that the real sample projects exist. Remaining gap: the live-sandbox-mode prerequisites documentation mentioned in the functional requirements is still not written up separately from this tracker. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 231, Skipped 3, Failed 0, Total 234 (includes `AdpSampleWalkthroughTests`); `dotnet run --project samples/ADP.Authentication`, `dotnet run --project samples/ADP.WorkerExport` and `dotnet run --project samples/ADP.ConnectionTest` each executed successfully end to end, fully offline, from this checkout. Closed the remaining "live-sandbox-mode prerequisites documentation... not written up separately from this tracker" gap by adding `docs/features/adp/ADP-SAMPLES-AND-LIVE-SANDBOX-PREREQUISITES.md` (added under ADP-012, which shared the same underlying gap): it documents the exact `KORAS_ADP_SANDBOX_*` settings `AdpSandboxTests.cs` reads, how to set them via `dotnet user-secrets set` or environment variables, the explicit step of removing a test's `[Fact(Skip=...)]` attribute for a deliberate individually-filtered run, and an explicit statement that live **writes** additionally require a separately authorized disposable population, an explicit write-enablement flag and a recorded cleanup plan, none of which exist in this repository today. |
+| Remaining work / blockers | No further engineering gap identified. Live sample mode itself remains blocked by the missing authorized sandbox (see external blockers above) — this pass documents the prerequisites for when one becomes available, it does not and cannot close that external blocker. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `tests/Koras.Connect.Tests/AdpSampleWalkthroughTests.cs` as a scope-compliant substitute for the requested `samples/` console projects (see the remaining-work note above for the exact restriction that prevented creating real sample projects in this pass). Covers: (a) certificate-bound mTLS transport plus OAuth client-credentials auth against a mocked token endpoint and API; (b) streaming CSV export of workers via `WorkerExportProjection` + `CsvExportProvider` directly from a mocked `EnumerateTypedWorkersAsync`; (c) a full healthy `AdpConnector.DiagnoseAsync` three-stage pass. All three build and run fully offline via `dotnet test`. Status intentionally left `partial`, not `implemented`, because the literal deliverable (runnable `samples/` projects) was not produced. |
 | 2026-11-12 | `partial` | Added the literal deliverable: `samples/ADP.Authentication` (loads a certificate via `ClientCertificateTransport.LoadPkcs12`, builds `ClientCredentialsTokenSource`, acquires a token and makes one authenticated worker read, all against an in-process mocked `HttpMessageHandler`), `samples/ADP.WorkerExport` (streams a mocked `AdpWorkersClient.EnumerateTypedWorkersAsync` through `WorkerIdentityMapper` and `WorkerExportProjection`/`CsvExportProvider`, demonstrating the fixed safe-column-only export and an already-cancelled-token path honoring cancellation before any row is written), and `samples/ADP.ConnectionTest` (three `AdpConnector.DiagnoseAsync` scenarios against mocked handlers: a healthy pass, a locally-rejected expired certificate that never reaches the network, and an Authentication-stage failure). Each `dotnet run --project samples/<name>` executed successfully offline from this checkout (console output recorded in this session's report). None are referenced from `Koras.Connect.slnx`, matching the existing `samples/Qualtrics.SurveyExport`/`samples/PackageConsumer` precedent of standing alone. Still `partial`: no live-sandbox-mode documentation was added, and `AdpSampleWalkthroughTests.cs` was left in place as a regression complement rather than removed. |
+| 2026-11-13 | `implemented` | Added `docs/features/adp/ADP-SAMPLES-AND-LIVE-SANDBOX-PREREQUISITES.md`, closing the live-sandbox-mode prerequisites documentation gap recorded above. Checked the documentation completion gate; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live sample mode itself remains externally blocked, unchanged by this pass. |
