@@ -9,7 +9,7 @@ checkout at the repository root.
 
 ## Running the offline samples
 
-All three sample projects are fully offline by default: every HTTP call is answered by an in-process mocked
+All four sample projects are fully offline by default: every HTTP call is answered by an in-process mocked
 `HttpMessageHandler`, never a live ADP tenant. None are referenced from `Koras.Connect.slnx` (matching the existing
 `samples/Qualtrics.SurveyExport`/`samples/PackageConsumer` precedent), so run each directly:
 
@@ -17,6 +17,7 @@ All three sample projects are fully offline by default: every HTTP call is answe
 dotnet run --project samples/ADP.Authentication
 dotnet run --project samples/ADP.WorkerExport
 dotnet run --project samples/ADP.ConnectionTest
+dotnet run --project samples/ADP.WorkerWrites
 ```
 
 | Sample | Demonstrates |
@@ -24,6 +25,7 @@ dotnet run --project samples/ADP.ConnectionTest
 | `ADP.Authentication` | Loading a certificate via `ClientCertificateTransport.LoadPkcs12`, building a `ClientCredentialsTokenSource`, acquiring a token and making one authenticated worker read (ADP-001/ADP-002). |
 | `ADP.WorkerExport` | Streaming `AdpWorkersClient.EnumerateTypedWorkersAsync` through `WorkerIdentityMapper` and `WorkerExportProjection`/`CsvExportProvider` — the fixed, safe-column-only export — including an already-canceled-token path that honors cancellation before any row is written (ADP-007/ADP-008). |
 | `ADP.ConnectionTest` | Three `AdpConnector.DiagnoseAsync` scenarios: a healthy 3-stage pass, a locally-rejected expired certificate that never reaches the network, and an Authentication-stage failure (ADP-012). |
+| `ADP.WorkerWrites` | The typed write-command builders — `ChangeManagerCommand`, `ModifyDepartmentAllocationsCommand`, `TerminateAssignmentCommand`, `ChangePayDataInputCommand` — and their two safety gates: an explicit payroll opt-in rejected locally with zero network calls when omitted, and an `AdpEntitlementTracker`-recorded denial rejected before any request is sent (ADP-013/ADP-014/ADP-015/ADP-021). Every submission below still only reaches a mocked endpoint, never a live tenant. |
 
 `tests/Koras.Connect.Tests/AdpSampleWalkthroughTests.cs` exercises the same scenarios continuously in CI as a
 regression complement; the `samples/` projects are the literal runnable deliverable, not a replacement for it.
