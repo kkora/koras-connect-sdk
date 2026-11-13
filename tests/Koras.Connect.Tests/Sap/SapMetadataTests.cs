@@ -60,6 +60,25 @@ public sealed class SapMetadataTests
         Assert.Equal(4,calls);
     }
 
+    [Fact] public async Task EntityTypeWithNoKeyElementYieldsEmptyKeysRatherThanThrowing()
+    {
+        // SAP-014 "missing keys": an EntityType with no <Key> element at all (not merely an empty one) must still
+        // project cleanly - ParseEntityDescriptors has no explicit Key-presence check, so this proves the absence
+        // falls through to an empty Keys list rather than a null-reference or other parse failure.
+        const string noKeyFixture = """
+            <edmx:Edmx xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx"><edmx:DataServices><Schema xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="KeylessView"><Property Name="displayLabel" Type="Edm.String"/></EntityType>
+            </Schema></edmx:DataServices></edmx:Edmx>
+            """;
+        using var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(noKeyFixture,Encoding.UTF8,"application/xml")})));
+        var c=new SuccessFactorsClient(new(http,new Token()),new(SapRoot));
+        var metadata=await c.GetMetadataAsync();
+        var view=Assert.Single(SuccessFactorsClient.ParseEntityDescriptors(metadata));
+        Assert.Equal("KeylessView",view.Name);
+        Assert.Empty(view.Keys);
+        Assert.Contains("displayLabel",view.Properties);
+    }
+
     [Fact] public async Task CanceledMetadataRetrievalPropagatesOperationCanceledException()
     {
         using var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(FixtureA,Encoding.UTF8,"application/xml")})));

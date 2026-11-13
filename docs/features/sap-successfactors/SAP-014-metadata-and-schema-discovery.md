@@ -4,10 +4,10 @@ title: "Metadata and schema discovery"
 category: "sap-successfactors"
 priority: "P0"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.Metadata.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapMetadataTests.cs` (4 tests) |
-| Remaining work / blockers | "Missing keys" is handled structurally (an `EntityType` with no `PropertyRef` yields an empty `Keys` list) but has no dedicated test; schema/version caching is a parse cache keyed by content hash, not a persisted version/ETag cache across process restarts |
-| Acceptance / completion | Unit-level only: `SapMetadataTests.cs` covers an oversized-document rejection (`InvalidDataException`, before XML parsing), `EntityDescriptor` projection independent of EDM namespace version, cache invalidation when the fetched document's SHA-256 hash changes (`GetMetadataAsync` reparses automatically; `RefreshMetadataAsync` always reparses), and canceled-retrieval propagation. XXE/DTD rejection was pre-existing and already covered by `ExpansionTests.cs`. Live/sandbox acceptance not recorded. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "missing keys" unit-test-requirement gap by adding `EntityTypeWithNoKeyElementYieldsEmptyKeysRatherThanThrowing` to `tests/Koras.Connect.Tests/Sap/SapMetadataTests.cs`, a fixture entity with no `<Key>` element at all (not merely an empty one), asserting `ParseEntityDescriptors` returns an empty `Keys` array and still projects the entity's properties rather than throwing. Full suite: 504 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Schema/version caching remains a parse cache keyed by content hash, not a persisted version/ETag cache across process restarts - this is a deliberate scope choice, not a defect. Live tenant metadata access/schema and write-RBP verification remain standing external blockers (see above), unchanged by this pass. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added an explicit `MaxMetadataCharacters` (8,000,000) document-size cap (checked before parsing and again via `XmlReaderSettings.MaxCharactersInDocument`), a typed `EntityDescriptor { Name, Keys, Properties }` CSDL projection (`ParseEntityDescriptors`), and a SHA-256-content-hash-keyed parse cache with `RefreshMetadataAsync`, all in `SuccessFactorsClient.Metadata.cs`. Tests in `tests/Koras.Connect.Tests/SapMetadataTests.cs`. Kept `partial`: missing-keys shape and cross-process schema/version persistence remain untested/undone. |
+| 2026-11-13 | `implemented` | Added `EntityTypeWithNoKeyElementYieldsEmptyKeysRatherThanThrowing`, closing the "missing keys" unit-test-requirement gap. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live tenant metadata/schema access remains a standing external blocker. |
