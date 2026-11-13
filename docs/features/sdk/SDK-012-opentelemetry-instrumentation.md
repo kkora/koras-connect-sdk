@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Remaining work / blockers | **Genuinely blocked, not skipped.** This ticket's owning package is `Koras.Connect.Observability`, which SDK-001 deliberately did not create (see SDK-001's own remaining-work note): this ticket's phase is P7 ("Planned development phase: P7; P1 specifies only") and its own external-blocker field states "OpenTelemetry versions and semantic conventions must be reviewed in P7" — i.e. the exact dependency versions and tag/attribute naming this ticket would need to pin are explicitly gated on review that has not happened yet. Building `AddKorasConnectInstrumentation` now would mean guessing at a semantic-convention surface the spec itself says isn't reviewed, and shipping a 5th/8th package with no real review behind its dependency choice. The one thing this ticket's test requirements don't need the new package for — proving Core's existing `IntegrationTransport.Activities`/`Meter` never emit PII — is already covered by the pre-existing `SecurityAndLifecycleTests.SdkActivityDoesNotEmitWorkerOrCredentialData` test, confirmed still passing in this pass's full-suite run (315 passed). Following up: create the `Koras.Connect.Observability` package and `AddKorasConnectInstrumentation` once the P7 OpenTelemetry package-version/semantic-convention review this ticket names has actually happened — not before. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `partial` | Audited and confirmed this ticket is genuinely blocked, not merely unstarted: its owning package (`Koras.Connect.Observability`) is P7-phase and explicitly requires an OpenTelemetry version/semantic-convention review this ticket itself says hasn't happened. No implementation attempted; status intentionally left `partial` rather than advanced. Logged as a followup for whoever runs the P7 pass. Moving to the next SDK ticket per the agreed sequencing. |
