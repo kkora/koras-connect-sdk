@@ -55,6 +55,11 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           test -n "$NUGET_API_KEY"
-          for package in artifacts/*.nupkg; do
-            dotnet nuget push "$package" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+          VERSION=$(python3 -c "import json; print(json.load(open('eng/release_manifest.json'))['version'])")
+          # Publish in the manifest's dependency-validated order (see eng/release_checks.py), not filesystem glob
+          # order, so a consumer never tries to restore a package before one of its own dependencies is live.
+          # --skip-duplicate makes a retry after a partial failure idempotent: packages already published on a
+          # prior attempt are skipped instead of failing the whole run.
+          python3 -c "import json; print('\n'.join(json.load(open('eng/release_manifest.json'))['packages']))" | while read -r name; do
+            dotnet nuget push "artifacts/$name.$VERSION.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
           done

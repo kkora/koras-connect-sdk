@@ -32,13 +32,22 @@ def validate(manifest, sbom, artifacts, publish=False, ref=None):
         approval = json.loads(evidence.read_text())
         if approval.get("version") != version or approval.get("approved") is not True or not approval.get("licenseExpression"):
             raise ValueError("Publication approval/license record incomplete")
-        for name in own:
+        published_so_far = set()
+        for name in manifest["packages"]:
             with zipfile.ZipFile(artifacts / f"{name}.{version}.nupkg") as package:
                 nuspec = next(n for n in package.namelist() if n.endswith(".nuspec"))
                 metadata = ET.fromstring(package.read(nuspec))
                 licenses = [e for e in metadata.iter() if e.tag.split("}")[-1] == "license"]
                 if len(licenses) != 1 or licenses[0].get("type") != "expression" or licenses[0].text != approval["licenseExpression"]:
                     raise ValueError("Package license does not match the reviewed publication approval")
+                # "packages" is the actual publish order (see release.yml); a package must never be scheduled to
+                # publish before a sibling package it depends on, or a consumer could try to restore it mid-release
+                # and find a dependency not yet live.
+                own_dependencies = {e.get("id") for e in metadata.iter() if e.tag.split("}")[-1] == "dependency"} & set(manifest["packages"])
+                if not own_dependencies.issubset(published_so_far):
+                    raise ValueError(f'Release manifest publish order violates dependency order: "{name}" depends on '
+                                      f'{sorted(own_dependencies - published_so_far)}, which must appear earlier in "packages"')
+            published_so_far.add(name)
     return sorted(own)
 
 if __name__ == "__main__":

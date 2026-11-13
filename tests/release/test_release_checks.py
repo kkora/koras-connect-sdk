@@ -74,5 +74,26 @@ class ReleaseChecksTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Unexpected'):
             checks.validate(self.manifest, self.sbom, self.path)
 
+    def test_publish_rejects_a_manifest_order_that_precedes_a_dependency(self):
+        # "Other" depends on "Example", but the manifest lists "Other" first - this must be rejected at publish
+        # time so a consumer can never try to restore "Other" mid-release and find "Example" not yet live.
+        other_archive = self.path / 'Other.1.2.3.nupkg'
+        with zipfile.ZipFile(other_archive, 'w') as archive:
+            archive.writestr('Other.nuspec', '<package><metadata><license type="expression">MIT</license>'
+                              '<dependencies><group><dependency id="Example" version="1.2.3" /></group></dependencies>'
+                              '</metadata></package>')
+        with zipfile.ZipFile(self.archive, 'w') as archive:
+            archive.writestr('Example.nuspec', '<package><metadata><license type="expression">MIT</license></metadata></package>')
+        self.sbom['packages'][0]['checksums'][0]['checksumValue'] = hashlib.sha256(self.archive.read_bytes()).hexdigest()
+        self.sbom['packages'].append({'name': 'Other', 'versionInfo': '1.2.3',
+            'checksums': [{'algorithm': 'SHA256', 'checksumValue': hashlib.sha256(other_archive.read_bytes()).hexdigest()}]})
+        self.manifest['packages'] = ['Other', 'Example']  # wrong order: dependent listed before its dependency
+        self.manifest['publicationApproved'] = True
+        (self.path / 'eng').mkdir()
+        (self.path / 'eng/publication_approval.json').write_text(json.dumps({'version': '1.2.3', 'approved': True, 'licenseExpression': 'MIT'}))
+        with patch.object(checks, 'ROOT', self.path):
+            with self.assertRaisesRegex(ValueError, 'dependency order'):
+                checks.validate(self.manifest, self.sbom, self.path, True, 'refs/tags/v1.2.3')
+
 if __name__ == '__main__':
     unittest.main()
