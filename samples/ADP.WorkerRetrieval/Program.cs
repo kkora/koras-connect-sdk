@@ -5,10 +5,11 @@ using Koras.Connect.Adp;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Transport;
 
-// Offline demonstration of ADP-004/005/013/016/019: the read surface - single-worker read, "retrieve all" via
+// Offline demonstration of ADP-004/005/013/016/017/019: the read surface - single-worker read, "retrieve all" via
 // automatic paging, typed filter+sort search, resumable paging via a persisted ContinuationToken, typed catalog
-// reads (organization departments, time-off balances), worker metadata, and the explicit HTTP 202 safety rejection.
-// Every HTTP response below is synthetic; this sample never contacts a live ADP tenant.
+// reads (organization departments, time-off balances, spending-account enrollments), worker metadata, and the
+// explicit HTTP 202 safety rejection. Every HTTP response below is synthetic; this sample never contacts a live
+// ADP tenant.
 Console.WriteLine("Koras.Connect.Adp offline sample: the worker-read surface - retrieve all, filter, sort, paging.");
 Console.WriteLine("All HTTP responses below are synthetic; no network access occurs and no live ADP tenant is contacted.");
 Console.WriteLine();
@@ -29,7 +30,7 @@ Console.WriteLine("Scenario 4: resumable paging - persist a ContinuationToken, t
 await RunResumablePaginationAsync();
 
 Console.WriteLine();
-Console.WriteLine("Scenario 5: typed catalog reads beyond workers (ADP-013/016/019, organization departments and time-off balances).");
+Console.WriteLine("Scenario 5: typed catalog reads beyond workers (ADP-013/016/017/019, departments, time-off and benefits).");
 await RunTypedCatalogReadsAsync();
 
 Console.WriteLine();
@@ -126,10 +127,14 @@ static async Task RunTypedCatalogReadsAsync()
         "/hr/v1/organization-departments" => Reply("""{"organizationDepartments":[{"itemID":"D1","nameCode":{"codeValue":"ENG","shortName":"Engineering"}}]}"""),
         var path when path.EndsWith("/time-off-details/time-off-balances", StringComparison.Ordinal) =>
             Reply("""{"workers":[{"associateOID":"sample-worker-1","timeOffBalances":[{"accrualCode":{"codeValue":"VAC"},"balanceAmount":{"quantityValue":12.5,"unitCode":{"codeValue":"DAYS"}}}]}]}"""),
+        var path when path.EndsWith("/spending-account-enrollments", StringComparison.Ordinal) =>
+            // The account number is deliberately shown masked here, matching how ADP returns sensitive benefit
+            // fields by default; this SDK neither unmasks it nor strips it, just preserves whatever was sent.
+            Reply("""{"spendingAccountEnrollments":[{"itemID":"E1","accountBasedCoverage":{"planName":"FSA","accountNumber":"***-**-1234"}}]}"""),
         var other => throw new InvalidOperationException($"Unexpected request path: {other}"),
     }));
     var client = new AdpOperationsClient(new IntegrationTransport(http, new FixedToken()), new Uri("https://api.sample-tenant.adp.test"),
-        [AdpOperation.OrganizationDepartments, AdpOperation.TimeOffBalances]);
+        [AdpOperation.OrganizationDepartments, AdpOperation.TimeOffBalances, AdpOperation.SpendingAccountEnrollments]);
 
     using var departmentsDoc = await client.ReadAsync(AdpOperation.OrganizationDepartments);
     var departments = departmentsDoc.RootElement.Deserialize<OrganizationDepartmentsResponse>()!;
@@ -139,6 +144,13 @@ static async Task RunTypedCatalogReadsAsync()
     var balances = balancesDoc.RootElement.Deserialize<TimeOffBalancesResponse>()!;
     var balance = balances.Workers[0].Balances[0];
     Console.WriteLine($"  Time-off balance for sample-worker-1: {balance.BalanceAmount!.Value} {balance.BalanceAmount.UnitCode?.Code} ({balance.AccrualCode?.Code}).");
+
+    // Spending-account enrollment reads require a mandatory effective-date filter (ADP-017); the SDK still
+    // returns a raw JsonDocument here, so deserializing to the typed model is the caller's own choice.
+    using var enrollmentsDoc = await client.ReadSpendingAccountEnrollmentsAsync("sample-worker-1", new DateOnly(2026, 1, 1));
+    var enrollments = enrollmentsDoc.RootElement.Deserialize<SpendingAccountEnrollmentsResponse>()!;
+    var accountNumber = enrollments.Enrollments[0].AccountBasedCoverage!.Value.GetProperty("accountNumber").GetString();
+    Console.WriteLine($"  Spending-account enrollment for sample-worker-1: plan={enrollments.Enrollments[0].AccountBasedCoverage!.Value.GetProperty("planName").GetString()}, accountNumber={accountNumber} (masked by the tenant, preserved as-is).");
 }
 
 static async Task RunMetadataAndSafetyChecksAsync()

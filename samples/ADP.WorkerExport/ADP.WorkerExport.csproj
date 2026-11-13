@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../src/Koras.Connect.Adp/Koras.Connect.Adp.csproj"/></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Koras.Connect.Adp/Koras.Connect.Adp.csproj"/><ProjectReference Include="../../src/Koras.Connect.Export/Koras.Connect.Export.csproj"/></ItemGroup>
 </Project>

@@ -1,14 +1,16 @@
+using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Xml.Linq;
 using Koras.Connect.Adp.Export;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Export;
 using Koras.Connect.Transport;
 
-// Offline demonstration of ADP-007/008/013: stream workers from a mocked AdpWorkersClient through
+// Offline demonstration of ADP-007/008/009/013: stream workers from a mocked AdpWorkersClient through
 // WorkerIdentityMapper (neutral identity projection) and WorkerExportProjection (the fixed, documented export
-// column set) into a CSV. Every HTTP response below is synthetic; this sample never contacts a live ADP tenant.
-Console.WriteLine("Koras.Connect.Adp offline sample: EnumerateTypedWorkersAsync -> WorkerIdentityMapper / WorkerExportProjection -> CSV.");
+// column set) into CSV and XLSX. Every HTTP response below is synthetic; this sample never contacts a live ADP tenant.
+Console.WriteLine("Koras.Connect.Adp offline sample: EnumerateTypedWorkersAsync -> WorkerIdentityMapper / WorkerExportProjection -> CSV/XLSX.");
 Console.WriteLine("All HTTP responses below are synthetic; no network access occurs and no live ADP tenant is contacted.");
 Console.WriteLine();
 
@@ -46,6 +48,23 @@ await WorkerExportProjection.ExportAsync(new CsvExportProvider(), csvOutput, wor
 var csv = Encoding.UTF8.GetString(csvOutput.ToArray());
 Console.WriteLine(csv);
 Console.WriteLine($"Safe-column-only check: the raw worker's extension field ('ssnLastFour') never appears in the export (confirmed absent: {!csv.Contains("1234", StringComparison.Ordinal)}).");
+Console.WriteLine();
+
+Console.WriteLine("Streaming the same population through WorkerExportProjection + XlsxExportProvider, then verifying the");
+Console.WriteLine("workbook independently (raw ZipArchive/XDocument parsing, not the writer's own code) (ADP-009):");
+using var xlsxOutput = new MemoryStream();
+await WorkerExportProjection.ExportAsync(new XlsxExportProvider(), xlsxOutput, workers.EnumerateTypedWorkersAsync());
+xlsxOutput.Position = 0;
+using (var zip = new ZipArchive(xlsxOutput, ZipArchiveMode.Read))
+{
+    using var sheet = zip.GetEntry("xl/worksheets/sheet1.xml")!.Open();
+    var sheetXml = XDocument.Load(sheet);
+    var hasFormulaNode = sheetXml.Descendants().Any(e => e.Name.LocalName == "f");
+    var cellValues = sheetXml.Descendants().Where(e => e.Name.LocalName == "t").Select(e => e.Value).ToArray();
+    Console.WriteLine($"  Workbook has {zip.Entries.Count} zip entries; no <f> formula node present: {!hasFormulaNode}.");
+    Console.WriteLine($"  Cell values recovered independently: {string.Join(", ", cellValues)}.");
+    Console.WriteLine($"  Safe-column-only check: 'ssnLastFour'/'1234' never appears in any recovered cell: {cellValues.All(v => !v.Contains("1234", StringComparison.Ordinal))}.");
+}
 Console.WriteLine();
 
 Console.WriteLine("Demonstrating cancellation: requesting the export again with a token cancelled before the first page is read.");
