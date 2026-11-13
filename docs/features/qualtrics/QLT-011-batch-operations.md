@@ -4,10 +4,10 @@ title: "Batch operations"
 category: "qualtrics"
 priority: "P1"
 phase: "P6"
-status: "not-started"
+status: "blocked"
 baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "blocked"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Remaining work / blockers | Explicitly re-confirmed as blocked during the same session that closed QLT-001/004/006/008/009/012/014/015/016: offered a choice between a best-effort implementation against the publicly documented Contacts Import API and staying blocked; the recommendation to stay blocked was accepted. Remote bulk/batch-import routes, formats and quotas remain unverified against vendor documentation; no endpoint was invented. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `not-started` | Reviewed during the same work session that advanced QLT-001/004/005/006/009/012/013/014/015/016. Deliberately left `not-started`/blocked: the remote Qualtrics bulk/batch-import routes, formats and quotas are unverified in this codebase, and the task-level guidance explicitly directs against inventing generic batch URLs from family names alone. The new contact/mailing-list writes added under QLT-006/009 are single-record creates/updates with an explicit opt-in gate, not a remote batch/bulk-import API, and do not satisfy this feature. The pre-existing `E-SYNC BatchAsync` remains local chunking only, as already noted in the baseline evidence. Remaining blocker unchanged: remote batch routes/formats/quotas/eligibility must be verified against vendor documentation before any implementation is attempted. |
+| 2026-11-13 | `blocked` | Explicitly re-confirmed via a direct implement-now-or-stay-blocked choice; staying blocked (the recommended option) was accepted. `status` moves from `not-started` to `blocked` and `verification` to `blocked` to reflect that this is now a confirmed, not merely deferred, external blocker - no code was written and no endpoint was guessed. |
