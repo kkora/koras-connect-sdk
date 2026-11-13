@@ -4,10 +4,10 @@ title: "Manager relationships"
 category: "sap-successfactors"
 priority: "P1"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.Managers.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapManagerResolutionTests.cs` (5 tests) |
-| Remaining work / blockers | "Denied target" (RBP-denied manager lookup) relies on the generic SAP-005 classification at the `EnumerateJobsAsync` layer and has no dedicated test here; "date boundary" (as-of semantics across a manager change) is not separately tested; navigation names/manager visibility remain unverified against live metadata/RBP |
-| Acceptance / completion | Unit-level only: `SapManagerResolutionTests.cs` covers missing manager (null `ManagerId`, no error), self-reference, a 3-node cycle (A->B->C->A), multiple concurrent employments resolving to the latest-startDate manager, and a maxDepth bound that truncates without throwing on a non-cyclic chain. Live/sandbox acceptance not recorded. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "denied target" and "date boundary" unit-test-requirement gaps. Added `ResolveManagerChainAsyncPropagatesAuthorizationExceptionOnADeniedTarget` (confirms a 403 at the underlying `EnumerateJobsAsync` layer propagates as the classified `AuthorizationException`, never swallowed/misreported as "no manager"), `SameStartDateBoundaryBreaksTheTieOnTheHigherSequenceNumber` (two records effective on the exact same date resolve deterministically via the `seqNumber` tie-break), and `AnUnparseableStartDateNeverOutranksARecordWithAValidDate` (a garbage `startDate`, safely treated as `DateTimeOffset.MinValue` by `SafeDate`, never wins over a real date) to `tests/Koras.Connect.Tests/Sap/SapManagerResolutionTests.cs`. Full suite: 527 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Navigation names and manager visibility against live metadata/RBP remain standing external blockers (see above), unchanged by this pass. |
+| Acceptance / completion | Unit-level only: `SapManagerResolutionTests.cs` covers missing manager (null `ManagerId`, no error), self-reference, a 3-node cycle (A->B->C->A), multiple concurrent employments resolving to the latest-startDate manager, a maxDepth bound that truncates without throwing on a non-cyclic chain, a denied-target authorization propagation, and two date-boundary tie-break cases. Live/sandbox acceptance not recorded. |
 
 ## Status history
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `ManagerAssignment { UserId, ManagerId, EffectiveDate }` projection and `SuccessFactorsClient.ResolveManagerChainAsync(userId, maxDepth, ct)` in `SuccessFactorsClient.Managers.cs`, using the same visited-`HashSet<string>` cycle guard already used for OData pagination. Covers missing manager, self-reference, a 3-node cycle and concurrent-employment manager selection in `tests/Koras.Connect.Tests/SapManagerResolutionTests.cs`. Kept `partial`: "denied target" and "date boundary" edge cases from the spec are not separately tested, and navigation is unverified against live metadata. |
+| 2026-11-13 | `implemented` | Added `ResolveManagerChainAsyncPropagatesAuthorizationExceptionOnADeniedTarget`, `SameStartDateBoundaryBreaksTheTieOnTheHigherSequenceNumber` and `AnUnparseableStartDateNeverOutranksARecordWithAValidDate`, closing the "denied target" and "date boundary" unit-test-requirement gaps. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: navigation names/manager visibility against live metadata/RBP remain standing external blockers. |

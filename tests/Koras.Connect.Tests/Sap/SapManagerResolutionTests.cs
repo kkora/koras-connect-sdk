@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Koras.Connect.Exceptions;
 using Koras.Connect.Transport;
 using Koras.Connect.Sap.SuccessFactors;
 using Xunit;
@@ -63,5 +64,42 @@ public sealed class SapManagerResolutionTests
         var c=ClientReturning("{\"d\":{\"results\":[" + rows + "]}}");
         var chain=await c.ResolveManagerChainAsync("synthetic-0",maxDepth:3);
         Assert.Equal(3,chain.Count);
+    }
+
+    [Fact] public async Task ResolveManagerChainAsyncPropagatesAuthorizationExceptionOnADeniedTarget()
+    {
+        // SAP-011 "denied target": an RBP-denied job lookup must propagate as the classified AuthorizationException
+        // (SAP-005), not be swallowed or misreported as "user has no manager".
+        var http=new HttpClient(new Handler((r,ct)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.Forbidden))));
+        var c=new SuccessFactorsClient(new(http,new Token()),new(SapRoot));
+        await Assert.ThrowsAsync<AuthorizationException>(()=>c.ResolveManagerChainAsync("synthetic-denied"));
+    }
+
+    [Fact] public async Task SameStartDateBoundaryBreaksTheTieOnTheHigherSequenceNumber()
+    {
+        // SAP-011 "date boundary": two EmpJob records effective on the exact same date (the boundary itself, not
+        // merely "different dates") must still resolve deterministically via the seqNumber tie-break.
+        var c=ClientReturning("""
+        {"d":{"results":[
+            {"userId":"synthetic-dave","managerId":"synthetic-mgr-a","startDate":"/Date(1700000000000)/","seqNumber":1},
+            {"userId":"synthetic-dave","managerId":"synthetic-mgr-b","startDate":"/Date(1700000000000)/","seqNumber":2}
+        ]}}
+        """);
+        var chain=await c.ResolveManagerChainAsync("synthetic-dave");
+        Assert.Single(chain);
+        Assert.Equal("synthetic-mgr-b",chain[0].ManagerId);
+    }
+
+    [Fact] public async Task AnUnparseableStartDateNeverOutranksARecordWithAValidDate()
+    {
+        var c=ClientReturning("""
+        {"d":{"results":[
+            {"userId":"synthetic-erin","managerId":"synthetic-garbage-date-mgr","startDate":"not-a-date","seqNumber":1},
+            {"userId":"synthetic-erin","managerId":"synthetic-valid-date-mgr","startDate":"/Date(1700000000000)/","seqNumber":1}
+        ]}}
+        """);
+        var chain=await c.ResolveManagerChainAsync("synthetic-erin");
+        Assert.Single(chain);
+        Assert.Equal("synthetic-valid-date-mgr",chain[0].ManagerId);
     }
 }
