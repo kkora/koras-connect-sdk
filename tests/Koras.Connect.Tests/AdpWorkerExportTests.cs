@@ -1,6 +1,8 @@
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using Koras.Connect.Adp.Export;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Export;
@@ -85,6 +87,33 @@ public sealed class AdpWorkerExportTests
         using var xlsx = new MemoryStream();
         await WorkerExportProjection.ExportAsync(new XlsxExportProvider(), xlsx, workers3);
         Assert.True(xlsx.Length > 0);
+    }
+
+    /// <summary>ADP-009: an independent reader &#8212; raw <see cref="ZipArchive"/>/<see cref="XDocument"/> parsing
+    /// of the OOXML package, not the writer's own code &#8212; recovers the documented column values and confirms
+    /// no <c>&lt;f&gt;</c> formula node was generated, closing the "independent workbook-reader validation"
+    /// unit-test requirement that the previous pass left as only a non-empty-output check.</summary>
+    [Fact]
+    public async Task XlsxExportIsIndependentlyReadableAndContainsNoFormulaNodes()
+    {
+        var workers = ToAsync([Worker("w1", extensionValue: "secret-not-exported")]);
+        using var xlsx = new MemoryStream();
+        await WorkerExportProjection.ExportAsync(new XlsxExportProvider(), xlsx, workers);
+        xlsx.Position = 0;
+
+        using var zip = new ZipArchive(xlsx, ZipArchiveMode.Read);
+        using var sheet = zip.GetEntry("xl/worksheets/sheet1.xml")!.Open();
+        var doc = XDocument.Load(sheet);
+
+        Assert.DoesNotContain(doc.Descendants(), e => e.Name.LocalName == "f");
+        var cellValues = doc.Descendants().Where(e => e.Name.LocalName == "t").Select(e => e.Value).ToArray();
+        Assert.Equal(WorkerExportProjection.ColumnNames, cellValues.Take(WorkerExportProjection.ColumnNames.Count));
+        Assert.Contains("w1", cellValues);
+        Assert.Contains("Ada", cellValues);
+        Assert.Contains("Lovelace", cellValues);
+        Assert.Contains("Engineer", cellValues);
+        Assert.DoesNotContain("futureField", cellValues);
+        Assert.DoesNotContain("secret-not-exported", cellValues);
     }
 
     [Fact]

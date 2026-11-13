@@ -4,10 +4,10 @@ title: "Excel export"
 category: "adp"
 priority: "P1"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -47,15 +47,15 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 - [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpWorkerExportTests`) |
-| Remaining work / blockers | Relies entirely on the existing `Koras.Connect.Export.XlsxExportProvider`/`TabularExport.WriteExcelAsync` (no-formula, inline-string cells); no independent workbook-reader round-trip test was added in this pass beyond asserting non-empty output. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `AdpWorkerExportTests.XlsxExportIsIndependentlyReadableAndContainsNoFormulaNodes`, closing the "independent workbook-reader validation" unit-test requirement this feature previously left as only a non-empty-output check. It reuses the exact independent-reader technique already established for the shared `Koras.Connect.Export.XlsxExportProvider` itself (`CoreTests.ExportsEscapeDataAndLeaveStreamOpen`, `ExportProviderTests` — raw `ZipArchive`/`XDocument` parsing of `xl/worksheets/sheet1.xml`, not the writer's own code), applied here to `WorkerExportProjection`'s output: asserts zero `<f>` formula nodes, recovers the documented header row and every expected cell value (`w1`, `Ada`, `Lovelace`, `Engineer`) from `<t>` inline-string nodes, and confirms the vendor extension-data field/value never appear. Full suite: 362 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. No official schema/live-tenant evidence backs the exported fields, and the "maximum and over-limit rows/columns/text" bounds are exercised by the shared `Koras.Connect.Export` test suite (`CoreTests.ExcelColumnCountOutOfBoundsIsRejectedBeforeAnyRowIsWritten` and neighbors), not duplicated per-connector here — that shared coverage is this feature's dependency (SDK-013), not a gap in ADP-009 itself. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | `Koras.Connect.Adp.Export.WorkerExportProjection.ExportAsync` (`src/Koras.Connect.Adp/Export/WorkerExportProjection.cs`) now also streams to `Koras.Connect.Export.XlsxExportProvider`, so worker XLSX export shares the exact same documented, fixed column set and extension-data exclusion as CSV/XML. Covered by `tests/Koras.Connect.Tests/AdpWorkerExportTests.cs` (`XmlAndColumnRestrictedJsonAndXlsxExportsAllCompleteWithoutBufferingTheWholeSequence`). Kept at `implemented` rather than fully accepted: no independent workbook-reader assertion (e.g. opening the produced file with a third-party XLSX reader) was added, and no official schema/live-tenant evidence backs the exported fields. |
+| 2026-11-13 | `implemented` | Added `XlsxExportIsIndependentlyReadableAndContainsNoFormulaNodes`, closing the independent-workbook-reader gap recorded above. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates. `verification` moved from `unverified` to `partial`: no official schema/live-tenant evidence is available to close the remaining gate. |
