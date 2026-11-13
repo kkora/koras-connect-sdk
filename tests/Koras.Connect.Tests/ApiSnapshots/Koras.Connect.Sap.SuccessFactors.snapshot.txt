@@ -5,6 +5,9 @@ sealed class Koras.Connect.Sap.SuccessFactors.EmpEmployment
   property System.String PersonIdExternal {get+set}
   property System.Nullable<System.Text.Json.JsonElement> StartDate {get+set}
   property System.String UserId {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.EmpEmploymentMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Sap.SuccessFactors.EmploymentRecord> Map(Koras.Connect.Sap.SuccessFactors.EmpEmployment source)
 sealed class Koras.Connect.Sap.SuccessFactors.EmpJob
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
@@ -15,6 +18,23 @@ sealed class Koras.Connect.Sap.SuccessFactors.EmpJob
   property System.Nullable<System.Int64> SequenceNumber {get+set}
   property System.Nullable<System.Text.Json.JsonElement> StartDate {get+set}
   property System.String UserId {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.EmpJobMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Sap.SuccessFactors.JobRecord> Map(Koras.Connect.Sap.SuccessFactors.EmpJob source)
+sealed class Koras.Connect.Sap.SuccessFactors.EmploymentRecord
+  ctor(System.String Key, System.String UserId, System.String PersonIdExternal, System.DateTimeOffset StartDate, System.Nullable<System.DateTimeOffset> EndDate, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions)
+  property System.Nullable<System.DateTimeOffset> EndDate {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions {get+init}
+  property System.String Key {get+init}
+  property System.String PersonIdExternal {get+init}
+  property System.DateTimeOffset StartDate {get+init}
+  property System.String UserId {get+init}
+  method Koras.Connect.Sap.SuccessFactors.EmploymentRecord <Clone>$()
+  method System.Void Deconstruct(System.String& Key, System.String& UserId, System.String& PersonIdExternal, System.DateTimeOffset& StartDate, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& EndDate, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Extensions)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.EmploymentRecord other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Sap.SuccessFactors.EntityDescriptor
   ctor(System.String Name, System.Collections.Generic.IReadOnlyList<System.String> Keys, System.Collections.Generic.IReadOnlyList<System.String> Properties)
   property System.Collections.Generic.IReadOnlyList<System.String> Keys {get+init}
@@ -45,6 +65,23 @@ sealed class Koras.Connect.Sap.SuccessFactors.FOLocation
   property System.Nullable<System.Text.Json.JsonElement> EffectiveStartDate {get+set}
   property System.String ExternalCode {get+set}
   property System.String Status {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.JobRecord
+  ctor(System.String Key, System.String UserId, System.Int64 SequenceNumber, System.Nullable<System.DateTimeOffset> StartDate, System.String ManagerId, System.String Department, System.String Location, System.String JobTitle, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions)
+  property System.String Department {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions {get+init}
+  property System.String JobTitle {get+init}
+  property System.String Key {get+init}
+  property System.String Location {get+init}
+  property System.String ManagerId {get+init}
+  property System.Int64 SequenceNumber {get+init}
+  property System.Nullable<System.DateTimeOffset> StartDate {get+init}
+  property System.String UserId {get+init}
+  method Koras.Connect.Sap.SuccessFactors.JobRecord <Clone>$()
+  method System.Void Deconstruct(System.String& Key, System.String& UserId, System.Int64& SequenceNumber, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& StartDate, System.String& ManagerId, System.String& Department, System.String& Location, System.String& JobTitle, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Extensions)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.JobRecord other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Sap.SuccessFactors.ManagerAssignment
   ctor(System.String UserId, System.String ManagerId, System.Nullable<System.DateTimeOffset> EffectiveDate)
   property System.Nullable<System.DateTimeOffset> EffectiveDate {get+init}

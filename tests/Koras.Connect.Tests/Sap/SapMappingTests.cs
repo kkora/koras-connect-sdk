@@ -48,4 +48,52 @@ public sealed class SapMappingTests
         var result = new PerPersonMapper().Map(person);
         Assert.Equal("external", result.Value!.PersonId);
     }
+
+    [Fact] public void EmpEmploymentMapperOmitsARecordWithNoUserIdAtAll()
+    {
+        var result = new EmpEmploymentMapper().Map(new EmpEmployment { StartDate = DateElement("2026-01-01T00:00:00Z") });
+        Assert.True(result.IsOmitted);
+    }
+
+    [Fact] public void EmpEmploymentMapperFailsWithAFieldErrorWhenStartDateIsMissingBecauseTheCompositeKeyCannotForm()
+    {
+        var result = new EmpEmploymentMapper().Map(new EmpEmployment { UserId = "synthetic-1" });
+        Assert.False(result.IsSuccess);
+        Assert.Equal("startDate", Assert.Single(result.Errors).Field);
+    }
+
+    [Fact] public void EmpEmploymentMapperBuildsTheCompositeKeyFromUserIdAndStartDateAndPreservesOpenEndedEndDate()
+    {
+        var employment = new EmpEmployment { UserId = "synthetic-1", PersonIdExternal = "p1", StartDate = DateElement("2026-01-01T00:00:00Z") };
+        var result = new EmpEmploymentMapper().Map(employment);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("synthetic-1|2026-01-01T00:00:00.0000000+00:00", result.Value!.Key);
+        Assert.Null(result.Value.EndDate);
+    }
+
+    [Fact] public void EmpJobMapperOmitsARecordWithNoUserIdAtAll()
+    {
+        var result = new EmpJobMapper().Map(new EmpJob { SequenceNumber = 1 });
+        Assert.True(result.IsOmitted);
+    }
+
+    [Fact] public void EmpJobMapperFailsWithAFieldErrorWhenSeqNumberIsMissingBecauseTheCompositeKeyCannotForm()
+    {
+        var result = new EmpJobMapper().Map(new EmpJob { UserId = "synthetic-1" });
+        Assert.False(result.IsSuccess);
+        Assert.Equal("seqNumber", Assert.Single(result.Errors).Field);
+    }
+
+    [Fact] public void EmpJobMapperBuildsTheCompositeKeyFromUserIdAndSeqNumberAndToleratesAnUnparseableStartDate()
+    {
+        // Unlike EmpEmployment's startDate (part of the key), EmpJob's startDate is not part of the key and an
+        // unparseable value is reported as null rather than failing the whole mapping.
+        var job = new EmpJob { UserId = "synthetic-1", SequenceNumber = 2, ManagerId = "mgr", JobTitle = "Engineer",
+            StartDate = System.Text.Json.JsonDocument.Parse("\"not-a-date\"").RootElement.Clone() };
+        var result = new EmpJobMapper().Map(job);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("synthetic-1|2", result.Value!.Key);
+        Assert.Null(result.Value.StartDate);
+        Assert.Equal("mgr", result.Value.ManagerId);
+    }
 }

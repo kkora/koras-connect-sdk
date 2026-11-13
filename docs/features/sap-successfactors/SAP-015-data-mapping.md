@@ -4,10 +4,10 @@ title: "Data mapping"
 category: "sap-successfactors"
 priority: "P0"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,19 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SapMapping.cs`, `SapDates.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapMappingTests.cs` (5 tests) |
-| Remaining work / blockers | Only `PerPerson` has a mapper (`PerPersonMapper`); `EmpEmployment`/`EmpJob` (composite userId+startDate / userId+seqNumber keys) have no `IRecordMapper` implementation yet; masked/custom-field and unknown-code handling beyond `AdditionalData` passthrough is not addressed |
-| Acceptance / completion | Unit-level only: `SapMappingTests.cs` covers a missing-both-identifiers omission, a missing-date null-mapping, an unrecognized date value surfacing as a field-level `FieldError` (not a silent null), and both supported SAP date shapes (`/Date(ms)/` and ISO-8601) mapping to the same UTC instant. Live/sandbox acceptance not recorded. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "composite keys" unit-test-requirement gap by adding `EmpEmploymentMapper`/`EmpJobMapper` (`IRecordMapper<EmpEmployment,EmploymentRecord>`/`IRecordMapper<EmpJob,JobRecord>`) to `src/Koras.Connect.Sap.SuccessFactors/SapMapping.cs`, following `PerPersonMapper`'s omission/field-error pattern: a record missing `userId` entirely is omitted (no identifier at all); a record with `userId` but no parseable `startDate` (EmpEmployment) or no `seqNumber` (EmpJob) - the field that completes its documented composite key - fails with a field-level `FieldError` rather than inventing a partial key. `EmpJob.StartDate` is deliberately *not* part of its key (unlike EmpEmployment's) and tolerates an unparseable value as `null`, matching `ToManagerAssignment`'s existing policy for the same field. New tests in `tests/Koras.Connect.Tests/Sap/SapMappingTests.cs`: `EmpEmploymentMapperOmitsARecordWithNoUserIdAtAll`, `EmpEmploymentMapperFailsWithAFieldErrorWhenStartDateIsMissingBecauseTheCompositeKeyCannotForm`, `EmpEmploymentMapperBuildsTheCompositeKeyFromUserIdAndStartDateAndPreservesOpenEndedEndDate`, `EmpJobMapperOmitsARecordWithNoUserIdAtAll`, `EmpJobMapperFailsWithAFieldErrorWhenSeqNumberIsMissingBecauseTheCompositeKeyCannotForm`, `EmpJobMapperBuildsTheCompositeKeyFromUserIdAndSeqNumberAndToleratesAnUnparseableStartDate`. Regenerated the committed `Koras.Connect.Sap.SuccessFactors.snapshot.txt` API baseline for the new public types. Full suite: 550 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Masked/custom-field and unknown-code handling beyond `AdditionalData` passthrough, and timezone-specific handling beyond `SapDates`'s UTC-normalization policy, remain out of scope - customer-specific rules stay host-configured, not invented by this SDK. Entity schema/business-profile review against a live tenant remains a standing external blocker (see above). |
 
 ## Status history
 
@@ -64,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Implemented `Koras.Connect.Abstractions.IRecordMapper<PerPerson,PersonProfile>` via `PerPersonMapper`, plus a documented `SapDates` date-parsing policy (always UTC `DateTimeOffset`; throws `FormatException` on an unrecognized-but-present value rather than returning null) in `src/Koras.Connect.Sap.SuccessFactors/SapMapping.cs`/`SapDates.cs`. Golden-fixture tests in `tests/Koras.Connect.Tests/SapMappingTests.cs`. Kept `partial`: `EmpEmployment`/`EmpJob` mappers and composite-key/masked-field handling remain outstanding. |
+| 2026-11-13 | `implemented` | Added `EmpEmploymentMapper`/`EmpJobMapper`, closing the "composite keys" unit-test-requirement gap. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: masked/custom-field semantics and entity schema/business-profile review against a live tenant remain standing external blockers. |
