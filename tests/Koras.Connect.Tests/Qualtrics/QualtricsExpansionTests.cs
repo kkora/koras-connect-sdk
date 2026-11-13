@@ -278,6 +278,31 @@ public sealed class QualtricsExpansionTests
         => Assert.Throws<ArgumentOutOfRangeException>(() => new QualtricsConcurrencyLimiter(maxConcurrency));
 
     [Fact]
+    public async Task CancellingWhileQueuedOnTheGateNeverStartsTheOperation()
+    {
+        var limiter = new QualtricsConcurrencyLimiter(1);
+        var holderStarted = new TaskCompletionSource();
+        var releaseHolder = new TaskCompletionSource();
+        var holder = limiter.RunAsync(async ct =>
+        {
+            holderStarted.SetResult();
+            await releaseHolder.Task;
+            return true;
+        });
+        await holderStarted.Task;
+
+        var queuedStarted = false;
+        using var cts = new CancellationTokenSource();
+        var queued = limiter.RunAsync(ct => { queuedStarted = true; return Task.FromResult(true); }, cts.Token);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => queued);
+        Assert.False(queuedStarted);
+
+        releaseHolder.SetResult();
+        Assert.True(await holder);
+    }
+
+    [Fact]
     public async Task LongRetryAfterOn429ThrowsCleanlyRatherThanWaiting()
     {
         var calls = 0;
