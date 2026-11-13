@@ -92,6 +92,11 @@ sealed class Koras.Connect.Adp.AdpRotatingTokenSource
 abstract class Koras.Connect.Adp.AdpServiceCollectionExtensions
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasAdp(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Authentication.ClientCredentialsOptions credentials, Koras.Connect.Adp.Workers.AdpWorkersOptions workers, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.TransportOptions transport = null, System.Nullable<System.TimeSpan> tokenAcquisitionTimeout = null, System.Func<Koras.Connect.Adp.Workers.AdpWorkersClient, System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null)
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasAdpWithRotatingCredentials(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Abstractions.ICredentialProvider<Koras.Connect.Authentication.ClientCredentialsOptions> credentials, Koras.Connect.Adp.Workers.AdpWorkersOptions workers, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.TransportOptions transport = null, System.Nullable<System.TimeSpan> tokenAcquisitionTimeout = null, System.Func<Koras.Connect.Adp.Workers.AdpWorkersClient, System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null)
+abstract class Koras.Connect.Adp.AdpTimeAndAttendanceCapabilityStatement
+  property System.Boolean AttendanceOperationsImplemented {get}
+  property System.String Statement {get}
+  property System.Boolean TimeOffReadsImplemented {get}
+  property System.Boolean TimecardOperationsImplemented {get}
 abstract class Koras.Connect.Adp.Events.AdpWebhookAuthentication
   method System.String GetDeliveryKey(System.Text.Json.JsonElement envelope)
   method System.Boolean VerifyPublisherHeader(System.String header, System.String clientId, System.String clientSecret)

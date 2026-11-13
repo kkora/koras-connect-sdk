@@ -4,10 +4,10 @@ title: "Time and attendance APIs"
 category: "adp"
 priority: "P2"
 phase: "P7"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the acceptance criterion's "capability report explicitly says attendance/timecard operations unverified" gap by adding `AdpTimeAndAttendanceCapabilityStatement` (`src/Koras.Connect.Adp/AdpTimeAndAttendanceCapabilityStatement.cs`) — a static, citable fact (`TimeOffReadsImplemented`/`AttendanceOperationsImplemented`/`TimecardOperationsImplemented` booleans plus a `Statement` string) rather than relying on a host to infer scope from `AdpOperation`'s absence of attendance/timecard values. Added `tests/Koras.Connect.Tests/AdpTimeAndAttendanceTests.cs`, which also closes the remaining unit-test-requirement date/unit/timezone edge cases for the existing typed time-off models: `TimeOffPeriods` timestamps across three timezone offsets (`Z`, `-05:00`, `+09:30`) survive round-trip exactly without reinterpretation, `BalanceAmount.UnitCode` preserves both `DAYS` and `HOURS` without assuming a default, a missing unit code stays `null` rather than a fabricated default, zero and negative balance amounts round-trip exactly, and an empty workers collection is tolerated rather than throwing. Updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the new public type. Full suite: 433 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Attendance/timecard contracts remain unresearched and unimplemented by design (see external blockers above), unchanged by this pass — this feature's job was to make that scope boundary explicit and citable, not to close it. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `AdpTimeAndAttendanceCapabilityStatement` and closed the remaining date/unit/timezone unit-test-requirement gaps. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: attendance/timecard contracts remain genuinely unresearched, which this pass documents explicitly rather than closes. |
