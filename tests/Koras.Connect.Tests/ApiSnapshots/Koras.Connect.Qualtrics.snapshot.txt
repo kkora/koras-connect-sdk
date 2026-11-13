@@ -1,0 +1,128 @@
+sealed class Koras.Connect.Qualtrics.ExportProgress
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String ContinuationToken {get+set}
+  property System.String FileId {get+set}
+  property System.Double PercentComplete {get+set}
+  property System.String Status {get+set}
+sealed class Koras.Connect.Qualtrics.NeutralContactRecord
+  ctor(System.String Id, System.String Email, System.String FirstName, System.String LastName, System.Nullable<System.Boolean> OptedOut, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions)
+  property System.String Email {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions {get+init}
+  property System.String FirstName {get+init}
+  property System.String Id {get+init}
+  property System.String LastName {get+init}
+  property System.Nullable<System.Boolean> OptedOut {get+init}
+  method Koras.Connect.Qualtrics.NeutralContactRecord <Clone>$()
+  method System.Void Deconstruct(System.String& Id, System.String& Email, System.String& FirstName, System.String& LastName, System.Nullable`1[[System.Boolean, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& OptedOut, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Extensions)
+  method System.Boolean Equals(Koras.Connect.Qualtrics.NeutralContactRecord other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Qualtrics.NeutralSurveyRecord
+  ctor(System.String Id, System.String Name, System.Boolean IsActive, System.Nullable<System.DateTimeOffset> LastModified, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions)
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions {get+init}
+  property System.String Id {get+init}
+  property System.Boolean IsActive {get+init}
+  property System.Nullable<System.DateTimeOffset> LastModified {get+init}
+  property System.String Name {get+init}
+  method Koras.Connect.Qualtrics.NeutralSurveyRecord <Clone>$()
+  method System.Void Deconstruct(System.String& Id, System.String& Name, System.Boolean& IsActive, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& LastModified, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Extensions)
+  method System.Boolean Equals(Koras.Connect.Qualtrics.NeutralSurveyRecord other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Qualtrics.QualtricsApiException
+  property System.Nullable<System.TimeSpan> RetryAfter {get}
+  property System.Net.HttpStatusCode StatusCode {get}
+  method Koras.Connect.Qualtrics.QualtricsApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String sanitizedRequestId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Qualtrics.QualtricsApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String sanitizedRequestId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method System.String TryExtractRequestId(System.Text.Json.JsonElement body)
+sealed class Koras.Connect.Qualtrics.QualtricsClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Qualtrics.QualtricsOptions options)
+  method Koras.Connect.Qualtrics.QualtricsClient Create(System.Net.Http.HttpClient http, Koras.Connect.Transport.IAccessTokenSource apiTokens, Koras.Connect.Qualtrics.QualtricsOptions options, Koras.Connect.Transport.TransportOptions transport = null)
+  method System.Threading.Tasks.Task<System.String> CreateContactAsync(System.String directoryId, Koras.Connect.Qualtrics.QualtricsContact contact, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> CreateMailingListAsync(System.String directoryId, Koras.Connect.Qualtrics.QualtricsMailingList mailingList, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DownloadExportAsync(System.String surveyId, System.String fileId, System.IO.Stream output, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.SurveySummary> EnumerateSurveysAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.QualtricsContact> GetContactAsync(System.String directoryId, System.String contactId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.ExportProgress> GetExportProgressAsync(System.String surveyId, System.String progressId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.QualtricsMailingList> GetMailingListAsync(System.String directoryId, System.String mailingListId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetSurveyAsync(System.String surveyId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsContact> ListContactsAsync(System.String directoryId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.QualtricsContact>> ListContactsPageAsync(System.String directoryId, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Qualtrics.QualtricsMailingList> ListMailingListsAsync(System.String directoryId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Qualtrics.SurveySummary>> ListSurveysPageAsync(Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> StartResponseExportAsync(System.String surveyId, Koras.Connect.Qualtrics.ResponseExportOptions options = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateContactAsync(System.String directoryId, System.String contactId, Koras.Connect.Qualtrics.QualtricsContact contact, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Qualtrics.ExportProgress> WaitForExportAsync(System.String surveyId, System.String progressId, System.Nullable<System.TimeSpan> pollingInterval = null, System.Int32 maxPolls = 120, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Qualtrics.QualtricsConcurrencyLimiter
+  ctor(System.Int32 maxConcurrency)
+  method System.Threading.Tasks.Task RunAllAsync(System.Collections.Generic.IEnumerable<T> items, System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.Task> operation, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<T> RunAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Qualtrics.QualtricsConnector
+  ctor(Koras.Connect.Qualtrics.QualtricsClient client, Koras.Connect.Qualtrics.QualtricsOptions options)
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Qualtrics.QualtricsContact
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Email {get+set}
+  property System.String ExternalReference {get+set}
+  property System.String FirstName {get+set}
+  property System.String Id {get+set}
+  property System.String Language {get+set}
+  property System.String LastName {get+set}
+  property System.Text.Json.JsonElement Unsubscribed {get+set}
+sealed class Koras.Connect.Qualtrics.QualtricsContactMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Qualtrics.NeutralContactRecord> Map(Koras.Connect.Qualtrics.QualtricsContact source)
+sealed class Koras.Connect.Qualtrics.QualtricsMailingList
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Int32> ContactCount {get+set}
+  property System.String Id {get+set}
+  property System.String Name {get+set}
+  property System.String OwnerId {get+set}
+sealed class Koras.Connect.Qualtrics.QualtricsOptions
+  ctor(System.Uri ApiRoot, System.Int32 MaxPages = 10000)
+  property System.Uri ApiRoot {get+init}
+  property System.Int32 MaxPages {get+init}
+  method Koras.Connect.Qualtrics.QualtricsOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& ApiRoot, System.Int32& MaxPages)
+  method System.Boolean Equals(Koras.Connect.Qualtrics.QualtricsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Qualtrics.QualtricsOptionsBuilder
+  ctor()
+  property System.Uri ApiRoot {get+set}
+  property System.Int32 MaxPages {get+set}
+abstract class Koras.Connect.Qualtrics.QualtricsServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasQualtrics(Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Koras.Connect.Qualtrics.QualtricsOptionsBuilder> configure, System.Func<System.IServiceProvider, Koras.Connect.Transport.IAccessTokenSource> tokenSourceFactory, Koras.Connect.Transport.TransportOptions transport = null)
+sealed class Koras.Connect.Qualtrics.ResponseExportOptions
+  ctor(System.String Format = csv, System.Boolean Compress = True, System.String FilterId = null, System.Nullable<System.DateTimeOffset> StartDate = null, System.Nullable<System.DateTimeOffset> EndDate = null, System.String ContinuationToken = null)
+  property System.Boolean Compress {get+init}
+  property System.String ContinuationToken {get+init}
+  property System.Nullable<System.DateTimeOffset> EndDate {get+init}
+  property System.String FilterId {get+init}
+  property System.String Format {get+init}
+  property System.Nullable<System.DateTimeOffset> StartDate {get+init}
+  method Koras.Connect.Qualtrics.ResponseExportOptions <Clone>$()
+  method System.Void Deconstruct(System.String& Format, System.Boolean& Compress, System.String& FilterId, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& StartDate, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& EndDate, System.String& ContinuationToken)
+  method System.Boolean Equals(Koras.Connect.Qualtrics.ResponseExportOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Qualtrics.SurveySummary
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Id {get+set}
+  property System.Boolean IsActive {get+set}
+  property System.Nullable<System.DateTimeOffset> LastModified {get+set}
+  property System.String Name {get+set}
+  property System.String OwnerId {get+set}
+sealed class Koras.Connect.Qualtrics.SurveySummaryMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Qualtrics.NeutralSurveyRecord> Map(Koras.Connect.Qualtrics.SurveySummary source)

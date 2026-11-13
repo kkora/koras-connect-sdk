@@ -1,0 +1,91 @@
+sealed class Koras.Connect.Exceptions.AuthenticationException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details, System.Exception innerException = null)
+sealed class Koras.Connect.Exceptions.AuthorizationException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details)
+sealed class Koras.Connect.Exceptions.ConfigurationException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details)
+sealed class Koras.Connect.Exceptions.ContractException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details)
+sealed class Koras.Connect.Exceptions.DeadlineExceededException
+  ctor(System.String message)
+sealed class Koras.Connect.Exceptions.ErrorDetails
+  ctor(System.String Code, System.String CorrelationId = null)
+  property System.String Code {get+init}
+  property System.String CorrelationId {get+init}
+  method Koras.Connect.Exceptions.ErrorDetails <Clone>$()
+  method System.Void Deconstruct(System.String& Code, System.String& CorrelationId)
+  method System.Boolean Equals(Koras.Connect.Exceptions.ErrorDetails other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Exceptions.IntegrationException
+  property Koras.Connect.Exceptions.ErrorDetails Details {get}
+abstract class Koras.Connect.Exceptions.IntegrationExceptionClassifier
+  method Koras.Connect.Exceptions.IntegrationException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId, System.Nullable<System.TimeSpan> retryAfter = null)
+sealed class Koras.Connect.Exceptions.ThrottleException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details, System.Nullable<System.TimeSpan> retryAfter = null)
+  property System.Nullable<System.TimeSpan> RetryAfter {get}
+sealed class Koras.Connect.Exceptions.TransportException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details, System.Exception innerException = null)
+abstract class Koras.Connect.Synchronization.Reconciliation
+  method System.Collections.Generic.IAsyncEnumerable<System.Collections.Generic.IReadOnlyList<T>> BatchAsync(System.Collections.Generic.IAsyncEnumerable<T> records, System.Int32 size, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Synchronization.RecordChange<T>> DetectChangesAsync(System.Collections.Generic.IAsyncEnumerable<T> records, System.Func<T, System.String> keySelector, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> previous, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Synchronization.RecordChange<T>
+  ctor(System.String Key, System.String Fingerprint, T Value)
+  property System.String Fingerprint {get+init}
+  property System.String Key {get+init}
+  property T Value {get+init}
+  method Koras.Connect.Synchronization.RecordChange<T> <Clone>$()
+  method System.Void Deconstruct(System.String& Key, System.String& Fingerprint, T& Value)
+  method System.Boolean Equals(Koras.Connect.Synchronization.RecordChange<T> other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Transport.BearerTokenAuthenticator
+  ctor(Koras.Connect.Transport.IAccessTokenSource tokens)
+  method System.Threading.Tasks.ValueTask AuthenticateAsync(System.Net.Http.HttpRequestMessage request, System.Threading.CancellationToken cancellationToken = null)
+abstract class Koras.Connect.Transport.DiagnosticEvents
+abstract class Koras.Connect.Transport.EndpointSafety
+  method System.Uri Continuation(System.Uri root, System.String link)
+  method System.String Segment(System.String value)
+  method System.Uri ValidateRoot(System.Uri root)
+sealed class Koras.Connect.Transport.HeaderTokenAuthenticator
+  ctor(System.String header, Koras.Connect.Transport.IAccessTokenSource tokens)
+  method System.Threading.Tasks.ValueTask AuthenticateAsync(System.Net.Http.HttpRequestMessage request, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Transport.IntegrationJsonResponse
+  ctor(System.Text.Json.JsonDocument Body, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String[]> Headers, System.Net.HttpStatusCode StatusCode)
+  property System.Text.Json.JsonDocument Body {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.String[]> Headers {get+init}
+  property System.Net.HttpStatusCode StatusCode {get+init}
+  method Koras.Connect.Transport.IntegrationJsonResponse <Clone>$()
+  method System.Void Deconstruct(System.Text.Json.JsonDocument& Body, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String[], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& Headers, System.Net.HttpStatusCode& StatusCode)
+  method System.Void Dispose()
+  method System.Boolean Equals(Koras.Connect.Transport.IntegrationJsonResponse other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Transport.IntegrationRequestException
+  ctor(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String[]> headers = null)
+  property System.Int32 Attempts {get}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.String[]> Headers {get}
+  property System.Net.HttpStatusCode ResponseStatus {get}
+sealed class Koras.Connect.Transport.IntegrationTransport
+  ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Transport.IAccessTokenSource tokens, Koras.Connect.Transport.TransportOptions options = null, System.TimeProvider timeProvider = null, Microsoft.Extensions.Logging.ILogger logger = null)
+  ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Transport.IRequestAuthenticator authentication, Koras.Connect.Transport.TransportOptions options = null, System.TimeProvider timeProvider = null, Microsoft.Extensions.Logging.ILogger logger = null)
+  method System.Threading.Tasks.Task CopyToAsync(System.Uri address, System.IO.Stream output, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> ReadJsonAsync(System.Uri address, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> headers = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> ReadTextAsync(System.Uri address, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SendJsonAsync(System.Net.Http.HttpMethod method, System.Uri address, System.Nullable<System.Text.Json.JsonElement> payload = null, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> headers = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Transport.IntegrationJsonResponse> SendResponseAsync(System.Net.Http.HttpMethod method, System.Uri address, System.Nullable<System.Text.Json.JsonElement> payload = null, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> headers = null, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Transport.TransportOptions
+  ctor()
+  property System.TimeSpan BaseDelay {get+init}
+  property System.TimeSpan MaxDelay {get+init}
+  property System.Int32 MaxRetries {get+init}
+  property System.TimeSpan RequestTimeout {get+init}
+  method Koras.Connect.Transport.TransportOptions <Clone>$()
+  method System.Boolean Equals(Koras.Connect.Transport.TransportOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()

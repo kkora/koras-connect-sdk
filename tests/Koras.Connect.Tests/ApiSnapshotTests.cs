@@ -3,22 +3,36 @@ using System.Runtime.CompilerServices;
 using Xunit;
 namespace Koras.Connect.Tests;
 
-/// <summary>SDK-002 "API snapshot tests": a committed, reviewable text snapshot of a neutral package's exported
-/// public surface. No ApiCompat/PublicApiGenerator tooling exists anywhere in this repo (confirmed by inspection
-/// of every .csproj and eng/*.py), so this is a minimal, dependency-free reflection-based equivalent: any
-/// intentional public API change for Koras.Connect.Abstractions must update the committed snapshot file in the
-/// same change, making the diff visible in review instead of drifting silently.</summary>
+/// <summary>SDK-002/SDK-017 "API snapshot tests": a committed, reviewable text snapshot of each shipping
+/// package's exported public surface. No ApiCompat/PublicApiGenerator tooling exists anywhere in this repo
+/// (confirmed by inspection of every .csproj and eng/*.py), so this is a minimal, dependency-free reflection-based
+/// equivalent: any intentional public API change for a covered package must update its committed snapshot file in
+/// the same change, making the diff visible in review instead of drifting silently - this is this repo's answer
+/// to SDK-017's "add package validation against approved baseline" and "deliberately removed/changed API" unit-test
+/// requirements (a removed/renamed/retyped member changes the deterministic Describe() output, which a snapshot
+/// comparison catches; type-forwarding identity and old/new consumer compilation are separately covered by
+/// PackageGraphTests.FacadeTypeForwardResolvesToItsNewAssembly and the two samples/PackageConsumer* projects).
+/// Covers every shipping assembly except the Koras.Connect facade, whose only "exported types" are forwarders
+/// already exercised by that test. "Transitive dependency bounds" has nothing to check here: every package in
+/// this repo shares one Directory.Build.props Version, so no per-package version skew is structurally possible.</summary>
 public sealed class ApiSnapshotTests
 {
     private static string RepoRoot([CallerFilePath] string callerFile = "")
         => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", ".."));
 
-    [Fact]
-    public void AbstractionsPublicSurfaceMatchesCommittedSnapshot()
+    [Theory]
+    [InlineData("Koras.Connect.Abstractions")]
+    [InlineData("Koras.Connect.Core")]
+    [InlineData("Koras.Connect.Authentication")]
+    [InlineData("Koras.Connect.Export")]
+    [InlineData("Koras.Connect.Adp")]
+    [InlineData("Koras.Connect.Sap.SuccessFactors")]
+    [InlineData("Koras.Connect.Qualtrics")]
+    public void PublicSurfaceMatchesCommittedSnapshot(string assemblyName)
     {
-        var assembly = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "Koras.Connect.Abstractions.dll"));
+        var assembly = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll"));
         var actual = Describe(assembly);
-        var baselinePath = Path.Combine(RepoRoot(), "tests", "Koras.Connect.Tests", "ApiSnapshots", "Koras.Connect.Abstractions.snapshot.txt");
+        var baselinePath = Path.Combine(RepoRoot(), "tests", "Koras.Connect.Tests", "ApiSnapshots", assemblyName + ".snapshot.txt");
         var expected = File.ReadAllText(baselinePath).Replace("\r\n", "\n").TrimEnd('\n');
         Assert.Equal(expected, actual);
     }

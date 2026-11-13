@@ -1,0 +1,27 @@
+sealed class Koras.Connect.Export.CsvExportProvider
+  ctor()
+  property System.String Format {get}
+  method System.Threading.Tasks.Task WriteAsync(System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<T> records, Koras.Connect.Export.ExportSchema<T> schema, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Export.JsonExportProvider
+  ctor()
+  property System.String Format {get}
+  method System.Threading.Tasks.Task WriteAsync(System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<T> records, Koras.Connect.Export.ExportSchema<T> schema, System.Threading.CancellationToken cancellationToken = null)
+abstract class Koras.Connect.Export.TabularExport
+  method System.Threading.Tasks.Task WriteCsvAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IAsyncEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteCsvAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Void WriteExcel(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteExcelAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IAsyncEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteExcelAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteJsonAsync(System.IO.Stream output, System.Collections.Generic.IEnumerable<T> records, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteJsonAsync(System.IO.Stream output, System.Collections.Generic.IAsyncEnumerable<T> records, System.Threading.CancellationToken cancellationToken = null)
+  method System.Void WriteXml(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteXmlAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IAsyncEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task WriteXmlAsync(System.IO.Stream output, System.Collections.Generic.IReadOnlyList<System.String> columns, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<System.String>> rows, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Export.XlsxExportProvider
+  ctor()
+  property System.String Format {get}
+  method System.Threading.Tasks.Task WriteAsync(System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<T> records, Koras.Connect.Export.ExportSchema<T> schema, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Export.XmlExportProvider
+  ctor()
+  property System.String Format {get}
+  method System.Threading.Tasks.Task WriteAsync(System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<T> records, Koras.Connect.Export.ExportSchema<T> schema, System.Threading.CancellationToken cancellationToken = null)

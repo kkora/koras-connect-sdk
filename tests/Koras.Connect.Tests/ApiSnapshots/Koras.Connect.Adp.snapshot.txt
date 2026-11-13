@@ -1,0 +1,242 @@
+sealed class Koras.Connect.Adp.AdpApiException
+  property System.String Category {get}
+  property System.String Operation {get}
+  method Koras.Connect.Adp.AdpApiException Classify(Koras.Connect.Adp.AdpOperation operation, Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Adp.AdpApiException Classify(System.String operation, Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+sealed class Koras.Connect.Adp.AdpChangeDetector
+  ctor(Koras.Connect.Adp.Workers.AdpWorkersClient workers)
+  method System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> BuildSnapshot(System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> previous, System.Collections.Generic.IEnumerable<Koras.Connect.Synchronization.RecordChange<Koras.Connect.Adp.Workers.Worker>> observedChanges)
+  method System.Threading.Tasks.Task CommitAsync(Koras.Connect.Adp.IWorkerFingerprintStore store, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> previous, System.Collections.Generic.IEnumerable<Koras.Connect.Synchronization.RecordChange<Koras.Connect.Adp.Workers.Worker>> observedChanges, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Adp.Workers.Worker> HandleNotificationAsync(System.String messageId, System.String associateOid, System.Collections.Generic.ISet<System.String> seenMessageIds, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Synchronization.RecordChange<Koras.Connect.Adp.Workers.Worker>> ScanAsync(Koras.Connect.Adp.IWorkerFingerprintStore store, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Synchronization.RecordChange<Koras.Connect.Adp.Workers.Worker>> ScanAsync(System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> previous, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.AdpConnector
+  ctor(Koras.Connect.Abstractions.ConnectorDescriptor descriptor, Koras.Connect.Abstractions.ICredentialProvider<Koras.Connect.Authentication.ClientCredentialsOptions> credentials, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.IAccessTokenSource tokenSource, Koras.Connect.Adp.Workers.AdpWorkersOptions workers = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null, System.TimeProvider clock = null)
+  ctor(Koras.Connect.Abstractions.ConnectorDescriptor descriptor, Koras.Connect.Authentication.ClientCredentialsOptions credentials, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.IAccessTokenSource tokenSource, Koras.Connect.Adp.Workers.AdpWorkersOptions workers = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null, System.TimeProvider clock = null)
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method Koras.Connect.Abstractions.ConnectorDescriptor CreateDescriptor(Koras.Connect.Adp.AdpEntitlementTracker entitlements = null)
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.AdpEntitlementTracker
+  ctor()
+  method Koras.Connect.Abstractions.EntitlementEvidence Get(Koras.Connect.Adp.AdpOperation operation)
+  method System.Void Record(Koras.Connect.Adp.AdpOperation operation, Koras.Connect.Abstractions.EntitlementState state, System.String reference = null, System.Nullable<System.DateTimeOffset> recordedAt = null)
+  method System.Collections.Generic.IReadOnlyDictionary<System.String, Koras.Connect.Abstractions.EntitlementEvidence> ToDescriptorEntitlements()
+  method System.Collections.Generic.IReadOnlyDictionary<System.String, Koras.Connect.Abstractions.EntitlementEvidence> Unknown()
+enum Koras.Connect.Adp.AdpOperation
+  enum-value Hire = 0
+  enum-value Rehire = 1
+  enum-value TerminateAssignment = 2
+  enum-value ChangeManager = 3
+  enum-value ChangePersonalEmail = 4
+  enum-value ChangePayDataInput = 5
+  enum-value PayrollInstructions = 6
+  enum-value PayDistributions = 7
+  enum-value TimeOffBalances = 8
+  enum-value TimeOffRequests = 9
+  enum-value OrganizationDepartments = 10
+  enum-value EventNotifications = 11
+  enum-value ModifyWorkAssignment = 12
+  enum-value ModifyDepartmentAllocations = 13
+  enum-value SpendingAccountEnrollments = 14
+abstract class Koras.Connect.Adp.AdpOperationCatalog
+  property System.Collections.Generic.IReadOnlyDictionary<Koras.Connect.Adp.AdpOperation, System.String> CandidateScopes {get}
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.AdpOperationContract> Contracts {get}
+sealed class Koras.Connect.Adp.AdpOperationContract
+  ctor(Koras.Connect.Adp.AdpOperation Operation, System.String Method, System.String Path, System.Boolean WorkerSpecific, System.Boolean HasMetadata)
+  property System.Boolean HasMetadata {get+init}
+  property System.String Method {get+init}
+  property Koras.Connect.Adp.AdpOperation Operation {get+init}
+  property System.String Path {get+init}
+  property System.Boolean WorkerSpecific {get+init}
+  method Koras.Connect.Adp.AdpOperationContract <Clone>$()
+  method System.Void Deconstruct(Koras.Connect.Adp.AdpOperation& Operation, System.String& Method, System.String& Path, System.Boolean& WorkerSpecific, System.Boolean& HasMetadata)
+  method System.Boolean Equals(Koras.Connect.Adp.AdpOperationContract other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Adp.AdpOperationsClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, System.Uri apiRoot, System.Collections.Generic.IEnumerable<Koras.Connect.Adp.AdpOperation> enabledOperations, Koras.Connect.Adp.AdpEntitlementTracker entitlements = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> AcknowledgeNotificationAsync(System.String messageId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetMetadataAsync(Koras.Connect.Adp.AdpOperation operation, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> ReadAsync(Koras.Connect.Adp.AdpOperation operation, System.String associateOid = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Transport.IntegrationJsonResponse> ReadNotificationAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> ReadSpendingAccountEnrollmentsAsync(System.String associateOid, System.DateOnly effectiveDate, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitChangeManagerAsync(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitEventAsync(Koras.Connect.Adp.AdpOperation operation, System.Text.Json.JsonElement envelope, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitModifyDepartmentAllocationsAsync(System.String associateOid, System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.OrganizationDepartment> departments, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.AdpRotatingTokenSource
+  ctor(Koras.Connect.Abstractions.ICredentialProvider<Koras.Connect.Authentication.ClientCredentialsOptions> credentials, System.Func<System.Net.Http.HttpClient> httpClientFactory, System.TimeSpan acquisitionTimeout, System.TimeProvider clock = null)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+abstract class Koras.Connect.Adp.AdpServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasAdp(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Authentication.ClientCredentialsOptions credentials, Koras.Connect.Adp.Workers.AdpWorkersOptions workers, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.TransportOptions transport = null, System.Nullable<System.TimeSpan> tokenAcquisitionTimeout = null, System.Func<Koras.Connect.Adp.Workers.AdpWorkersClient, System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null)
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasAdpWithRotatingCredentials(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Abstractions.ICredentialProvider<Koras.Connect.Authentication.ClientCredentialsOptions> credentials, Koras.Connect.Adp.Workers.AdpWorkersOptions workers, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, Koras.Connect.Transport.TransportOptions transport = null, System.Nullable<System.TimeSpan> tokenAcquisitionTimeout = null, System.Func<Koras.Connect.Adp.Workers.AdpWorkersClient, System.Threading.CancellationToken, System.Threading.Tasks.Task> connectivityProbe = null)
+abstract class Koras.Connect.Adp.Events.AdpWebhookAuthentication
+  method System.String GetDeliveryKey(System.Text.Json.JsonElement envelope)
+  method System.Boolean VerifyPublisherHeader(System.String header, System.String clientId, System.String clientSecret)
+sealed class Koras.Connect.Adp.Events.NotificationEnvelope
+  ctor()
+  property System.String MessageId {get+init}
+  property System.Text.Json.JsonElement Payload {get+init}
+  method Koras.Connect.Adp.Events.NotificationEnvelope FromPolledMessage(System.String messageId, System.Text.Json.JsonElement payload)
+  method Koras.Connect.Adp.Events.NotificationEnvelope FromWebhookDelivery(System.Text.Json.JsonElement envelope)
+abstract class Koras.Connect.Adp.Export.WorkerExportProjection
+  method Koras.Connect.Export.ExportSchema<Koras.Connect.Adp.Workers.Worker> CreateSchema(System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null)
+  method System.Threading.Tasks.Task ExportAsync(Koras.Connect.Export.IExportProvider provider, System.IO.Stream destination, System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Adp.Workers.Worker> workers, System.Nullable<System.DateOnly> effectiveAssignmentAsOf = null, System.Threading.CancellationToken cancellationToken = null)
+interface Koras.Connect.Adp.IWorkerFingerprintStore
+  method System.Threading.Tasks.Task CommitAsync(System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> fingerprints, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> LoadAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.Workers.AdpWorkersClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Adp.Workers.AdpWorkersOptions options)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Adp.Workers.Worker> EnumerateTypedWorkersAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateWorkersAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Adp.Workers.Worker> GetWorkerAsync(System.String associateOid, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(Koras.Connect.Abstractions.ContinuationToken token, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<Koras.Connect.Adp.Workers.Worker>> GetWorkersPageAsPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetWorkersPageAsync(System.Int32 skip = 0, System.Nullable<System.Int32> take = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SearchWorkersAsync(System.String filter, System.Int32 skip = 0, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Adp.Workers.AdpWorkersOptions
+  ctor(System.Uri ApiRoot, System.Int32 PageSize = 100)
+  property System.Uri ApiRoot {get+init}
+  property System.Int32 PageSize {get+init}
+  method Koras.Connect.Adp.Workers.AdpWorkersOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& ApiRoot, System.Int32& PageSize)
+  method System.Boolean Equals(Koras.Connect.Adp.Workers.AdpWorkersOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+abstract class Koras.Connect.Adp.Workers.ChangeManagerCommand
+  method System.Text.Json.JsonElement Build(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager)
+sealed class Koras.Connect.Adp.Workers.CodeValue
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Code {get+set}
+  property System.String ShortName {get+set}
+abstract class Koras.Connect.Adp.Workers.EffectiveAssignmentSelector
+  method Koras.Connect.Adp.Workers.WorkAssignment SelectEffective(System.Collections.Generic.IEnumerable<Koras.Connect.Adp.Workers.WorkAssignment> assignments, System.DateOnly asOf)
+sealed class Koras.Connect.Adp.Workers.Identifier
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Value {get+set}
+sealed class Koras.Connect.Adp.Workers.LegalName
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String FamilyName {get+set}
+  property System.String GivenName {get+set}
+sealed class Koras.Connect.Adp.Workers.ManagerRelationship
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property Koras.Connect.Adp.Workers.CodeValue ReportingRelationshipCode {get+set}
+  property System.String ReportsToWorkerName {get+set}
+  property Koras.Connect.Adp.Workers.Identifier WorkerId {get+set}
+abstract class Koras.Connect.Adp.Workers.ModifyDepartmentAllocationsCommand
+  method System.Text.Json.JsonElement Build(System.String associateOid, System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.OrganizationDepartment> departments)
+sealed class Koras.Connect.Adp.Workers.OrganizationDepartment
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String EffectiveDate {get+set}
+  property System.String ItemId {get+set}
+  property Koras.Connect.Adp.Workers.CodeValue NameCode {get+set}
+sealed class Koras.Connect.Adp.Workers.OrganizationDepartmentsResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.OrganizationDepartment> Departments {get+set}
+sealed class Koras.Connect.Adp.Workers.PayDistribution
+  ctor()
+  property System.Nullable<System.Text.Json.JsonElement> AccountDetail {get+set}
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property Koras.Connect.Adp.Workers.CodeValue DistributionType {get+set}
+  property System.String ItemId {get+set}
+sealed class Koras.Connect.Adp.Workers.PayDistributionsResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.PayDistribution> Distributions {get+set}
+sealed class Koras.Connect.Adp.Workers.PayrollInstruction
+  ctor()
+  property System.Nullable<System.Text.Json.JsonElement> AccountDetail {get+set}
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String EffectiveDate {get+set}
+  property System.String ItemId {get+set}
+sealed class Koras.Connect.Adp.Workers.PayrollInstructionsResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.PayrollInstruction> Instructions {get+set}
+sealed class Koras.Connect.Adp.Workers.Person
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property Koras.Connect.Adp.Workers.LegalName LegalName {get+set}
+sealed class Koras.Connect.Adp.Workers.QuantityValue
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property Koras.Connect.Adp.Workers.CodeValue UnitCode {get+set}
+  property System.Nullable<System.Double> Value {get+set}
+sealed class Koras.Connect.Adp.Workers.SpendingAccountEnrollment
+  ctor()
+  property System.Nullable<System.Text.Json.JsonElement> AccountBasedCoverage {get+set}
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String ItemId {get+set}
+sealed class Koras.Connect.Adp.Workers.SpendingAccountEnrollmentsResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.SpendingAccountEnrollment> Enrollments {get+set}
+sealed class Koras.Connect.Adp.Workers.TimeOffBalanceEntry
+  ctor()
+  property Koras.Connect.Adp.Workers.CodeValue AccrualCode {get+set}
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property Koras.Connect.Adp.Workers.QuantityValue BalanceAmount {get+set}
+sealed class Koras.Connect.Adp.Workers.TimeOffBalanceWorker
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String AssociateOid {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.TimeOffBalanceEntry> Balances {get+set}
+sealed class Koras.Connect.Adp.Workers.TimeOffBalancesResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.TimeOffBalanceWorker> Workers {get+set}
+sealed class Koras.Connect.Adp.Workers.TimeOffRequest
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String ItemId {get+set}
+  property Koras.Connect.Adp.Workers.CodeValue StatusCode {get+set}
+  property System.Collections.Generic.List<System.Text.Json.JsonElement> TimeOffPeriods {get+set}
+sealed class Koras.Connect.Adp.Workers.TimeOffRequestsResponse
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.TimeOffRequest> Requests {get+set}
+sealed class Koras.Connect.Adp.Workers.WorkAssignment
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String HireDate {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> HomeWorkLocation {get+set}
+  property System.String ItemId {get+set}
+  property System.String JobTitle {get+set}
+  property System.Collections.Generic.List<System.Text.Json.JsonElement> OrganizationalUnits {get+set}
+  property System.Collections.Generic.List<System.Text.Json.JsonElement> ReportsTo {get+set}
+  property System.String TerminationDate {get+set}
+abstract class Koras.Connect.Adp.Workers.WorkAssignmentTypedExtensions
+  method System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.ManagerRelationship> GetManagerRelationships(Koras.Connect.Adp.Workers.WorkAssignment assignment)
+sealed class Koras.Connect.Adp.Workers.Worker
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String AssociateOid {get+set}
+  property Koras.Connect.Adp.Workers.Person Person {get+set}
+  property System.Collections.Generic.List<Koras.Connect.Adp.Workers.WorkAssignment> WorkAssignments {get+set}
+  property Koras.Connect.Adp.Workers.Identifier WorkerId {get+set}
+sealed class Koras.Connect.Adp.Workers.WorkerIdentity
+  ctor(System.String AssociateOid, System.String GivenName, System.String FamilyName, System.String ExternalId)
+  property System.String AssociateOid {get+init}
+  property System.String ExternalId {get+init}
+  property System.String FamilyName {get+init}
+  property System.String GivenName {get+init}
+  method Koras.Connect.Adp.Workers.WorkerIdentity <Clone>$()
+  method System.Void Deconstruct(System.String& AssociateOid, System.String& GivenName, System.String& FamilyName, System.String& ExternalId)
+  method System.Boolean Equals(Koras.Connect.Adp.Workers.WorkerIdentity other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Adp.Workers.WorkerIdentityMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Adp.Workers.WorkerIdentity> Map(Koras.Connect.Adp.Workers.Worker source)

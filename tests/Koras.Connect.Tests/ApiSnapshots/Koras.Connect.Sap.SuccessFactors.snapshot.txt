@@ -1,0 +1,167 @@
+sealed class Koras.Connect.Sap.SuccessFactors.EmpEmployment
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> EndDate {get+set}
+  property System.String PersonIdExternal {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> StartDate {get+set}
+  property System.String UserId {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.EmpJob
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Department {get+set}
+  property System.String JobTitle {get+set}
+  property System.String Location {get+set}
+  property System.String ManagerId {get+set}
+  property System.Nullable<System.Int64> SequenceNumber {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> StartDate {get+set}
+  property System.String UserId {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.EntityDescriptor
+  ctor(System.String Name, System.Collections.Generic.IReadOnlyList<System.String> Keys, System.Collections.Generic.IReadOnlyList<System.String> Properties)
+  property System.Collections.Generic.IReadOnlyList<System.String> Keys {get+init}
+  property System.String Name {get+init}
+  property System.Collections.Generic.IReadOnlyList<System.String> Properties {get+init}
+  method Koras.Connect.Sap.SuccessFactors.EntityDescriptor <Clone>$()
+  method System.Void Deconstruct(System.String& Name, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& Keys, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& Properties)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.EntityDescriptor other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Sap.SuccessFactors.FODepartment
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> EffectiveStartDate {get+set}
+  property System.String ExternalCode {get+set}
+  property System.String ParentExternalCode {get+set}
+  property System.String Status {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.FODivision
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> EffectiveStartDate {get+set}
+  property System.String ExternalCode {get+set}
+  property System.String Status {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.FOLocation
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> EffectiveStartDate {get+set}
+  property System.String ExternalCode {get+set}
+  property System.String Status {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.ManagerAssignment
+  ctor(System.String UserId, System.String ManagerId, System.Nullable<System.DateTimeOffset> EffectiveDate)
+  property System.Nullable<System.DateTimeOffset> EffectiveDate {get+init}
+  property System.String ManagerId {get+init}
+  property System.String UserId {get+init}
+  method Koras.Connect.Sap.SuccessFactors.ManagerAssignment <Clone>$()
+  method System.Void Deconstruct(System.String& UserId, System.String& ManagerId, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& EffectiveDate)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.ManagerAssignment other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Sap.SuccessFactors.ODataQuery
+  ctor(System.String Filter = null, System.String Select = null, System.String Expand = null, System.Nullable<System.DateOnly> AsOfDate = null, System.Nullable<System.DateOnly> FromDate = null, System.Nullable<System.DateOnly> ToDate = null, System.String Paging = null)
+  property System.Nullable<System.DateOnly> AsOfDate {get+init}
+  property System.String Expand {get+init}
+  property System.String Filter {get+init}
+  property System.Nullable<System.DateOnly> FromDate {get+init}
+  property System.String Paging {get+init}
+  property System.String Select {get+init}
+  property System.Nullable<System.DateOnly> ToDate {get+init}
+  method Koras.Connect.Sap.SuccessFactors.ODataQuery <Clone>$()
+  method System.Void Deconstruct(System.String& Filter, System.String& Select, System.String& Expand, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& AsOfDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& FromDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ToDate, System.String& Paging)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.ODataQuery other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Sap.SuccessFactors.PerPerson
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> DateOfBirth {get+set}
+  property System.String PersonId {get+set}
+  property System.String PersonIdExternal {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.PerPersonMapper
+  ctor()
+  method Koras.Connect.Abstractions.MappingResult<Koras.Connect.Sap.SuccessFactors.PersonProfile> Map(Koras.Connect.Sap.SuccessFactors.PerPerson source)
+sealed class Koras.Connect.Sap.SuccessFactors.PersonProfile
+  ctor(System.String PersonId, System.Nullable<System.DateTimeOffset> DateOfBirth)
+  property System.Nullable<System.DateTimeOffset> DateOfBirth {get+init}
+  property System.String PersonId {get+init}
+  method Koras.Connect.Sap.SuccessFactors.PersonProfile <Clone>$()
+  method System.Void Deconstruct(System.String& PersonId, System.Nullable`1[[System.DateTimeOffset, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& DateOfBirth)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.PersonProfile other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Sap.SuccessFactors.SamlBearerTokenSource
+  ctor(System.Net.Http.HttpClient http, System.Uri endpoint, System.String companyId, System.String clientId, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.String>> assertions, System.TimeProvider clock = null)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+abstract class Koras.Connect.Sap.SuccessFactors.SapDates
+  method System.DateTimeOffset ParseUtc(System.Text.Json.JsonElement value)
+  method System.Nullable<System.DateTimeOffset> ParseUtcOrNull(System.Nullable<System.Text.Json.JsonElement> value)
+sealed class Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint
+  ctor(System.String EntityName, System.String ModificationField, System.DateTimeOffset LastValue)
+  property System.String EntityName {get+init}
+  property System.DateTimeOffset LastValue {get+init}
+  property System.String ModificationField {get+init}
+  method Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint <Clone>$()
+  method System.Void Deconstruct(System.String& EntityName, System.String& ModificationField, System.DateTimeOffset& LastValue)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Sap.SuccessFactors.SapDeltaFilters
+  method System.String BuildFilter(Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint checkpoint, System.TimeSpan overlap)
+abstract class Koras.Connect.Sap.SuccessFactors.SapDeltaSync
+  method System.Threading.Tasks.Task<System.ValueTuple<System.Collections.Generic.IReadOnlyList<Koras.Connect.Synchronization.RecordChange<T>>, Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint>> RunAsync(System.Collections.Generic.IAsyncEnumerable<T> records, System.Func<T, System.String> keySelector, System.Func<T, System.DateTimeOffset> modifiedSelector, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> previousFingerprints, Koras.Connect.Sap.SuccessFactors.SapDeltaCheckpoint checkpoint, System.Threading.CancellationToken cancellationToken = null)
+abstract class Koras.Connect.Sap.SuccessFactors.SapODataError
+  method System.String TryParseSanitizedCode(System.String rawJson)
+sealed class Koras.Connect.Sap.SuccessFactors.SuccessFactorsClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Sap.SuccessFactors.SuccessFactorsOptions options)
+  method System.Collections.Generic.IAsyncEnumerable<T> EnumerateAsync(System.String entity, Koras.Connect.Sap.SuccessFactors.ODataQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Sap.SuccessFactors.EmpEmployment> EnumerateEmploymentAsync(Koras.Connect.Sap.SuccessFactors.ODataQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<T> EnumerateFoundationObjectAsync(System.String entitySet, Koras.Connect.Sap.SuccessFactors.ODataQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Sap.SuccessFactors.EmpJob> EnumerateJobsAsync(Koras.Connect.Sap.SuccessFactors.ODataQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Sap.SuccessFactors.PerPerson> EnumeratePersonsAsync(Koras.Connect.Sap.SuccessFactors.ODataQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> GetMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.EntityDescriptor> ParseEntityDescriptors(System.Xml.Linq.XDocument metadata)
+  method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> RefreshMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.ManagerAssignment>> ResolveManagerChainAsync(System.String userId, System.Int32 maxDepth = 10, System.Threading.CancellationToken cancellationToken = null)
+  method Koras.Connect.Sap.SuccessFactors.ManagerAssignment ToManagerAssignment(Koras.Connect.Sap.SuccessFactors.EmpJob job)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.UpsertResult>> UpsertAsync(System.String entity, System.Collections.Generic.IEnumerable<System.Text.Json.JsonElement> records, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Void ValidateOptions(Koras.Connect.Sap.SuccessFactors.SuccessFactorsOptions options)
+sealed class Koras.Connect.Sap.SuccessFactors.SuccessFactorsConnectionOptions
+  ctor(System.Uri ODataRoot, System.Uri TokenEndpoint, System.String CompanyId, System.String ClientId, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.String>> AssertionSource, System.Int32 PageSize = 100, System.Int32 MaxPages = 10000)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.String>> AssertionSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String CompanyId {get+init}
+  property System.Int32 MaxPages {get+init}
+  property System.Uri ODataRoot {get+init}
+  property System.Int32 PageSize {get+init}
+  property System.Uri TokenEndpoint {get+init}
+  method Koras.Connect.Sap.SuccessFactors.SuccessFactorsConnectionOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& ODataRoot, System.Uri& TokenEndpoint, System.String& CompanyId, System.String& ClientId, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& AssertionSource, System.Int32& PageSize, System.Int32& MaxPages)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.SuccessFactorsConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Sap.SuccessFactors.SuccessFactorsOptions
+  ctor(System.Uri ODataRoot, System.Int32 PageSize = 100, System.Int32 MaxPages = 10000)
+  property System.Int32 MaxPages {get+init}
+  property System.Uri ODataRoot {get+init}
+  property System.Int32 PageSize {get+init}
+  method Koras.Connect.Sap.SuccessFactors.SuccessFactorsOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& ODataRoot, System.Int32& PageSize, System.Int32& MaxPages)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.SuccessFactorsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Sap.SuccessFactors.SuccessFactorsServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasSuccessFactors(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Sap.SuccessFactors.SuccessFactorsConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
+sealed class Koras.Connect.Sap.SuccessFactors.UpsertResult
+  ctor()
+  property System.Int32 HttpCode {get+set}
+  property System.Int32 Index {get+set}
+  property System.String Key {get+set}
+  property System.String Message {get+set}
+  property System.String Status {get+set}
+  property System.Boolean Succeeded {get}
+  method System.String ToString()

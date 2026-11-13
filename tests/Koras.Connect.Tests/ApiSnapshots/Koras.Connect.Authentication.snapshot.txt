@@ -1,0 +1,33 @@
+sealed class Koras.Connect.Authentication.CertificateCredentialProvider
+  ctor(System.Func<System.Security.Cryptography.X509Certificates.X509Certificate2> load)
+  method System.Void Dispose()
+  method Koras.Connect.Authentication.CertificateCredentialProvider FromPem(System.String certificatePath, System.String privateKeyPath)
+  method Koras.Connect.Authentication.CertificateCredentialProvider FromPkcs12(System.String path, System.String password = null)
+  method System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2> GetAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+abstract class Koras.Connect.Authentication.ClientCertificateTransport
+  method System.Net.Http.HttpClient Create(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, System.Nullable<System.TimeSpan> timeout = null)
+  method System.Security.Cryptography.X509Certificates.X509Certificate2 LoadPem(System.String certificatePath, System.String privateKeyPath)
+  method System.Security.Cryptography.X509Certificates.X509Certificate2 LoadPkcs12(System.String path, System.String password = null)
+sealed class Koras.Connect.Authentication.ClientCredentialsOptions
+  ctor(System.Uri Endpoint, System.String ClientId, System.String ClientSecret, System.String Scope = null)
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.Uri Endpoint {get+init}
+  property System.String Scope {get+init}
+  method Koras.Connect.Authentication.ClientCredentialsOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& Endpoint, System.String& ClientId, System.String& ClientSecret, System.String& Scope)
+  method System.Boolean Equals(Koras.Connect.Authentication.ClientCredentialsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Authentication.ClientCredentialsTokenSource
+  ctor(System.Net.Http.HttpClient http, Koras.Connect.Authentication.ClientCredentialsOptions options, System.TimeProvider timeProvider = null, System.Nullable<System.TimeSpan> acquisitionTimeout = null)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+sealed class Koras.Connect.Authentication.RedactedCredential<T>
+  ctor(T value)
+  method T Reveal()
+  method System.String ToString()
