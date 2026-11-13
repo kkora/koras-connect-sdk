@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using Koras.Connect.Exceptions;
 using Koras.Connect.Transport;
 using Koras.Connect.Sap.SuccessFactors;
@@ -27,6 +28,22 @@ public sealed class SapExceptionClassificationTests
     {
         var c=ClientForStatus(status);
         var error=await Assert.ThrowsAnyAsync<IntegrationException>(async()=>{await foreach(var p in c.EnumeratePersonsAsync()) { }});
+        Assert.IsType(expected,error);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized, typeof(AuthenticationException))]
+    [InlineData(HttpStatusCode.Forbidden, typeof(AuthorizationException))]
+    [InlineData(HttpStatusCode.TooManyRequests, typeof(ThrottleException))]
+    [InlineData(HttpStatusCode.ServiceUnavailable, typeof(TransportException))]
+    public async Task UpsertAsyncClassifiesTransportLevelFailuresByStatusCode(HttpStatusCode status, Type expected)
+    {
+        // SAP-005: a non-2xx response for the whole upsert request is a transport-level failure and must classify
+        // the same way reads do; this is distinct from a per-row failure, which arrives as HTTP 200 with its own
+        // httpCode/status per row and is never reclassified (see SapClientExpansionTests).
+        var c=ClientForStatus(status);
+        using var payload=JsonDocument.Parse("""{"personIdExternal":"synthetic"}""");
+        var error=await Assert.ThrowsAnyAsync<IntegrationException>(()=>c.UpsertAsync("PerPerson",[payload.RootElement],writesEnabled:true));
         Assert.IsType(expected,error);
     }
 

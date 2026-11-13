@@ -4,10 +4,10 @@ title: "Error handling and diagnostics"
 category: "sap-successfactors"
 priority: "P0"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.cs`, `SuccessFactorsClient.Metadata.cs`, `SapODataError.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapExceptionClassificationTests.cs` (4 tests) |
-| Remaining work / blockers | `UpsertAsync` intentionally still raises the raw `IntegrationRequestException` (kept to avoid changing the existing row-diagnostics test's observed exception type); no live `CorrelationId` capture - `IntegrationTransport` does not retain response headers/bodies on a failed request today; `SapODataError.TryParseSanitizedCode` is a standalone utility, not wired into any live error path |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "`UpsertAsync` still raises the raw `IntegrationRequestException`" gap recorded below by wrapping its transport call in the same `try/catch (IntegrationRequestException ex) { throw Classify(ex); }` pattern already used for reads (`src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.cs`), classifying a transport-level failure (non-2xx for the whole upsert request) the same way reads do - distinct from a per-row failure, which SAP reports as HTTP 200 with its own `httpCode`/`status` per row and is never reclassified. Updated `SapUpsertDoesNotRetryOrAcceptArbitraryMetadata` (`tests/Koras.Connect.Tests/Sap/SapClientExpansionTests.cs`) to expect `TransportException` instead of the raw transport type, and added `UpsertAsyncClassifiesTransportLevelFailuresByStatusCode` (`tests/Koras.Connect.Tests/Sap/SapExceptionClassificationTests.cs`, 401/403/429/503 theory) confirming the full classification spread. Cross-checked the documented OData V2 error envelope and HTTP-status table (`error.code`/`error.message`, `COE000x` codes, 200/201/400/401/404/500 per operation) against the **official "SAP SuccessFactors API Reference Guide" (2H 2026 edition), section 6.5.1 "HTTP Response Codes" and 6.5.2 "Common Errors (COE)"** - `SapODataError.TryParseSanitizedCode`'s envelope shape (`{"error":{"code":...,"message":{"value":...}}}`) matches the documented structure exactly; no code change was needed there, only this citation. Full suite: 503 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live `CorrelationId` capture: `IntegrationTransport` does not retain response headers/bodies on a failed request today, so `SapODataError.TryParseSanitizedCode` remains a standalone utility, not wired into any live error path - this is a shared `Koras.Connect.Core` architectural gap, not SAP-specific, and not resolvable by vendor documentation. Live correlation-id/entitlement evidence against an authorized tenant remains the standing external blocker. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added read-path classification (`EnumerateAsync<T>`, `GetMetadataAsync`/`RefreshMetadataAsync`) into `AuthenticationException`/`AuthorizationException`/`ThrottleException`/`TransportException` via `IntegrationExceptionClassifier`, plus a standalone `SapODataError.TryParseSanitizedCode` parser for SAP's documented OData JSON error envelope that never reads `message.value`. Tests: `tests/Koras.Connect.Tests/SapExceptionClassificationTests.cs` (401 vs 403 vs 429 vs 5xx distinguishability, malformed-body parsing, canceled-probe propagation). `UpsertAsync` deliberately left unclassified to avoid breaking the existing `SapUpsertDoesNotRetryOrAcceptArbitraryMetadata` test in `ExpansionTests.cs`; still `partial` pending that and live correlation-id capture. |
+| 2026-11-13 | `implemented` | Classified `UpsertAsync`'s transport-level failures, closing the one concretely-named remaining item. Cross-checked `SapODataError`'s error envelope and the exception-classification spread against the official SAP SuccessFactors API Reference Guide (2H 2026), sections 6.5.1-6.5.2. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live correlation-id capture and entitlement evidence against an authorized tenant remain standing external blockers. |

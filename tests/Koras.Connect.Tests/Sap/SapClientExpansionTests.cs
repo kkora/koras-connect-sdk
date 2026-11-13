@@ -71,10 +71,13 @@ public sealed class SapClientExpansionTests
     }
     [Fact] public async Task SapUpsertDoesNotRetryOrAcceptArbitraryMetadata()
     {
+        // SAP-005: a transport-level failure (non-2xx for the whole request) is now classified like every other
+        // read path, distinct from a per-row failure (HTTP 200 with row-level httpCode/status), which stays
+        // exactly as returned - see SapUpsertAddsMetadataAndReturnsRowFailuresAtHttp200WithoutLeakingMessages.
         var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("{}",HttpStatusCode.ServiceUnavailable));}));
         var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
         using var payload=JsonDocument.Parse("""{"personIdExternal":"synthetic"}""");
-        await Assert.ThrowsAsync<IntegrationRequestException>(()=>c.UpsertAsync("PerPerson",[payload.RootElement],true));Assert.Equal(1,calls);
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(()=>c.UpsertAsync("PerPerson",[payload.RootElement],true));Assert.Equal(1,calls);
         using var bad=JsonDocument.Parse("""{"__metadata":{"uri":"User"}}""");
         await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertAsync("PerPerson",[bad.RootElement],true));Assert.Equal(1,calls);
     }

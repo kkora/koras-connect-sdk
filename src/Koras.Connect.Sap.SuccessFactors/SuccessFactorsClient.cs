@@ -55,9 +55,11 @@ public sealed partial class SuccessFactorsClient
     }
     /// <summary>Classifies a raw transport failure into the structured <see cref="Koras.Connect.Exceptions.IntegrationException"/>
     /// hierarchy so callers can distinguish authentication (401), RBP/authorization denial (403), throttling (429)
-    /// and transient transport (5xx) failures. Applied to read paths (enumeration, metadata); <see cref="UpsertAsync"/>
-    /// intentionally continues to surface the raw <see cref="IntegrationRequestException"/> so existing row-level
-    /// upsert diagnostics are unaffected.</summary>
+    /// and transient transport (5xx) failures. Applied uniformly to read paths (enumeration, metadata) and to
+    /// <see cref="UpsertAsync"/>'s own transport-level failure (a non-2xx HTTP status for the whole request) - this
+    /// is distinct from a per-row failure, which SAP reports as an HTTP 200 whose body contains row entries with
+    /// their own <c>httpCode</c>/<c>status</c>; those stay exactly as returned in <see cref="UpsertResult"/> and are
+    /// never reclassified here.</summary>
     private static Koras.Connect.Exceptions.IntegrationException Classify(IntegrationRequestException ex)
         => Koras.Connect.Exceptions.IntegrationExceptionClassifier.Classify(ex.ResponseStatus, ex.Attempts, correlationId: null);
     public IAsyncEnumerable<PerPerson> EnumeratePersonsAsync(ODataQuery? query = null, CancellationToken cancellationToken = default)
@@ -103,7 +105,10 @@ public sealed partial class SuccessFactorsClient
             var values = row.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.Clone());
             values["__metadata"] = JsonSerializer.SerializeToElement(new { uri = entity }); payloads.Add(values);
         }
-        using var doc = await _transport.SendJsonAsync(HttpMethod.Post, new Uri(_root, "upsert?$format=json"), JsonSerializer.SerializeToElement(payloads), cancellationToken: cancellationToken);
+        JsonDocument doc;
+        try { doc = await _transport.SendJsonAsync(HttpMethod.Post, new Uri(_root, "upsert?$format=json"), JsonSerializer.SerializeToElement(payloads), cancellationToken: cancellationToken); }
+        catch (IntegrationRequestException ex) { throw Classify(ex); }
+        using var upsertResponse = doc;
         var d = doc.RootElement.GetProperty("d");
         var results = d.ValueKind == JsonValueKind.Array ? d : d.GetProperty("results");
         return results.Deserialize<List<UpsertResult>>() ?? throw new JsonException("Missing upsert results.");
