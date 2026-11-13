@@ -4,10 +4,10 @@ title: "OAuth and supported authentication mechanisms"
 category: "sap-successfactors"
 priority: "P0"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "expiry/skew", "invalid assertion/token", "rotation" and "canceled exchange" unit-test-requirement gaps - previously only the happy-path/concurrent-caching case was tested. Added `tests/Koras.Connect.Tests/Sap/SapAuthenticationTests.cs`: `TokenIsRenewedAfterExpiryUsingWhateverAssertionTheSourceReturnsAtThatMoment` (fake `TimeProvider`, confirms the cache holds through the safety margin then performs one real renewal using a freshly-fetched assertion - "rotation" is the assertion source's responsibility, not the cache's), `AssertionSourceFailureIsNeverSwallowedOrRetried`, `InvalidTokenResponseShapesNeverPoisonTheCache` (5-case theory: missing `access_token`/`token_type`, wrong `token_type`, non-positive/missing `expires_in` - each throws and a subsequent valid exchange still succeeds, proving nothing was cached), `NonSuccessStatusThrowsIntegrationRequestExceptionWithoutRetry`, `CanceledExchangeNeverReachesTheHandlerAndNeverCachesAnything`. Confirmed the `/oauth/token` request/response shape (`company_id`/`client_id`/`grant_type`/`assertion`, `access_token`/`token_type`/`expires_in`) against the **official "SAP SuccessFactors API Reference Guide" (2H 2026 edition), section 2.2.3 "Requesting an Access Token"** - the existing implementation already matches exactly; the only gap not implemented is the optional `new_token=true` force-refresh parameter, left out since the cache's own expiry-margin renewal already covers the same need. Full suite: 538 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Registered OAuth client/company, trusted IdP assertion and technical-user permissions against a live, authorized tenant [S1] remain standing external blockers; OIDC and HTTP Basic (the other two documented SAP auth modes) are unimplemented and unclaimed by this SDK. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `SapAuthenticationTests.cs`, closing the "expiry/skew", "invalid assertion/token", "rotation" and "canceled exchange" unit-test-requirement gaps. Cross-checked the `/oauth/token` request/response shape against the official API Reference Guide, section 2.2.3. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live grant/credential evidence against an authorized tenant [S1] remains a standing external blocker. |
