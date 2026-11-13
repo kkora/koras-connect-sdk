@@ -598,4 +598,23 @@ public sealed class QualtricsExpansionTests
         Assert.False(result.IsSuccess);
         Assert.Equal("id", Assert.Single(result.Errors).Field);
     }
+
+    [Fact]
+    public void QualtricsContactMapperPreservesUnicodeNamesAndNestedEmbeddedDataKeys()
+    {
+        // QLT-012 "Unicode, embedded keys": a contact's typed name fields and its unknown "embeddedData" object
+        // (itself holding arbitrary, possibly Unicode-keyed/valued fields Qualtrics customers configure) must survive
+        // mapping byte-for-byte - neither transliterated, mangled, nor dropped as "just another unknown field".
+        var source = JsonSerializer.Deserialize<QualtricsContact>("""
+            {"id":"CID_unicode","firstName":"Ümit","lastName":"张","email":"a@example.com",
+             "embeddedData":{"部門":"营销","note":"café 😀"}}
+            """)!;
+        var mapped = new QualtricsContactMapper().Map(source);
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal("Ümit", mapped.Value!.FirstName);
+        Assert.Equal("张", mapped.Value.LastName);
+        var embeddedData = mapped.Value.Extensions["embeddedData"];
+        Assert.Equal("营销", embeddedData.GetProperty("部門").GetString());
+        Assert.Equal("café 😀", embeddedData.GetProperty("note").GetString());
+    }
 }
