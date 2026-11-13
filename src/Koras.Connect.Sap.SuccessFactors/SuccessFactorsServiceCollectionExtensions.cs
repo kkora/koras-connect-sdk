@@ -30,8 +30,10 @@ public static class SuccessFactorsServiceCollectionExtensions
             throw new InvalidOperationException("SuccessFactors registration already exists. Use separate service providers for separate tenants.");
         var clientOptions = new SuccessFactorsOptions(options.ODataRoot, options.PageSize, options.MaxPages);
         SuccessFactorsClient.ValidateOptions(clientOptions); // fail fast - before any HttpClient/handler is created
-        services.AddHttpClient("Koras.SuccessFactors.OAuth").RemoveAllLoggers();
-        services.AddHttpClient("Koras.SuccessFactors.Api").RemoveAllLoggers();
+        services.AddHttpClient("Koras.SuccessFactors.OAuth").RemoveAllLoggers()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
+        services.AddHttpClient("Koras.SuccessFactors.Api").RemoveAllLoggers()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
         services.AddSingleton(sp => new SamlBearerTokenSource(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("Koras.SuccessFactors.OAuth"),
             options.TokenEndpoint, options.CompanyId, options.ClientId, options.AssertionSource));

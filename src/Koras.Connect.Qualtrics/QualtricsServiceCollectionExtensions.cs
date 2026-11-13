@@ -40,7 +40,7 @@ public static class QualtricsServiceCollectionExtensions
         if (services.Any(d => d.ServiceType == typeof(QualtricsClient)))
             throw new InvalidOperationException("Qualtrics registration already exists. Use separate service providers for separate tenants.");
         services.AddHttpClient("Koras.Qualtrics.Api").RemoveAllLoggers()
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
         services.AddSingleton(sp => QualtricsClient.Create(sp.GetRequiredService<IHttpClientFactory>().CreateClient("Koras.Qualtrics.Api"),
             tokenSourceFactory(sp), options, transport));
         return services;

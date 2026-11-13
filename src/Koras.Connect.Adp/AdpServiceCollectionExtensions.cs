@@ -58,5 +58,5 @@ public static class AdpServiceCollectionExtensions
     }
 
     private static HttpClientHandler Handler(X509Certificate2 certificate)
-    { var h = new HttpClientHandler { AllowAutoRedirect = false }; h.ClientCertificates.Add(certificate); return h; }
+    { var h = new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }; h.ClientCertificates.Add(certificate); return h; }
 }

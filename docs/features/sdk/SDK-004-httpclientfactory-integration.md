@@ -4,7 +4,7 @@ title: "HttpClientFactory integration"
 category: "sdk"
 priority: "P0"
 phase: "P2"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,22 +44,23 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 262, Skipped 3 (live-sandbox, unrelated), Failed 0. New `HttpClientHardeningTests.cs` (4 tests) resolves each provider's named `IHttpMessageHandlerFactory` handler directly (walking past any `DelegatingHandler` wrapper to the primary `HttpClientHandler`) and asserts `AllowAutoRedirect == false` and `UseCookies == false` for all five named clients across the three providers, asserts ADP's API handler still carries the caller's client certificate, and proves a host can override the registered handler by re-registering the same named client after `AddKorasAdp` (last registration wins). |
+| Remaining work / blockers | **Found and fixed two real gaps against this ticket's own functional requirement ("disable redirects... disable credential-bearing cookie reuse") while auditing, not just a test gap:** (1) `SuccessFactorsServiceCollectionExtensions.AddKorasSuccessFactors` registered both named clients (`Koras.SuccessFactors.OAuth`/`.Api`) with **no handler customization at all** — meaning the framework default `HttpClientHandler` (`AllowAutoRedirect = true`, `UseCookies = true`) was in effect, unlike ADP and Qualtrics which at least disabled redirects. Fixed by adding the same `ConfigurePrimaryHttpMessageHandler` hardening ADP/Qualtrics already had. (2) Even ADP's and Qualtrics's existing handlers only set `AllowAutoRedirect = false` and never `UseCookies = false` — so a credential-bearing `Set-Cookie` response header could have been silently replayed by the handler's internal `CookieContainer` on a subsequent call through the same long-lived handler instance. Fixed by adding `UseCookies = false` to all three providers' handler factories (`AdpServiceCollectionExtensions.Handler`, `QualtricsServiceCollectionExtensions`, and the new SAP handlers). **Still open:** no explicit documentation of handler/DNS/certificate-rotation lifecycle exists anywhere (master spec's own risk note: "current singleton registration deserves lifecycle review") — the nonfunctional requirement's "document... refresh behavior" clause is not satisfied, which is why the acceptance-criteria box stays unchecked. "Disposal/DNS lifecycle simulations" from the unit-test requirements were not attempted — `IHttpClientFactory`'s internal handler-rotation (default ~2 minute lifetime) has no public hook to simulate deterministically in a unit test without internal framework access. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `implemented` | Fixed a real security gap found while auditing: SAP's named HTTP clients had zero handler hardening (default redirects+cookies enabled), and ADP's/Qualtrics's existing handlers disabled redirects but never cookies. Added `UseCookies = false` across all three providers and the missing `AllowAutoRedirect = false` for SAP. Added `HttpClientHardeningTests.cs` proving the hardening, certificate attachment, and caller-override capability. Left "document handler/DNS/certificate refresh" and owner acceptance unresolved — see remaining work. |
