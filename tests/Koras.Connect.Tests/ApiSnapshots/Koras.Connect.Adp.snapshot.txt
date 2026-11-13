@@ -79,6 +79,7 @@ sealed class Koras.Connect.Adp.AdpOperationsClient
   method System.Threading.Tasks.Task<Koras.Connect.Transport.IntegrationJsonResponse> ReadNotificationAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> ReadSpendingAccountEnrollmentsAsync(System.String associateOid, System.DateOnly effectiveDate, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitChangeManagerAsync(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitChangePayDataInputAsync(System.String associateOid, System.String payGroupId, System.Text.Json.JsonElement payDataInput, System.Boolean explicitPayrollWriteOptIn, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitEventAsync(Koras.Connect.Adp.AdpOperation operation, System.Text.Json.JsonElement envelope, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitModifyDepartmentAllocationsAsync(System.String associateOid, System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.OrganizationDepartment> departments, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitTerminateAssignmentAsync(System.String associateOid, System.String workAssignmentItemId, System.DateOnly terminationDate, Koras.Connect.Adp.Workers.CodeValue reasonCode = null, System.Threading.CancellationToken cancellationToken = null)
@@ -156,6 +157,8 @@ sealed class Koras.Connect.Adp.Workers.AdpWorkersOptions
   method System.Void Validate()
 abstract class Koras.Connect.Adp.Workers.ChangeManagerCommand
   method System.Text.Json.JsonElement Build(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager)
+abstract class Koras.Connect.Adp.Workers.ChangePayDataInputCommand
+  method System.Text.Json.JsonElement Build(System.String associateOid, System.String payGroupId, System.Text.Json.JsonElement payDataInput, System.Boolean explicitPayrollWriteOptIn)
 sealed class Koras.Connect.Adp.Workers.CodeValue
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}

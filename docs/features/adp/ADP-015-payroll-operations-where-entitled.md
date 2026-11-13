@@ -6,8 +6,8 @@ priority: "P1"
 phase: "P3 extension"
 status: "partial"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -46,16 +46,16 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 
 - [ ] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "explicit opt-in gating + typed command for ChangePayDataInput" gap by adding `ChangePayDataInputCommand` (`src/Koras.Connect.Adp/Workers/AdpWriteCommands.cs`). Unlike ADP-013/014's typed commands, this one deliberately does NOT model `payDataInput`'s field-level shape (the matrix's "Payroll input" row documents only the surrounding envelope, not earnings/amount field names) — the caller supplies `payDataInput` as an opaque, pre-built `JsonElement` that is passed through byte-for-byte, and the command additionally requires an explicit `explicitPayrollWriteOptIn: true` on every call (distinct from, and in addition to, `AdpEntitlementTracker`'s tenant-grant gating), since a payroll write moves real money. Wired as `AdpOperationsClient.SubmitChangePayDataInputAsync`. Tests added to `tests/Koras.Connect.Tests/AdpWriteCommandTests.cs`: exact envelope shape, exact decimal-precision preservation (`1234.500` survives rather than being renormalized through a `double`), explicit `null` fields inside `payDataInput` preserved, the opt-in requirement enforced (`InvalidOperationException` when `false`), missing associate OID/pay group id rejected locally, non-object `payDataInput` rejected locally, and the convenience method wiring the built envelope through unmodified. Full suite: 459 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No typed command exists for Hire/Rehire/ChangePersonalEmail (see ADP-014). The "payGroupID" field name itself remains an unverified best-effort placement (documented in the type's own doc comment) since the matrix does not cite an exact field name for payroll group/job identification; broader payroll APIs (instructions/distributions writes) remain unsupported by design. Licensed payroll subscription and safe sandbox write authorization remain unavailable (see external blockers above). |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `partial` | Added `ChangePayDataInputCommand`/`AdpOperationsClient.SubmitChangePayDataInputAsync` with an explicit payroll-write opt-in requirement and exact-precision pass-through of caller-supplied `payDataInput` content. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates. Remains `partial`: the payroll-group field name is an unverified placement, and no live tenant/sandbox evidence exists. `verification` moved from `unverified` to `partial`. |

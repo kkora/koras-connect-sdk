@@ -124,6 +124,15 @@ public sealed class AdpOperationsClient
         CodeValue? reasonCode = null, CancellationToken cancellationToken = default)
         => SubmitEventAsync(AdpOperation.TerminateAssignment, TerminateAssignmentCommand.Build(associateOid, workAssignmentItemId, terminationDate, reasonCode), cancellationToken);
 
+    /// <summary>Convenience submission for <see cref="AdpOperation.ChangePayDataInput"/> (ADP-015): builds the
+    /// envelope's surrounding structure via <see cref="ChangePayDataInputCommand.Build"/> (which requires an
+    /// explicit, unmistakable payroll-write opt-in and rejects a missing subject/payroll-group identity or
+    /// non-object <paramref name="payDataInput"/> locally, before any HTTP call) and submits it through
+    /// <see cref="SubmitEventAsync"/>.</summary>
+    public Task<JsonDocument> SubmitChangePayDataInputAsync(string associateOid, string payGroupId, JsonElement payDataInput,
+        bool explicitPayrollWriteOptIn, CancellationToken cancellationToken = default)
+        => SubmitEventAsync(AdpOperation.ChangePayDataInput, ChangePayDataInputCommand.Build(associateOid, payGroupId, payDataInput, explicitPayrollWriteOptIn), cancellationToken);
+
     public Task<JsonDocument> ReadSpendingAccountEnrollmentsAsync(string associateOid, DateOnly effectiveDate, CancellationToken cancellationToken = default)
     {
         var c = Contract(AdpOperation.SpendingAccountEnrollments);

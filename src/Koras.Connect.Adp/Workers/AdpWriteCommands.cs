@@ -135,3 +135,54 @@ public static class TerminateAssignmentCommand
         return JsonSerializer.SerializeToElement(envelope);
     }
 }
+
+/// <summary>Builds the <see cref="AdpOperation.ChangePayDataInput"/> event envelope's surrounding structure only
+/// (ADP-015). Unlike <see cref="ChangeManagerCommand"/>/<see cref="ModifyDepartmentAllocationsCommand"/>/
+/// <see cref="TerminateAssignmentCommand"/>, this SDK does NOT model <c>payDataInput</c>'s field-level shape: the
+/// matrix row for this write ("Payroll input ... events[].data.eventContext worker payroll group/job ID and
+/// transform payDataInput ... S2/S8; licensed payroll input grant; valid open payroll batch" in
+/// <c>docs/features/ADP-FEATURE-MATRIX.md</c>) documents only that the envelope carries a payroll-group/job
+/// identifier in <c>eventContext</c> and a <c>payDataInput</c> object in <c>transform</c>, not the actual
+/// earnings/amount fields a tenant's open payroll batch requires &#8212; inventing those would risk moving real
+/// money against a guessed schema. The caller supplies <c>payDataInput</c> content as an opaque, already-built
+/// <see cref="JsonElement"/> (confirmed against <see cref="AdpOperationsClient.GetMetadataAsync"/>/tenant
+/// documentation before calling this method), which this command passes through byte-for-byte &#8212; preserving
+/// exact decimal/currency representation, since it is never reparsed as a number. The payroll-group identifier's
+/// exact field name (<c>payGroupID</c>) is this SDK's best-effort placement for the matrix's "payroll group/job
+/// ID" phrase, not an independently confirmed field name, matching the same caveat posture already used for
+/// <c>PayrollInstruction</c>/<c>PayDistribution</c> in <c>PayrollModels.cs</c>.</summary>
+public static class ChangePayDataInputCommand
+{
+    /// <summary>Builds the submit-ready envelope for <see cref="AdpOperationsClient.SubmitEventAsync"/>. Throws
+    /// <see cref="ArgumentException"/> locally &#8212; before any HTTP call is attempted &#8212; when the subject
+    /// worker's associate OID or payroll group id is missing, or <paramref name="payDataInput"/> is not a JSON
+    /// object. Throws <see cref="InvalidOperationException"/> unless <paramref name="explicitPayrollWriteOptIn"/>
+    /// is <c>true</c>: a payroll write moves real money, so this command refuses to build an envelope for one
+    /// without an unmistakable, explicit caller acknowledgement on every call, distinct from (and in addition to)
+    /// <see cref="AdpEntitlementTracker"/>'s tenant-grant gating.</summary>
+    public static JsonElement Build(string associateOid, string payGroupId, JsonElement payDataInput, bool explicitPayrollWriteOptIn)
+    {
+        if (!explicitPayrollWriteOptIn)
+            throw new InvalidOperationException("Payroll writes move real money; explicitPayrollWriteOptIn must be true to build this envelope.");
+        if (string.IsNullOrWhiteSpace(associateOid)) throw new ArgumentException("The subject worker's associate OID is required.", nameof(associateOid));
+        if (string.IsNullOrWhiteSpace(payGroupId)) throw new ArgumentException("The payroll group/job id is required.", nameof(payGroupId));
+        if (payDataInput.ValueKind != JsonValueKind.Object)
+            throw new ArgumentException("payDataInput content must be a JSON object; confirm its shape against tenant metadata before calling this method.", nameof(payDataInput));
+
+        var envelope = new
+        {
+            events = new object[]
+            {
+                new
+                {
+                    data = new
+                    {
+                        eventContext = new { worker = new { associateOID = associateOid }, payGroupID = payGroupId },
+                        transform = new { payDataInput }
+                    }
+                }
+            }
+        };
+        return JsonSerializer.SerializeToElement(envelope);
+    }
+}

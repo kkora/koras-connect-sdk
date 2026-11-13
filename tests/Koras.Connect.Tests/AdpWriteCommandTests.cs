@@ -125,14 +125,95 @@ public sealed class AdpWriteCommandTests
     }
 
     [Fact]
+    public void ChangePayDataInputCommandBuildProducesTheExactDocumentedEnvelopeShape()
+    {
+        using var payDataInput = JsonDocument.Parse("""{"earningsCode":{"codeValue":"REG"},"amount":1234.56}""");
+
+        var envelope = ChangePayDataInputCommand.Build("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: true);
+
+        var context = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("eventContext");
+        Assert.Equal("W1", context.GetProperty("worker").GetProperty("associateOID").GetString());
+        Assert.Equal("PG1", context.GetProperty("payGroupID").GetString());
+        var transform = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("transform").GetProperty("payDataInput");
+        Assert.Equal("REG", transform.GetProperty("earningsCode").GetProperty("codeValue").GetString());
+    }
+
+    [Fact]
+    public void ChangePayDataInputCommandBuildPreservesExactDecimalPrecisionRatherThanRoundTrippingThroughADouble()
+    {
+        // 1234.5 and 1234.50 are numerically equal as a double, but this command must never reparse payDataInput
+        // as a number - the exact textual representation the caller supplied must survive untouched.
+        using var payDataInput = JsonDocument.Parse("""{"amount":1234.500}""");
+        var envelope = ChangePayDataInputCommand.Build("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: true);
+        var transform = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("transform").GetProperty("payDataInput");
+        Assert.Equal("1234.500", transform.GetProperty("amount").GetRawText());
+    }
+
+    [Fact]
+    public void ChangePayDataInputCommandBuildPreservesExplicitNullFieldsInsidePayDataInput()
+    {
+        using var payDataInput = JsonDocument.Parse("""{"amount":100,"overrideReasonCode":null}""");
+        var envelope = ChangePayDataInputCommand.Build("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: true);
+        var transform = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("transform").GetProperty("payDataInput");
+        Assert.True(transform.TryGetProperty("overrideReasonCode", out var reason));
+        Assert.Equal(JsonValueKind.Null, reason.ValueKind);
+    }
+
+    [Fact]
+    public void ChangePayDataInputCommandBuildRequiresExplicitPayrollWriteOptIn()
+    {
+        using var payDataInput = JsonDocument.Parse("""{"amount":100}""");
+        Assert.Throws<InvalidOperationException>(() => ChangePayDataInputCommand.Build("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: false));
+    }
+
+    [Theory]
+    [InlineData(null, "PG1")]
+    [InlineData("", "PG1")]
+    [InlineData("W1", null)]
+    [InlineData("W1", "")]
+    public void ChangePayDataInputCommandBuildRejectsAMissingIdentityLocally(string? associateOid, string? payGroupId)
+    {
+        using var payDataInput = JsonDocument.Parse("""{"amount":100}""");
+        Assert.Throws<ArgumentException>(() => ChangePayDataInputCommand.Build(associateOid!, payGroupId!, payDataInput.RootElement, explicitPayrollWriteOptIn: true));
+    }
+
+    [Fact]
+    public void ChangePayDataInputCommandBuildRejectsNonObjectPayDataInput()
+    {
+        using var payDataInput = JsonDocument.Parse("123");
+        Assert.Throws<ArgumentException>(() => ChangePayDataInputCommand.Build("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: true));
+    }
+
+    [Fact]
+    public async Task SubmitChangePayDataInputAsyncWiresTheBuiltEnvelopeThroughSubmitEventAsync()
+    {
+        JsonElement? sentBody = null;
+        using var http = new HttpClient(new Handler(r =>
+        {
+            sentBody = JsonDocument.Parse(r.Content!.ReadAsStringAsync().GetAwaiter().GetResult()).RootElement.Clone();
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") };
+        }));
+        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"), [AdpOperation.ChangePayDataInput]);
+        using var payDataInput = JsonDocument.Parse("""{"amount":100}""");
+
+        using var result = await client.SubmitChangePayDataInputAsync("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: true);
+
+        Assert.NotNull(sentBody);
+        Assert.Equal("PG1", sentBody!.Value.GetProperty("events")[0].GetProperty("data").GetProperty("eventContext").GetProperty("payGroupID").GetString());
+    }
+
+    [Fact]
     public async Task LocalValidationFailuresNeverReachTheNetwork()
     {
         using var http = new HttpClient(new Handler(_ => throw new InvalidOperationException("The transport must never be invoked for a locally-rejected command.")));
-        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"), [AdpOperation.ChangeManager, AdpOperation.ModifyDepartmentAllocations, AdpOperation.TerminateAssignment]);
+        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"),
+            [AdpOperation.ChangeManager, AdpOperation.ModifyDepartmentAllocations, AdpOperation.TerminateAssignment, AdpOperation.ChangePayDataInput]);
 
         await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitChangeManagerAsync("", new ManagerRelationship { WorkerId = new Identifier { Value = "M1" } }));
         await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitModifyDepartmentAllocationsAsync("W1", Array.Empty<OrganizationDepartment>()));
         await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitTerminateAssignmentAsync("W1", "", new DateOnly(2026, 6, 30)));
+        using var payDataInput = JsonDocument.Parse("""{"amount":100}""");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SubmitChangePayDataInputAsync("W1", "PG1", payDataInput.RootElement, explicitPayrollWriteOptIn: false));
     }
 
     [Fact]
