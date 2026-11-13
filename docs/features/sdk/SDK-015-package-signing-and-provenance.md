@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Remaining work / blockers | **Genuinely blocked on real-world authorization, not an engineering gap.** This ticket's own external-blocker field states "Approved signing identity, key custody and trust policy pending; procurement/public publication separately authorized [M3]" — package signing requires an actual code-signing certificate/identity that must be procured and approved by the package owner. `docs/decisions/APPROVAL-GATES.md` explicitly states "Public package publishing, paid services, deployments ... are not authorized by this assignment," which covers acquiring/provisioning a signing identity. No engineering work (writing a verifier against disposable test certificates, wiring `dotnet nuget sign`/timestamp authority calls into `release.yml`) was attempted, since doing so without an approved trust policy to design against would mean inventing policy decisions (key rotation cadence, timestamp authority choice, trust anchor) that are the package owner's to make, not mine. Following up: implement once an approved signing identity/trust policy exists. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `not-started` | Audited and confirmed this ticket is blocked on real-world procurement/authorization (signing identity, key custody, trust policy), not an engineering gap — covered by `APPROVAL-GATES.md`'s publishing/paid-service restriction. No implementation attempted; status intentionally left `not-started`. Logged as a followup for whoever has signing-identity authorization. Moving to the next SDK ticket per the agreed sequencing. |
