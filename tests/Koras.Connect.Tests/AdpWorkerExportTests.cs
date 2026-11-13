@@ -27,7 +27,7 @@ public sealed class AdpWorkerExportTests
     }
 
     /// <summary>Column-restricted JSON export composed here, in the consuming (test) layer, from
-    /// <see cref="WorkerExportProjection.CreateSchema"/> plus <see cref="TabularExport"/> &#8212; the
+    /// <see cref="WorkerExportProjection.CreateSchema(DateOnly?)"/> plus <see cref="TabularExport"/> &#8212; the
     /// Koras.Connect.Adp package itself does not depend on Koras.Connect.Export (master spec section 7: "ADP does
     /// not require Export transitively"), so this composition lives at the call site instead of inside the package.</summary>
     private static async Task ExportWorkersAsRestrictedJsonAsync(Stream destination, IAsyncEnumerable<Worker> workers,
@@ -115,6 +115,28 @@ public sealed class AdpWorkerExportTests
         Assert.DoesNotContain("futureField", cellValues);
         Assert.DoesNotContain("secret-not-exported", cellValues);
     }
+
+    [Fact]
+    public async Task OptInColumnSelectionExportsOnlyTheRequestedFieldsInCanonicalOrder()
+    {
+        var workers = ToAsync([Worker("w1")]);
+        using var output = new MemoryStream();
+        await WorkerExportProjection.ExportAsync(new CsvExportProvider(), output, workers, ["JobTitle", "AssociateOid"]);
+
+        var header = Encoding.UTF8.GetString(output.ToArray()).Split('\n')[0].TrimEnd('\r');
+        Assert.Equal("\"AssociateOid\",\"JobTitle\"", header); // canonical order, not request order
+    }
+
+    [Fact]
+    public void SelectingAnUnapprovedColumnNameIsRejectedRatherThanSilentlyIgnored()
+    {
+        var ex = Assert.Throws<ArgumentException>(() => WorkerExportProjection.CreateSchema(["AssociateOid", "Ssn"]));
+        Assert.Contains("Ssn", ex.Message);
+    }
+
+    [Fact]
+    public void EmptyColumnSelectionIsRejected()
+        => Assert.Throws<ArgumentException>(() => WorkerExportProjection.CreateSchema([]));
 
     [Fact]
     public async Task StreamingExportStopsPromptlyOnCancellationMidSequence()

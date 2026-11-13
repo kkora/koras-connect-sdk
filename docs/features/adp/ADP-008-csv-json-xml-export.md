@@ -4,10 +4,10 @@ title: "CSV/JSON/XML export"
 category: "adp"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
 | Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpWorkerExportTests`) |
-| Remaining work / blockers | Column set is fixed/unversioned (no per-tenant field-selection profile yet); no official schema evidence attached for the exported fields. |
+| Remaining work / blockers | No further engineering gap identified. No official schema evidence attached for the exported fields. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Added `Koras.Connect.Adp.Export.WorkerExportProjection` (`src/Koras.Connect.Adp/Export/WorkerExportProjection.cs`) composing `AdpWorkersClient.EnumerateTypedWorkersAsync` with the new SDK-wide `Koras.Connect.Export.ExportSchema<Worker>`/`IExportProvider`, streaming CSV/JSON/XML directly without buffering the whole population. The documented, fixed column set (`AssociateOid`, `GivenName`, `FamilyName`, `JobTitle`, `HireDate`, `TerminationDate`) excludes SSN/compensation fields and never surfaces `Worker.AdditionalData`; added `ExportJsonAsync` specifically because the generic `JsonExportProvider` serializes the raw record type (and would otherwise leak extension data), while CSV/XML/XLSX already honor the schema. Tests in `tests/Koras.Connect.Tests/AdpWorkerExportTests.cs`: `CsvExportIncludesOnlyTheDocumentedColumnsAndExcludesExtensionData`, a combined XML/column-restricted-JSON/XLSX completion test, and `StreamingExportStopsPromptlyOnCancellationMidSequence`. Kept at `implemented` rather than fully accepted because the column set has no official schema citation and has not been validated against a live tenant. |
+| 2026-11-13 | `implemented` | Closed the "column set is fixed/unversioned" gap: added an opt-in field-selection overload of `CreateSchema`/`ExportAsync` taking an `includeColumns` subset of `ColumnNames` (for a tenant authorized for fewer fields than the full documented set), always rendered in the fixed canonical column order regardless of request order, and rejecting any name outside `ColumnNames` with an `ArgumentException` rather than silently dropping it. Added `OptInColumnSelectionExportsOnlyTheRequestedFieldsInCanonicalOrder`, `SelectingAnUnapprovedColumnNameIsRejectedRatherThanSilentlyIgnored` and `EmptyColumnSelectionIsRejected`; updated two ambiguous `<see cref="WorkerExportProjection.CreateSchema"/>` doc-comment references (now resolved to the `DateOnly?` overload) and `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the two new public overloads. Full suite: 366 passed, 3 skipped, 0 failed. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates. `verification` moved from `unverified` to `partial`: no official schema evidence is available to close the remaining gate. |

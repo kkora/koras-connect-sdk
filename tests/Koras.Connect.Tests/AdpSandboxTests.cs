@@ -116,7 +116,7 @@ public sealed class AdpSandboxTests
     /// <summary>Opt-in, single-worker, read-only sandbox check that additionally demonstrates
     /// <see cref="WorkerExportProjection"/>: the same one authorized GET as
     /// <see cref="SingleWorkerReadIsAuthorizedAndReturnsExpectedOid"/>, then streamed through
-    /// <see cref="CsvExportProvider"/> and <see cref="WorkerExportProjection.CreateSchema"/> so only the documented,
+    /// <see cref="CsvExportProvider"/> and <see cref="WorkerExportProjection.CreateSchema(DateOnly?)"/> so only the documented,
     /// non-sensitive column set (associate OID, given/family name, job title, hire/termination date &#8212; never
     /// SSN, other government identifiers, compensation, or the raw vendor extension-data bag) is written, to a file
     /// outside the repository (<see cref="Path.GetTempPath"/>) rather than committed anywhere. No second network
