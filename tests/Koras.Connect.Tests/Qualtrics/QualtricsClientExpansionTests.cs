@@ -60,6 +60,20 @@ public sealed class QualtricsClientExpansionTests
         var c=QualtricsClient.Create(h,new Token(),new(QualtricsRoot));await Assert.ThrowsAsync<InvalidDataException>(async()=>{await foreach(var s in c.EnumerateSurveysAsync()) { }});Assert.Equal(1,calls);
         await Assert.ThrowsAsync<ArgumentException>(()=>c.StartResponseExportAsync("SV_synthetic",new("invalid")));Assert.Equal(1,calls);
     }
+    [Fact] public async Task DownloadInterruptedMidStreamPreservesPartialBytesAndLeavesTheOutputStreamOpen()
+    {
+        // QLT-003: a connection drop partway through a successful (200 OK) download is a different failure mode
+        // than an HTTP error status - it must never be miscategorized as a QualtricsApiException (that catch only
+        // ever fires for a failing response status, which this never has), and the bytes already streamed to the
+        // caller's output before the drop must survive untouched so a caller can inspect/discard/resume, not have
+        // this SDK silently truncate or wipe them.
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new PartialThenFailingContent()})));
+        var c=QualtricsClient.Create(h,new Token(),new(QualtricsRoot));using var output=new MemoryStream();
+        // HttpClient wraps the stream failure as HttpRequestException with the original IOException as InnerException.
+        var error=await Assert.ThrowsAsync<HttpRequestException>(()=>c.DownloadExportAsync("SV_synthetic","file",output));
+        Assert.IsType<IOException>(error.InnerException);
+        Assert.Equal(new byte[]{1,2,3},output.ToArray());Assert.True(output.CanWrite);
+    }
     [Fact] public async Task DownloadFailuresDoNotWriteProviderErrorsToOutput()
     {
         // QLT-005: DownloadExportAsync is now classified like the other single-resource reads (GetSurveyAsync,
@@ -70,5 +84,17 @@ public sealed class QualtricsClientExpansionTests
         var c=QualtricsClient.Create(h,new Token(),new(QualtricsRoot));using var output=new MemoryStream();
         var error=await Assert.ThrowsAsync<QualtricsApiException>(()=>c.DownloadExportAsync("SV_synthetic","file",output));
         Assert.Equal(HttpStatusCode.Forbidden,error.StatusCode);Assert.Equal(0,output.Length);Assert.DoesNotContain("private-response",error.ToString());
+    }
+
+    /// <summary>Simulates a connection that writes a few real bytes, then drops - for proving a mid-stream
+    /// download failure preserves whatever was already written rather than silently truncating it.</summary>
+    private sealed class PartialThenFailingContent : HttpContent
+    {
+        protected override async Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            await stream.WriteAsync(new byte[] { 1, 2, 3 });
+            throw new IOException("Simulated connection drop mid-stream.");
+        }
+        protected override bool TryComputeLength(out long length) { length = 0; return false; }
     }
 }

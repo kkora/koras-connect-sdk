@@ -4,10 +4,10 @@ title: "Response export APIs"
 category: "qualtrics"
 priority: "P0"
 phase: "P6"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "partial bytes" unit-test-requirement gap by adding `DownloadInterruptedMidStreamPreservesPartialBytesAndLeavesTheOutputStreamOpen` to `tests/Koras.Connect.Tests/Qualtrics/QualtricsClientExpansionTests.cs`. Uses a custom `HttpContent` (`PartialThenFailingContent`) that writes 3 real bytes then throws `IOException`, simulating a connection drop partway through an otherwise-successful (200 OK) download. Asserts: (1) the failure surfaces as `HttpRequestException` with the original `IOException` as `InnerException` — a different failure mode than an HTTP error status, so it is never miscategorized as `QualtricsApiException`; (2) the 3 bytes already streamed to the caller's output survive untouched (no silent truncation/rollback); (3) the output stream remains open/writable afterward, matching the existing "stream stays open" assertion style already used for the happy-path export test. Full suite: 472 passed, 3 skipped, 0 failed (one unrelated pre-existing `ResiliencePolicyTests` timing flake observed and reconfirmed non-reproducing on rerun). |
+| Remaining work / blockers | No further engineering gap identified. Response permission, current export constraints/filters and account limits remain external blockers (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `DownloadInterruptedMidStreamPreservesPartialBytesAndLeavesTheOutputStreamOpen`, closing the "partial bytes" unit-test-requirement gap. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live response-permission/export-constraint evidence remains a standing external blocker. |
