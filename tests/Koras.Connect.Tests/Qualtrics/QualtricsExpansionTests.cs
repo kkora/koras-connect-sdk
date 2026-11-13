@@ -253,6 +253,28 @@ public sealed class QualtricsExpansionTests
         await Assert.ThrowsAsync<ArgumentException>(() => c.ListContactsPageAsync("DIR_1", page.Next));
     }
 
+    [Fact]
+    public async Task ResumingAnExpiredCursorSurfacesTheRawProviderStatusWithoutRetryingOrHanging()
+    {
+        // QLT-004 "expired cursor": a well-formed, same-query continuation whose underlying cursor the provider has
+        // since expired is a pagination failure, not a single-resource read - it must stay pinned to the raw
+        // IntegrationRequestException contract (matching the read-vs-write/pagination split already established for
+        // QLT-005/ADP-010), never silently retried and never miscategorized as a QualtricsApiException.
+        var calls = 0;
+        using var h = new HttpClient(new Handler((r, ct) =>
+        {
+            calls++;
+            return Task.FromResult(calls == 1
+                ? Json("""{"result":{"elements":[{"id":"SV_one"}],"nextPage":"https://qualtrics.test/API/v3/surveys?offset=expired-cursor"}}""")
+                : Json("expired-cursor-detail", HttpStatusCode.BadRequest));
+        }));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var page = await c.ListSurveysPageAsync();
+        var error = await Assert.ThrowsAsync<IntegrationRequestException>(() => c.ListSurveysPageAsync(page.Next));
+        Assert.Equal(HttpStatusCode.BadRequest, error.ResponseStatus);
+        Assert.Equal(2, calls);
+    }
+
     // ---------- QLT-013: bounded concurrency / throttle ----------
 
     [Fact]

@@ -4,10 +4,10 @@ title: "Pagination and transport resilience"
 category: "qualtrics"
 priority: "P0"
 phase: "P6"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "expired cursor" unit-test-requirement gap by adding `ResumingAnExpiredCursorSurfacesTheRawProviderStatusWithoutRetryingOrHanging` to `tests/Koras.Connect.Tests/Qualtrics/QualtricsExpansionTests.cs`. Fetches a first page (valid, same-query continuation), then resumes it against a server that now answers the follow-up GET with `400 Bad Request` - simulating a cursor the provider has since expired. Asserts the failure surfaces as the raw `IntegrationRequestException` with `ResponseStatus == BadRequest`, never retried (exactly 2 calls total) and never miscategorized as `QualtricsApiException`, matching the pagination-stays-raw split already established for QLT-005/ADP-010. Full suite: 474 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Current per-family cursor/limit/expiration schemas against a live tenant remain an external blocker (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Extracted the previously-inlined cycle/bound-guard pagination loop into a reusable internal engine (`src/Koras.Connect.Qualtrics/QualtricsPaging.cs`: `EnumerateAsync`, `FetchPageAsync`, `ResolveResume`), now shared by `EnumerateSurveysAsync` and the new contacts/mailing-list list methods. Added a `Page<T>`/`ContinuationToken` (`Koras.Connect.Abstractions`) adapter (`QualtricsClient.ListSurveysPageAsync`, `ListContactsPageAsync`) so a caller can pause and resume instead of only re-iterating from scratch; a continuation is rejected if replayed against a different query (`QualtricsPaging.ResolveResume`). Covered by `tests/Koras.Connect.Tests/QualtricsExpansionTests.cs` (`EmptyPageWithValidNextLinkContinuesToTheNextPage`, `EnumerateSurveysCycleAndBoundsStillEnforcedAfterPagingExtraction`, `SharedPagingHelperRejectsOffOriginLinkForContactsFamilyToo`, `ListSurveysPageAsyncSupportsPauseAndResumeWithoutRefetchingTheFirstPage`, `ContactsContinuationCannotBeReplayedAgainstTheSurveysEndpoint`). No universal provider-wide offset assumption was introduced; each family still supplies its own start address. `dotnet build`/`dotnet test` passing as of this revision. |
+| 2026-11-13 | `implemented` | Added `ResumingAnExpiredCursorSurfacesTheRawProviderStatusWithoutRetryingOrHanging`, closing the "expired cursor" unit-test-requirement gap. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live per-family cursor/limit/expiration schemas remain a standing external blocker. |
