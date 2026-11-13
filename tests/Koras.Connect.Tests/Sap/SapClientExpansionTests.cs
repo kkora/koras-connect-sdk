@@ -81,6 +81,30 @@ public sealed class SapClientExpansionTests
         using var bad=JsonDocument.Parse("""{"__metadata":{"uri":"User"}}""");
         await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertAsync("PerPerson",[bad.RootElement],true));Assert.Equal(1,calls);
     }
+    [Fact] public async Task EnumerateAsyncRejectsUnsafeEntityNameBeforeAnyHttpCall()
+    {
+        // SAP-002 "unsafe entity name": ValidateEntity must reject anything that isn't a plain metadata entity-set
+        // name before any request is sent - never attempt to percent-encode or otherwise "sanitize" a hostile
+        // entity string into the URI.
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"d":{"results":[]}}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await Assert.ThrowsAsync<ArgumentException>(async()=>{await foreach(var p in c.EnumerateAsync<PerPerson>("Per Person; DROP TABLE")) { }});
+        Assert.Equal(0,calls);
+    }
+
+    [Theory]
+    [InlineData("""{"notD":{"results":[]}}""")]
+    [InlineData("""{"d":{"notResults":[]}}""")]
+    [InlineData("""{"d":"not-an-object"}""")]
+    public async Task EnumerateAsyncThrowsRatherThanSilentlyYieldingNothingOnAMalformedBody(string malformedBody)
+    {
+        // SAP-002 "malformed d.results": a response missing the documented "d"/"d.results" envelope shape must
+        // surface as a thrown exception, never as a silently-empty enumeration that looks identical to "no records".
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json(malformedBody))));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await Assert.ThrowsAnyAsync<Exception>(async()=>{await foreach(var p in c.EnumeratePersonsAsync()) { }});
+    }
+
     [Fact] public async Task SapMetadataUsesXmlAcceptAndRejectsExternalEntities()
     {
         using var h=new HttpClient(new Handler((r,ct)=>
