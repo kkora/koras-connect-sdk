@@ -57,16 +57,17 @@ sealed class Koras.Connect.Sap.SuccessFactors.ManagerAssignment
   method System.Int32 GetHashCode()
   method System.String ToString()
 sealed class Koras.Connect.Sap.SuccessFactors.ODataQuery
-  ctor(System.String Filter = null, System.String Select = null, System.String Expand = null, System.Nullable<System.DateOnly> AsOfDate = null, System.Nullable<System.DateOnly> FromDate = null, System.Nullable<System.DateOnly> ToDate = null, System.String Paging = null)
+  ctor(System.String Filter = null, System.String Select = null, System.String Expand = null, System.Nullable<System.DateOnly> AsOfDate = null, System.Nullable<System.DateOnly> FromDate = null, System.Nullable<System.DateOnly> ToDate = null, System.String Paging = null, System.String OrderBy = null)
   property System.Nullable<System.DateOnly> AsOfDate {get+init}
   property System.String Expand {get+init}
   property System.String Filter {get+init}
   property System.Nullable<System.DateOnly> FromDate {get+init}
+  property System.String OrderBy {get+init}
   property System.String Paging {get+init}
   property System.String Select {get+init}
   property System.Nullable<System.DateOnly> ToDate {get+init}
   method Koras.Connect.Sap.SuccessFactors.ODataQuery <Clone>$()
-  method System.Void Deconstruct(System.String& Filter, System.String& Select, System.String& Expand, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& AsOfDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& FromDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ToDate, System.String& Paging)
+  method System.Void Deconstruct(System.String& Filter, System.String& Select, System.String& Expand, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& AsOfDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& FromDate, System.Nullable`1[[System.DateOnly, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ToDate, System.String& Paging, System.String& OrderBy)
   method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.ODataQuery other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()

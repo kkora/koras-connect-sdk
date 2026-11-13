@@ -5,8 +5,13 @@ using Koras.Connect.Transport;
 namespace Koras.Connect.Sap.SuccessFactors;
 
 public sealed record SuccessFactorsOptions(Uri ODataRoot, int PageSize = 100, int MaxPages = 10000);
+/// <summary><paramref name="OrderBy"/> is the raw, documented OData V2 <c>$orderby</c> expression (for example
+/// <c>"username"</c> or <c>"username desc"</c>); per the official SAP SuccessFactors API Reference Guide (2H 2026),
+/// section 6.3.5.3.2.1 "Cursor-based Pagination", <c>$orderby</c> is not supported with cursor-based pagination
+/// (<see cref="Paging"/> = <c>"cursor"</c>) and the server returns an error if attempted - this type rejects that
+/// combination locally before any request is sent rather than forwarding it.</summary>
 public sealed record ODataQuery(string? Filter = null, string? Select = null, string? Expand = null,
-    DateOnly? AsOfDate = null, DateOnly? FromDate = null, DateOnly? ToDate = null, string? Paging = null)
+    DateOnly? AsOfDate = null, DateOnly? FromDate = null, DateOnly? ToDate = null, string? Paging = null, string? OrderBy = null)
 {
     public override string ToString() => "ODataQuery { values=[REDACTED] }";
 }
@@ -119,9 +124,11 @@ public sealed partial class SuccessFactorsClient
         if (query.AsOfDate is not null && (query.FromDate is not null || query.ToDate is not null) || query.FromDate > query.ToDate)
             throw new ArgumentException("Use asOfDate or a valid effective-date range.", nameof(query));
         if (query.Paging is not null && query.Paging is not ("snapshot" or "cursor")) throw new ArgumentException("Unsupported paging mode.", nameof(query));
+        if (query.Paging == "cursor" && query.OrderBy is not null)
+            throw new ArgumentException("$orderby is not supported with cursor-based pagination.", nameof(query));
         var parts = new List<string> { "$format=json", $"customPageSize={_options.PageSize}" };
         void Add(string name, string? value) { if (value is not null) parts.Add(name + "=" + Uri.EscapeDataString(value)); }
-        Add("$filter", query.Filter); Add("$select", query.Select); Add("$expand", query.Expand); Add("paging", query.Paging);
+        Add("$filter", query.Filter); Add("$select", query.Select); Add("$expand", query.Expand); Add("$orderby", query.OrderBy); Add("paging", query.Paging);
         Add("asOfDate", query.AsOfDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
         Add("fromDate", query.FromDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
         Add("toDate", query.ToDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));

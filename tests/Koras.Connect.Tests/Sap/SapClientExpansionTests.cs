@@ -54,6 +54,53 @@ public sealed class SapClientExpansionTests
         var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
         await Assert.ThrowsAsync<InvalidDataException>(async()=>{await foreach(var p in c.EnumeratePersonsAsync()) { }});
     }
+    [Fact] public async Task EmptyPageWithANonNullNextLinkStillFollowsItRatherThanTreatingItAsTerminal()
+    {
+        // SAP-004 "empty page with continuation": a page with zero results but a non-null __next must not be
+        // mistaken for the end of the data set - the OData standard's __next link is the sole terminal signal.
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>
+        {
+            calls++;
+            return Task.FromResult(calls==1
+                ? Json("""{"d":{"results":[],"__next":"https://sap.test/odata/v2/PerPerson?$format=json&$skiptoken=next"}}""")
+                : Json("""{"d":{"results":[{"personIdExternal":"after-empty-page"}]}}"""));
+        }));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        var people=new List<PerPerson>();
+        await foreach(var p in c.EnumeratePersonsAsync()) people.Add(p);
+        Assert.Equal("after-empty-page",Assert.Single(people).PersonIdExternal);Assert.Equal(2,calls);
+    }
+    [Theory]
+    [InlineData("snapshot")]
+    [InlineData("cursor")]
+    public async Task PagingModeIsForwardedVerbatimInTheQueryString(string mode)
+    {
+        using var h=new HttpClient(new Handler((r,ct)=>{Assert.Contains($"paging={mode}",r.RequestUri!.Query);return Task.FromResult(Json("""{"d":{"results":[]}}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await foreach(var p in c.EnumeratePersonsAsync(new(Paging:mode))) { }
+    }
+    [Fact] public async Task ConflictingAsOfAndEffectiveDateRangeIsRejectedLocallyBeforeAnyHttpCall()
+    {
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"d":{"results":[]}}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await Assert.ThrowsAsync<ArgumentException>(async()=>{await foreach(var p in c.EnumeratePersonsAsync(new(AsOfDate:new(2026,1,1),FromDate:new(2026,1,1)))) { }});
+        Assert.Equal(0,calls);
+    }
+    [Fact] public async Task OrderByIsForwardedVerbatimInTheQueryString()
+    {
+        using var h=new HttpClient(new Handler((r,ct)=>{Assert.Contains("$orderby=username%20desc",r.RequestUri!.Query);return Task.FromResult(Json("""{"d":{"results":[]}}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await foreach(var p in c.EnumeratePersonsAsync(new(OrderBy:"username desc"))) { }
+    }
+    [Fact] public async Task OrderByIsRejectedWithCursorBasedPaginationBeforeAnyHttpCall()
+    {
+        // Per the official SAP SuccessFactors API Reference Guide (2H 2026), section 6.3.5.3.2.1
+        // "Cursor-based Pagination": "$orderby cannot be used. An error will occur if it is attempted."
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"d":{"results":[]}}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        await Assert.ThrowsAsync<ArgumentException>(async()=>{await foreach(var p in c.EnumeratePersonsAsync(new(Paging:"cursor",OrderBy:"username"))) { }});
+        Assert.Equal(0,calls);
+    }
     [Fact] public async Task SapUpsertAddsMetadataAndReturnsRowFailuresAtHttp200WithoutLeakingMessages()
     {
         using var h=new HttpClient(new Handler(async(r,ct)=>
