@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P3"
 status: "implemented"
 baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -49,13 +49,13 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 - [x] Required unit, contract and integration checks pass at the recorded revision.
 - [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpConnectorTests`) |
-| Remaining work / blockers | `AdpConnector` has never run against a real tenant; the connectivity probe is caller-supplied, so no specific ADP endpoint has been validated as the canonical minimal probe. Not yet registered as the default `IConnector` for every `AddKorasAdp` overload's consumers to discover without reading the source (it is registered, but there is no documented "how to run this" sample beyond `AdpSampleWalkthroughTests`). |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpConnectorTests`). Closed the "no documented how-to-run doc" gap by adding `docs/features/adp/ADP-SAMPLES-AND-LIVE-SANDBOX-PREREQUISITES.md`, which documents the exact `dotnet run --project samples/ADP.ConnectionTest` command, what it demonstrates, and the live-sandbox prerequisites a maintainer would need to go beyond the offline scenarios. Re-ran `dotnet run --project samples/ADP.ConnectionTest` from a clean state to confirm its three scenarios (healthy pass, expired-certificate local rejection, authentication failure) still execute successfully offline before writing the doc. |
+| Remaining work / blockers | `AdpConnector` has never run against a real tenant; the connectivity probe is caller-supplied, so no specific ADP endpoint has been validated as the canonical minimal probe — this remains an external blocker (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Greenfield implementation: added `Koras.Connect.Adp.AdpConnector : Koras.Connect.Abstractions.IConnector` (`src/Koras.Connect.Adp/AdpConnector.cs`) with a staged `DiagnoseAsync`: Stage 1 (Configuration) validates credentials/workers options and certificate presence/validity-period locally with zero network calls; Stage 2 (Authentication) performs exactly one token acquisition; Stage 3 (Connectivity) invokes exactly one caller-injected `Func<CancellationToken, Task>` probe (no endpoint is hardcoded) and is reported `Skipped` rather than attempted when no probe is configured. Each stage stops the whole diagnosis on failure. Registered from both `AddKorasAdp` overloads in `src/Koras.Connect.Adp/AdpServiceCollectionExtensions.cs`, resolvable as `AdpConnector` or `IConnector`. Tests in `tests/Koras.Connect.Tests/AdpConnectorTests.cs` cover: expired certificate and missing credentials short-circuiting before any network call (asserted via a token source that throws if ever invoked); 401/403 at the authentication stage; a DNS/transport fault at authentication; cancellation mid-probe propagating as `OperationCanceledException` rather than being swallowed as a failure; a malformed probe response reported as a failed Connectivity stage; a full healthy 3-stage pass whose every non-OAuth-token request is asserted to be GET; and the `Skipped` (not `Failed`) outcome when no probe is configured. Kept at `implemented` rather than fully accepted: never exercised against a live ADP tenant. |
+| 2026-11-13 | `implemented` | Added `docs/features/adp/ADP-SAMPLES-AND-LIVE-SANDBOX-PREREQUISITES.md`, documenting how to run `samples/ADP.ConnectionTest` and what it demonstrates, closing this feature's own "no documented how-to-run doc" gap. Checked the documentation completion gate. `verification` moved from `unverified` to `partial`: live-tenant exercise remains the standing, unchanged external blocker. |
