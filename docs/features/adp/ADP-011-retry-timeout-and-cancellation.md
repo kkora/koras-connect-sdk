@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P3"
 status: "implemented"
 baseline_status: "Implemented but unverified"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "blocked"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
 | Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 183, Skipped 1, Failed 0, Total 184 (includes `AdpCredentialRotationTests.HangingTokenEndpointDoesNotBlockForeverEvenUnderAGenerousOuterCancellation`) |
-| Remaining work / blockers | No live-tenant verification of sandbox rate-limit behavior; the acquisition timeout is a local, bounded-time guarantee only. |
+| Remaining work / blockers | **Genuinely blocked on real-world access, not an engineering gap.** No live ADP sandbox tenant, credentials or certificate exist in this environment to observe real rate-limit/throttling behavior against; this ticket's own external-blocker field states "Sandbox rate behavior not verified; authorized live tests must avoid inducing damaging throttling or duplicate writes." The local, bounded-time guarantees (deadline/cancellation/no-write-retry) are fully implemented and tested; what remains is exclusively live-tenant observation, which requires authorized sandbox access this environment does not have. No further implementation attempted this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `implemented` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Wired `ClientCredentialsTokenSource`'s existing `acquisitionTimeout` constructor parameter through `AdpServiceCollectionExtensions.AddKorasAdp`/`AddKorasAdpWithRotatingCredentials` (default `TimeSpan.FromSeconds(30)`, overridable per registration) so the OAuth token endpoint has its own bounded deadline independent of `TransportOptions.RequestTimeout`. `src/Koras.Connect.Adp/AdpRotatingTokenSource.cs` forwards the same timeout to each inner `ClientCredentialsTokenSource` it creates. Added `tests/Koras.Connect.Tests/AdpCredentialRotationTests.HangingTokenEndpointDoesNotBlockForeverEvenUnderAGenerousOuterCancellation`, which proves a token endpoint that never responds still fails within its configured `acquisitionTimeout` (asserted under 5s) even though the caller passed a 10-minute outer `CancellationToken` that never fires. Still `implemented`/unverified: no live sandbox has exercised real ADP rate-limit or timeout behavior. |
+| 2026-11-13 | `implemented` | Audited this pass's options and confirmed the remaining gap (live sandbox rate-limit/throttling observation) is genuinely blocked on unavailable authorized tenant access, not an engineering gap — every local, bounded-time guarantee this feature requires is already implemented and tested. No further implementation attempted this pass. `verification` set to `blocked` (from `unverified`) to reflect this accurately. |
