@@ -65,6 +65,16 @@ sealed class Koras.Connect.Sap.SuccessFactors.FOLocation
   property System.Nullable<System.Text.Json.JsonElement> EffectiveStartDate {get+set}
   property System.String ExternalCode {get+set}
   property System.String Status {get+set}
+sealed class Koras.Connect.Sap.SuccessFactors.FoundationObjectParentLink
+  ctor(System.String ExternalCode, System.String ParentExternalCode)
+  property System.String ExternalCode {get+init}
+  property System.String ParentExternalCode {get+init}
+  method Koras.Connect.Sap.SuccessFactors.FoundationObjectParentLink <Clone>$()
+  method System.Void Deconstruct(System.String& ExternalCode, System.String& ParentExternalCode)
+  method System.Boolean Equals(Koras.Connect.Sap.SuccessFactors.FoundationObjectParentLink other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Sap.SuccessFactors.JobRecord
   ctor(System.String Key, System.String UserId, System.Int64 SequenceNumber, System.Nullable<System.DateTimeOffset> StartDate, System.String ManagerId, System.String Department, System.String Location, System.String JobTitle, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Extensions)
   property System.String Department {get+init}
@@ -162,6 +172,7 @@ sealed class Koras.Connect.Sap.SuccessFactors.SuccessFactorsClient
   method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> GetMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.EntityDescriptor> ParseEntityDescriptors(System.Xml.Linq.XDocument metadata)
   method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> RefreshMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.FoundationObjectParentLink>> ResolveDepartmentParentChainAsync(System.String externalCode, System.Int32 maxDepth = 10, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.ManagerAssignment>> ResolveManagerChainAsync(System.String userId, System.Int32 maxDepth = 10, System.Threading.CancellationToken cancellationToken = null)
   method Koras.Connect.Sap.SuccessFactors.ManagerAssignment ToManagerAssignment(Koras.Connect.Sap.SuccessFactors.EmpJob job)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Sap.SuccessFactors.UpsertResult>> UpsertAsync(System.String entity, System.Collections.Generic.IEnumerable<System.Text.Json.JsonElement> records, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)

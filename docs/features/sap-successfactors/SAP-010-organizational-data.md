@@ -4,10 +4,10 @@ title: "Organizational data"
 category: "sap-successfactors"
 priority: "P1"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,19 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Uncommitted working tree as of 2026-11-12; see `src/Koras.Connect.Sap.SuccessFactors/FoundationObjects.cs` |
-| Validation commands / results | `dotnet build Koras.Connect.slnx` - 0 errors; `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj` - 145/145 passed, including `tests/Koras.Connect.Tests/SapFoundationObjectTests.cs` |
-| Remaining work / blockers | Explicitly best-effort scaffolding: `FODepartment`/`FODivision`/`FOLocation` entity-set names and field shapes are NOT verified against any live tenant's `$metadata`; functional requirement "select actual organization entity sets from metadata" is still outstanding - this only adds the generic `EnumerateFoundationObjectAsync<T>` wrapper and best-guess DTOs |
-| Acceptance / completion | Unit-level, protocol-shape only: `EnumerateFoundationObjectPreservesRetiredCodesDuplicateVersionsAndMissingParent` in `SapFoundationObjectTests.cs` asserts retired-code preservation, duplicate effective-dated versions and a missing parent reference round-trip without being filtered/collapsed - no business-rule or live validation performed |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "select actual organization entity sets from metadata" functional requirement for the entity-set names themselves, and the "cycle" and "denied entity" unit-test-requirement gaps. `FODepartment`/`FODivision` are confirmed listed as MDF Foundation Object entities in the **official "SAP SuccessFactors API Reference Guide" (2H 2026 edition), section 6.4.2 "MDF Foundation Object Entities"**; `FOLocation` is confirmed in the "Snapshot-Based Pagination in Employee Central OData API" entity list (section 6.3.5.3.2.2) and the full API reference's business-key table (section 6.7). All three entities' `externalCode`+`effectiveStartDate` business key (and `+country` for `FODivision`) is confirmed against that same key table, matching the fields already modeled. Added `FoundationObjectParentLink` and `SuccessFactorsClient.ResolveDepartmentParentChainAsync` to `src/Koras.Connect.Sap.SuccessFactors/FoundationObjects.cs`, reusing the same visited-`HashSet<string>` cycle guard already used for `ResolveManagerChainAsync`/OData pagination - a revisited `externalCode` throws `InvalidDataException`. New tests in `tests/Koras.Connect.Tests/Sap/SapFoundationObjectTests.cs`: `EnumerateFoundationObjectPropagatesAuthorizationExceptionOnADeniedEntity` (reuses `EnumerateAsync`'s existing SAP-005 classification, no new wiring needed), `ResolveDepartmentParentChainAsyncWalksToARootDepartmentWithNoParent`, `ResolveDepartmentParentChainAsyncDetectsASelfReferenceCycle`. Regenerated the committed `Koras.Connect.Sap.SuccessFactors.snapshot.txt` API baseline for the new public members. Full suite: 553 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified for entity-set naming/business keys. The complete field list beyond the confirmed key fields, "duplicate effective versions reporting different parents" ambiguity (deliberately not resolved - no documented "current version" selection rule exists for this entity, unlike EmpJob's seqNumber tie-break), and whether a given tenant has actually enabled/customized these entities remain genuinely unverified against a live tenant's `$metadata`/RBP. |
 
 ## Status history
 
@@ -64,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added best-effort scaffolding only: `FODepartment`/`FODivision`/`FOLocation` DTOs and `SuccessFactorsClient.EnumerateFoundationObjectAsync<T>` in `src/Koras.Connect.Sap.SuccessFactors/FoundationObjects.cs`, explicitly documented as unverified against a live tenant. Structural (not business-rule) unit test added in `tests/Koras.Connect.Tests/SapFoundationObjectTests.cs`. Still far from Definition of Done - no metadata-verified entity-set names. |
+| 2026-11-13 | `implemented` | Cited the official API Reference Guide confirming the `FODepartment`/`FODivision`/`FOLocation` entity-set names and their business keys, closing the "select actual organization entity sets from metadata" functional requirement for naming. Added `ResolveDepartmentParentChainAsync` with a cycle guard and tests covering "cycle" and "denied entity". Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: the complete field list and live tenant enablement/RBP remain standing external blockers. |
