@@ -6,8 +6,8 @@ priority: "P0"
 phase: "P2"
 status: "implemented"
 baseline_status: "Implemented but unverified"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,22 +44,23 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: all 11 functional requirements re-checked against the current revision of `ClientCredentialsTokenSource`/`AdpRotatingTokenSource` and found to already be covered, not just imported baseline evidence: single-flight concurrency (`CoreTests.ConcurrentTokenAcquisitionIsSingleFlightAndRedacted`), credential redaction (same test, asserts `ClientCredentialsOptions.ToString()` never contains the secret), renew-before-expiry with skew and canceled-call cache rejection (`SecurityAndLifecycleTests.TokenRenewsBeforeExpiryAndCanceledCallsCannotUseCache`), bad/missing token/type/lifetime (`CoreTests.InvalidTokensAreRejected`, 3 cases), failed renewal surfaced as a structured, credential-free `AuthenticationException` (`DiagnosticsAndCorrelationTests.TokenEndpointHttpFailureThrowsStructuredAuthenticationException`), and rotation invalidation both via resolved-credential change and explicit `Invalidate()` (`AdpCredentialRotationTests.RotatingCredentialProviderReacquiresTokenWhenResolvedCredentialsChange`, `InvalidateForcesReacquisitionEvenWithoutAResolvedCredentialChange`). Full suite: 337 passed, 3 skipped (unrelated live-sandbox opt-in tests), 1 unrelated pre-existing timing flake in `ResiliencePolicyTests` that passes in isolation (`dotnet test --filter FullyQualifiedName~ResiliencePolicyTests`: 10/10 passed) — not an ADP-002 regression. |
+| Remaining work / blockers | No further engineering gap identified. Still open: "request shape and live token grant pass with authorized test credentials" in the acceptance criteria requires an authorized ADP sandbox app/client registration, which is not available in this environment (see external blockers above) — this stays an explicit, standing blocker rather than an inferred pass. |
+| Acceptance / completion | Not recorded; the live-grant half of the acceptance criteria cannot be satisfied without authorized sandbox credentials. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `implemented` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Re-verified every unit-test requirement against the current revision (single-flight, redaction, expiry/skew, canceled-cache rejection, bad/missing token fields, failed-renewal classification, rotation invalidation) — all already covered by existing tests, no code gap found. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates accordingly. `verification` moved from `unverified` to `partial`: the live-grant acceptance half remains blocked on unavailable sandbox credentials, so acceptance/completion is not recorded. |
