@@ -4,10 +4,10 @@ title: "Employee create/update operations where authorized"
 category: "sap-successfactors"
 priority: "P1"
 phase: "P5"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,22 +44,22 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `UpsertEmploymentAsync`/`UpsertJobAsync` (`src/Koras.Connect.Sap.SuccessFactors/SuccessFactorsClient.WriteCommands.cs`), thin typed wrappers over the already-verified `UpsertAsync` primitive (SAP-003/005) for the `EmpEmployment`/`EmpJob` entities specifically - no invented universal PATCH/MERGE API. Each validates its entity's documented composite key locally, before any HTTP call: `userId`+`startDate` for `EmpEmployment` (a missing or unparseable `startDate` is rejected via the same `SapDates.ParseUtc` policy used elsewhere), `userId`+`seqNumber` for `EmpJob` (accepting a numeric string the same way `EmpJob.SequenceNumber` itself does). The same explicit `writesEnabled` opt-in gate is checked first, before any row validation, matching every other write path's convention. New tests in `tests/Koras.Connect.Tests/Sap/SapClientExpansionTests.cs`: `UpsertEmploymentAsyncValidatesTheCompositeKeyLocallyBeforeAnyHttpCall` (missing key, missing/invalid date, missing opt-in, valid), `UpsertEmploymentAsyncStillSurfacesARowLevelRejectionForAReadOnlyEntity` ("read-only entity"), `UpsertJobAsyncValidatesTheCompositeKeyLocallyBeforeAnyHttpCall`, `UpsertEmploymentAsyncNeverAutomaticallyRetriesOnATransportFailureLeavingTheOutcomeUncertain` ("uncertain write outcome"). Regenerated the committed `Koras.Connect.Sap.SuccessFactors.snapshot.txt` API baseline for the new public methods. Full suite: 557 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Entity-specific operations/RBP and separate sandbox write authorization against a live, authorized tenant [S2] remain standing external blockers - whether a given tenant's `EmpEmployment`/`EmpJob` actually support upsert, and what fields are required beyond the documented key, is still unverified. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `UpsertEmploymentAsync`/`UpsertJobAsync`, typed wrappers over `UpsertAsync` with local composite-key validation, closing the "read-only entity", "missing key", "invalid date" and "uncertain write outcome" unit-test-requirement gaps. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: entity-specific operations/RBP and sandbox write authorization against a live, authorized tenant [S2] remain standing external blockers. |

@@ -212,6 +212,67 @@ public sealed class SapClientExpansionTests
         await Assert.ThrowsAnyAsync<Exception>(async()=>{await foreach(var p in c.EnumeratePersonsAsync()) { }});
     }
 
+    [Fact] public async Task UpsertEmploymentAsyncValidatesTheCompositeKeyLocallyBeforeAnyHttpCall()
+    {
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"d":[{"key":"k","status":"OK","httpCode":204,"index":0,"message":null}]}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var missingUserId=JsonDocument.Parse("""{"startDate":"/Date(1600000000000)/"}""");
+        await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertEmploymentAsync([missingUserId.RootElement],writesEnabled:true));
+        Assert.Equal(0,calls);
+        using var missingStartDate=JsonDocument.Parse("""{"userId":"u1"}""");
+        await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertEmploymentAsync([missingStartDate.RootElement],writesEnabled:true));
+        Assert.Equal(0,calls);
+        using var invalidDate=JsonDocument.Parse("""{"userId":"u1","startDate":"not-a-date"}""");
+        await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertEmploymentAsync([invalidDate.RootElement],writesEnabled:true));
+        Assert.Equal(0,calls);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>c.UpsertEmploymentAsync([missingUserId.RootElement]));
+        Assert.Equal(0,calls);
+        using var valid=JsonDocument.Parse("""{"userId":"u1","startDate":"/Date(1600000000000)/"}""");
+        var result=await c.UpsertEmploymentAsync([valid.RootElement],writesEnabled:true);
+        Assert.True(result[0].Succeeded);Assert.Equal(1,calls);
+    }
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task UpsertEmploymentAsyncStillSurfacesARowLevelRejectionForAReadOnlyEntity(HttpStatusCode rowStatus)
+    {
+        // SAP-012 "read-only entity": a row rejected by SAP (for example COE0011 "Entity is not upsertable") still
+        // arrives as an HTTP 200 with a per-row httpCode/status - the typed wrapper must surface it unchanged,
+        // same as the generic UpsertAsync primitive.
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json($$"""{"d":[{"key":null,"status":"ERROR","httpCode":{{(int)rowStatus}},"index":0,"message":"private-detail"}]}"""))));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var row=JsonDocument.Parse("""{"userId":"u1","startDate":"/Date(1600000000000)/"}""");
+        var result=await c.UpsertEmploymentAsync([row.RootElement],writesEnabled:true);
+        Assert.False(result[0].Succeeded);Assert.Equal((int)rowStatus,result[0].HttpCode);Assert.DoesNotContain("private-detail",result[0].ToString());
+    }
+    [Fact] public async Task UpsertJobAsyncValidatesTheCompositeKeyLocallyBeforeAnyHttpCall()
+    {
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"d":[{"key":"k","status":"OK","httpCode":204,"index":0,"message":null}]}"""));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var missingUserId=JsonDocument.Parse("""{"seqNumber":1}""");
+        await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertJobAsync([missingUserId.RootElement],writesEnabled:true));
+        Assert.Equal(0,calls);
+        using var missingSeq=JsonDocument.Parse("""{"userId":"u1"}""");
+        await Assert.ThrowsAsync<ArgumentException>(()=>c.UpsertJobAsync([missingSeq.RootElement],writesEnabled:true));
+        Assert.Equal(0,calls);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>c.UpsertJobAsync([missingUserId.RootElement]));
+        Assert.Equal(0,calls);
+        // seqNumber accepted as either a JSON number or a numeric string, matching EmpJob.SequenceNumber's own leniency.
+        using var validNumeric=JsonDocument.Parse("""{"userId":"u1","seqNumber":1}""");
+        using var validString=JsonDocument.Parse("""{"userId":"u2","seqNumber":"2"}""");
+        var result=await c.UpsertJobAsync([validNumeric.RootElement,validString.RootElement],writesEnabled:true);
+        Assert.Equal(1,calls);
+    }
+    [Fact] public async Task UpsertEmploymentAsyncNeverAutomaticallyRetriesOnATransportFailureLeavingTheOutcomeUncertain()
+    {
+        // SAP-012 "uncertain write outcome": a transport-level failure mid-upsert (the server may or may not have
+        // applied it) must never be silently retried - the caller is left to reconcile explicitly, exactly like
+        // the generic UpsertAsync primitive (SapUpsertDoesNotRetryOrAcceptArbitraryMetadata).
+        var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("{}",HttpStatusCode.ServiceUnavailable));}));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var row=JsonDocument.Parse("""{"userId":"u1","startDate":"/Date(1600000000000)/"}""");
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(()=>c.UpsertEmploymentAsync([row.RootElement],writesEnabled:true));
+        Assert.Equal(1,calls);
+    }
     [Fact] public async Task SapMetadataUsesXmlAcceptAndRejectsExternalEntities()
     {
         using var h=new HttpClient(new Handler((r,ct)=>
