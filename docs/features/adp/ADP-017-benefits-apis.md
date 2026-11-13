@@ -4,10 +4,10 @@ title: "Benefits APIs"
 category: "adp"
 priority: "P2"
 phase: "P7"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: this doc had not been touched since the November 12 import despite the typed enrollment response (`SpendingAccountEnrollment`/`SpendingAccountEnrollmentsResponse`) already existing from ADP-019's work (`src/Koras.Connect.Adp/Workers/SpendingAccountEnrollment.cs`, round-trip-tested in `AdpTypedModelsTests.SpendingAccountEnrollmentsResponseRoundTripsUnknownFieldsAndPreservesVariableCoverageShape`) — recording that evidence here, plus adding `tests/Koras.Connect.Tests/AdpBenefitsEnrollmentTests.cs` to close every remaining unit-test-requirement gap: missing/unsafe identifier rejected before any request (3 cases), blank-body HTTP 400 classifies as `ContractException` without leaking the body, a `Denied` entitlement specifically on `AdpOperation.SpendingAccountEnrollments` short-circuits before any network call, masked and unmasked `accountNumber` values both survive round-trip unmodified, and overlapping coverage periods plus active/inactive dependents are all preserved raw rather than collapsed or lost. Full suite: 418 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. `ReadSpendingAccountEnrollmentsAsync` still returns a raw `JsonDocument` rather than the typed `SpendingAccountEnrollmentsResponse` — intentional, matching this package's existing "raw escape hatch remains explicit" posture elsewhere, since every typed model in this package is a caller-side `Deserialize<T>()` convenience over the same JSON, not a replacement for the raw read. External-benefit-provider plan setup, current grant and the official guide's documented route inconsistencies remain unresolved blockers (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Recorded the typed-model evidence ADP-019 had already produced for this feature and closed every remaining unit-test-requirement gap (missing identifier, blank-body 400, operation-specific denied grant, masked/unmasked fields, overlapping periods/dependents). Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: the external benefit-provider/grant/route-inconsistency blockers remain unresolved. |
