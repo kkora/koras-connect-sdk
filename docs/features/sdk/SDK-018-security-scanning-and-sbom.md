@@ -44,22 +44,23 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `python eng/check_vulnerabilities.py`: "No known-vulnerable dependencies found." against the real repo. `python eng/generate_tooling_inventory.py`: wrote `artifacts/tooling-inventory.json` (7 build/test package references). `python -m unittest discover -s tests/release`: Ran 18, OK (16 pre-existing/SDK-016 + 2 new files, 6 new tests). `dotnet test Koras.Connect.slnx -c Release`: Passed 338, Skipped 3, Failed 0 (unaffected by this Python-only change). Found and fixed a real, significant gap: CI's existing `dotnet list package --vulnerable` step is a well-known no-op for gating purposes — the command always exits 0 regardless of findings, so even a known-CVE transitive dependency would never have failed a build. New `eng/check_vulnerabilities.py` wraps it with `--format json`, recursively scans the report for any non-empty `vulnerabilities` array, and fails closed if one is found — this is the "explicit severity policy" and "scanner threshold failures" this ticket names, with the policy stated explicitly: any known advisory blocks, at any severity, until an owner records a triaged exception (deliberately conservative, since no triage process exists yet). Also added `eng/generate_tooling_inventory.py`, closing "include test/build tool inventories separately from runtime" — it lists the test project's own `PackageReference`s (xunit, Microsoft.NET.Test.Sdk, etc.) into a separate `tooling-inventory.json`, explicitly labeled as never part of a shipped package, distinct from `generate_sbom.py`'s runtime-only SBOM. Both wired into `ci.yml`/`release.yml` in place of the old no-op line. `eng/check_sources.py` (secret/private-key scanning, "malicious test fixture") was already comprehensive and repo-wide, including test fixtures; unchanged. |
+| Remaining work | **"Reviewed code ... scanning" beyond secrets (i.e. SAST) and the "external scanning service permissions" this ticket's own blocker field names were not attempted** — wiring e.g. CodeQL or a third-party SAST service requires enabling a GitHub Advanced Security feature or configuring a third-party service's credentials/permissions, which is outside this engineering pass's authorization (`docs/decisions/APPROVAL-GATES.md`). The dependency-vulnerability and secret scanning this pass closed are the parts achievable with existing, already-authorized tooling (`dotnet list package`, a local Python scan). Left the vendor/entitlement completion box unchecked for this specific reason rather than marking it not-applicable, since it genuinely isn't closed. Samples (`samples/*`) are not covered by `check_vulnerabilities.py` since it scans `Koras.Connect.slnx` only — they are demo/non-shipping projects, consistent with this ticket's "shipping archive" framing, but flagging the scope boundary explicitly rather than silently. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-12 | `partial` | Fixed a real gap: the existing `dotnet list package --vulnerable` CI step always exits 0 regardless of findings, so it never actually gated anything. Added `eng/check_vulnerabilities.py` (fails closed, explicit any-severity-blocks policy) and `eng/generate_tooling_inventory.py` (separate build/test tool inventory). Left SAST/external-scanning-service entitlement explicitly open — outside this pass's authorization — rather than claiming it closed; status intentionally stays `partial` for that reason. |

@@ -20,11 +20,12 @@ jobs:
       - run: dotnet restore Koras.Connect.slnx
       - run: dotnet build Koras.Connect.slnx --no-restore --configuration Release
       - run: dotnet test Koras.Connect.slnx --no-build --configuration Release --logger trx
-      - run: dotnet list Koras.Connect.slnx package --vulnerable --include-transitive --no-restore
+      - run: python eng/check_vulnerabilities.py
       - run: dotnet pack Koras.Connect.slnx --no-build --configuration Release --output artifacts
       - run: python eng/validate_packages.py
       - run: python eng/check_sources.py
       - run: python eng/generate_sbom.py
+      - run: python eng/generate_tooling_inventory.py
       - run: python eng/release_checks.py
       - run: python -m unittest discover -s tests/release -v
       - run: dotnet restore samples/PackageConsumer/PackageConsumer.csproj --configfile samples/PackageConsumer/NuGet.Config
