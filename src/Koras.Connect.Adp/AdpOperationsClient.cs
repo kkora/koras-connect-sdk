@@ -116,6 +116,14 @@ public sealed class AdpOperationsClient
     public Task<JsonDocument> SubmitModifyDepartmentAllocationsAsync(string associateOid, IReadOnlyList<OrganizationDepartment> departments, CancellationToken cancellationToken = default)
         => SubmitEventAsync(AdpOperation.ModifyDepartmentAllocations, ModifyDepartmentAllocationsCommand.Build(associateOid, departments), cancellationToken);
 
+    /// <summary>Convenience submission for <see cref="AdpOperation.TerminateAssignment"/> (ADP-014): builds the
+    /// documented events envelope via <see cref="TerminateAssignmentCommand.Build"/> (which rejects a missing
+    /// subject identity or work assignment itemID locally, before any HTTP call) and submits it through
+    /// <see cref="SubmitEventAsync"/>.</summary>
+    public Task<JsonDocument> SubmitTerminateAssignmentAsync(string associateOid, string workAssignmentItemId, DateOnly terminationDate,
+        CodeValue? reasonCode = null, CancellationToken cancellationToken = default)
+        => SubmitEventAsync(AdpOperation.TerminateAssignment, TerminateAssignmentCommand.Build(associateOid, workAssignmentItemId, terminationDate, reasonCode), cancellationToken);
+
     public Task<JsonDocument> ReadSpendingAccountEnrollmentsAsync(string associateOid, DateOnly effectiveDate, CancellationToken cancellationToken = default)
     {
         var c = Contract(AdpOperation.SpendingAccountEnrollments);

@@ -81,6 +81,7 @@ sealed class Koras.Connect.Adp.AdpOperationsClient
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitChangeManagerAsync(System.String associateOid, Koras.Connect.Adp.Workers.ManagerRelationship manager, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitEventAsync(Koras.Connect.Adp.AdpOperation operation, System.Text.Json.JsonElement envelope, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitModifyDepartmentAllocationsAsync(System.String associateOid, System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.Workers.OrganizationDepartment> departments, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> SubmitTerminateAssignmentAsync(System.String associateOid, System.String workAssignmentItemId, System.DateOnly terminationDate, Koras.Connect.Adp.Workers.CodeValue reasonCode = null, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Adp.AdpOptionsMonitorCredentialProvider<TOptions>
   ctor(Microsoft.Extensions.Options.IOptionsMonitor<TOptions> monitor, System.Func<TOptions, Koras.Connect.Authentication.ClientCredentialsOptions> project)
   method System.Threading.Tasks.ValueTask<Koras.Connect.Authentication.ClientCredentialsOptions> GetAsync(System.Threading.CancellationToken cancellationToken = null)
@@ -229,6 +230,8 @@ sealed class Koras.Connect.Adp.Workers.SpendingAccountEnrollmentsResponse
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
   property System.Collections.Generic.List<Koras.Connect.Adp.Workers.SpendingAccountEnrollment> Enrollments {get+set}
+abstract class Koras.Connect.Adp.Workers.TerminateAssignmentCommand
+  method System.Text.Json.JsonElement Build(System.String associateOid, System.String workAssignmentItemId, System.DateOnly terminationDate, Koras.Connect.Adp.Workers.CodeValue reasonCode = null)
 sealed class Koras.Connect.Adp.Workers.TimeOffBalanceEntry
   ctor()
   property Koras.Connect.Adp.Workers.CodeValue AccrualCode {get+set}

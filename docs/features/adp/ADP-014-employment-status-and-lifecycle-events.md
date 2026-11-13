@@ -6,8 +6,8 @@ priority: "P1"
 phase: "P3 extension"
 status: "partial"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -46,16 +46,16 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 
 - [ ] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `TerminateAssignmentCommand` (`src/Koras.Connect.Adp/Workers/AdpWriteCommands.cs`), the first typed, metadata-gated lifecycle command for this feature, mirroring ADP-013's `ChangeManagerCommand`/`ModifyDepartmentAllocationsCommand` pattern: assembles the `AdpOperation.TerminateAssignment` events envelope purely from an already-modeled `WorkAssignment.ItemId`-shaped identifier plus a caller-supplied termination date and optional reason `CodeValue`, and rejects a missing subject/work-assignment identity with `ArgumentException` before any HTTP call. Wired as `AdpOperationsClient.SubmitTerminateAssignmentAsync`. Tests added to `tests/Koras.Connect.Tests/AdpWriteCommandTests.cs`: exact envelope shape (including the optional reason code both present and omitted), local rejection of a missing associate OID or work-assignment itemID with a handler that throws if the network is ever reached, and the convenience method wiring the built envelope through unmodified. Full suite: 449 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No typed command was added for Hire/Rehire/ChangePersonalEmail (per the master spec's caution against inventing unverified field schemas for operations without a clearly documented minimal field set the way termination/manager/department-allocation have); `ChangePayDataInput` is ADP-015's job, tracked separately. The vendor events envelope shape for `TerminateAssignment` is not confirmed against live tenant metadata. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `partial` | Added `TerminateAssignmentCommand`/`AdpOperationsClient.SubmitTerminateAssignmentAsync`, this feature's first typed lifecycle command. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates. Remains `partial`: no typed command exists yet for Hire/Rehire/ChangePersonalEmail, and the vendor schema for the one write that now has a typed command remains unverified against live tenant metadata. `verification` moved from `unverified` to `partial`. |

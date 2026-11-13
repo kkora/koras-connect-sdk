@@ -77,13 +77,62 @@ public sealed class AdpWriteCommandTests
     }
 
     [Fact]
+    public void TerminateAssignmentCommandBuildProducesTheExactDocumentedEnvelopeShape()
+    {
+        var envelope = TerminateAssignmentCommand.Build("W1", "WA1", new DateOnly(2026, 6, 30), new CodeValue { Code = "RIF" });
+
+        var context = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("eventContext").GetProperty("worker");
+        Assert.Equal("W1", context.GetProperty("associateOID").GetString());
+        Assert.Equal("WA1", context.GetProperty("workAssignment").GetProperty("itemID").GetString());
+
+        var transform = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("transform").GetProperty("worker").GetProperty("workAssignment");
+        Assert.Equal("WA1", transform.GetProperty("itemID").GetString());
+        Assert.Equal("2026-06-30", transform.GetProperty("terminationDate").GetString());
+        Assert.Equal("RIF", transform.GetProperty("terminationReasonCode").GetProperty("codeValue").GetString());
+    }
+
+    [Fact]
+    public void TerminateAssignmentCommandBuildOmitsTheReasonCodeWhenNotSupplied()
+    {
+        var envelope = TerminateAssignmentCommand.Build("W1", "WA1", new DateOnly(2026, 6, 30));
+        var transform = envelope.GetProperty("events")[0].GetProperty("data").GetProperty("transform").GetProperty("worker").GetProperty("workAssignment");
+        Assert.False(transform.TryGetProperty("terminationReasonCode", out _));
+    }
+
+    [Theory]
+    [InlineData(null, "WA1")]
+    [InlineData("", "WA1")]
+    [InlineData("W1", null)]
+    [InlineData("W1", "")]
+    public void TerminateAssignmentCommandBuildRejectsAMissingIdentityLocally(string? associateOid, string? workAssignmentItemId)
+        => Assert.Throws<ArgumentException>(() => TerminateAssignmentCommand.Build(associateOid!, workAssignmentItemId!, new DateOnly(2026, 6, 30)));
+
+    [Fact]
+    public async Task SubmitTerminateAssignmentAsyncWiresTheBuiltEnvelopeThroughSubmitEventAsync()
+    {
+        JsonElement? sentBody = null;
+        using var http = new HttpClient(new Handler(r =>
+        {
+            sentBody = JsonDocument.Parse(r.Content!.ReadAsStringAsync().GetAwaiter().GetResult()).RootElement.Clone();
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") };
+        }));
+        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"), [AdpOperation.TerminateAssignment]);
+
+        using var result = await client.SubmitTerminateAssignmentAsync("W1", "WA1", new DateOnly(2026, 6, 30));
+
+        Assert.NotNull(sentBody);
+        Assert.Equal("WA1", sentBody!.Value.GetProperty("events")[0].GetProperty("data").GetProperty("eventContext").GetProperty("worker").GetProperty("workAssignment").GetProperty("itemID").GetString());
+    }
+
+    [Fact]
     public async Task LocalValidationFailuresNeverReachTheNetwork()
     {
         using var http = new HttpClient(new Handler(_ => throw new InvalidOperationException("The transport must never be invoked for a locally-rejected command.")));
-        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"), [AdpOperation.ChangeManager, AdpOperation.ModifyDepartmentAllocations]);
+        var client = new AdpOperationsClient(new(http, new Token()), new("https://api.test"), [AdpOperation.ChangeManager, AdpOperation.ModifyDepartmentAllocations, AdpOperation.TerminateAssignment]);
 
         await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitChangeManagerAsync("", new ManagerRelationship { WorkerId = new Identifier { Value = "M1" } }));
         await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitModifyDepartmentAllocationsAsync("W1", Array.Empty<OrganizationDepartment>()));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SubmitTerminateAssignmentAsync("W1", "", new DateOnly(2026, 6, 30)));
     }
 
     [Fact]

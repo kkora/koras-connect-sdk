@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 namespace Koras.Connect.Adp.Workers;
 
@@ -84,6 +85,49 @@ public static class ModifyDepartmentAllocationsCommand
                     {
                         eventContext = new { worker = new { associateOID = associateOid } },
                         transform = new { worker = new { workAssignment = new { assignedOrganizationalUnits = units } } }
+                    }
+                }
+            }
+        };
+        return JsonSerializer.SerializeToElement(envelope);
+    }
+}
+
+/// <summary>Builds the <see cref="AdpOperation.TerminateAssignment"/> event envelope from an already-modeled
+/// <see cref="WorkAssignment.ItemId"/> plus a caller-supplied termination date and optional reason
+/// <see cref="CodeValue"/>; no field is introduced beyond what <see cref="WorkAssignment"/>/<see cref="CodeValue"/>
+/// already model. Schema source: "Assignment termination" row (S3) in <c>docs/features/ADP-FEATURE-MATRIX.md</c>
+/// ("events[].data.eventContext.worker.workAssignment.itemID; transform worker assignment dates/status"). The
+/// exact current tenant schema for this write remains unverified; do not treat a successful local build as proof
+/// of tenant acceptance.</summary>
+public static class TerminateAssignmentCommand
+{
+    /// <summary>Builds the submit-ready envelope for <see cref="AdpOperationsClient.SubmitEventAsync"/>. Throws
+    /// <see cref="ArgumentException"/> locally &#8212; before any HTTP call is attempted &#8212; when the subject
+    /// worker's associate OID or the target work assignment's item id is missing.</summary>
+    public static JsonElement Build(string associateOid, string workAssignmentItemId, DateOnly terminationDate, CodeValue? reasonCode = null)
+    {
+        if (string.IsNullOrWhiteSpace(associateOid)) throw new ArgumentException("The subject worker's associate OID is required.", nameof(associateOid));
+        if (string.IsNullOrWhiteSpace(workAssignmentItemId)) throw new ArgumentException("The work assignment's itemID is required.", nameof(workAssignmentItemId));
+
+        var workAssignmentTransform = new Dictionary<string, object?>
+        {
+            ["itemID"] = workAssignmentItemId,
+            ["terminationDate"] = terminationDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        };
+        if (!string.IsNullOrWhiteSpace(reasonCode?.Code))
+            workAssignmentTransform["terminationReasonCode"] = new Dictionary<string, object?> { ["codeValue"] = reasonCode!.Code };
+
+        var envelope = new
+        {
+            events = new object[]
+            {
+                new
+                {
+                    data = new
+                    {
+                        eventContext = new { worker = new { associateOID = associateOid, workAssignment = new { itemID = workAssignmentItemId } } },
+                        transform = new { worker = new { workAssignment = workAssignmentTransform } }
                     }
                 }
             }
