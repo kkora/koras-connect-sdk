@@ -392,6 +392,32 @@ public sealed class QualtricsExpansionTests
         Assert.DoesNotContain("private-detail", ex.ToString());
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task GetSurveyClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        // QLT-005/QLT-002: closes the "survey/export methods still throw the original IntegrationRequestException"
+        // gap recorded when QualtricsApiException was first introduced for contacts/mailing lists only.
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-survey-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.GetSurveyAsync("SV_private"));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-survey-detail", ex.ToString());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task GetExportProgressClassifiesForbiddenAndNotFoundWithoutLeakingBody(HttpStatusCode status)
+    {
+        using var h = new HttpClient(new Handler((r, ct) => Task.FromResult(Json("private-progress-detail", status))));
+        var c = QualtricsClient.Create(h, new Token(), new(QualtricsRoot));
+        var ex = await Assert.ThrowsAsync<QualtricsApiException>(() => c.GetExportProgressAsync("SV_1", "progress-1"));
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain("private-progress-detail", ex.ToString());
+    }
+
     [Fact]
     public async Task UpdateContactRequiresExplicitOptInAndSendsPut()
     {

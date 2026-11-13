@@ -71,8 +71,11 @@ public sealed partial class QualtricsClient
         var address = resumeFrom is null ? new Uri(_root, "surveys") : QualtricsPaging.ResolveResume(_root, "surveys", resumeFrom);
         return QualtricsPaging.FetchPageAsync<SurveySummary>("surveys", _root, address, _transport, cancellationToken);
     }
-    public Task<JsonDocument> GetSurveyAsync(string surveyId, CancellationToken cancellationToken = default)
-        => _transport.ReadJsonAsync(SurveyAddress(surveyId), cancellationToken: cancellationToken);
+    public async Task<JsonDocument> GetSurveyAsync(string surveyId, CancellationToken cancellationToken = default)
+    {
+        try { return await _transport.ReadJsonAsync(SurveyAddress(surveyId), cancellationToken: cancellationToken); }
+        catch (IntegrationRequestException failure) { throw QualtricsApiException.FromTransportFailure(failure); }
+    }
     /// <summary>Starts an asynchronous export. POST is never automatically replayed.</summary>
     public async Task<string> StartResponseExportAsync(string surveyId, ResponseExportOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -90,8 +93,10 @@ public sealed partial class QualtricsClient
     }
     public async Task<ExportProgress> GetExportProgressAsync(string surveyId, string progressId, CancellationToken cancellationToken = default)
     {
-        using var doc = await _transport.ReadJsonAsync(SurveyAddress(surveyId, "/export-responses/" + EndpointSafety.Segment(progressId)), cancellationToken: cancellationToken);
-        return doc.RootElement.GetProperty("result").Deserialize<ExportProgress>() ?? throw new JsonException("Missing export progress.");
+        JsonDocument doc;
+        try { doc = await _transport.ReadJsonAsync(SurveyAddress(surveyId, "/export-responses/" + EndpointSafety.Segment(progressId)), cancellationToken: cancellationToken); }
+        catch (IntegrationRequestException failure) { throw QualtricsApiException.FromTransportFailure(failure); }
+        using (doc) return doc.RootElement.GetProperty("result").Deserialize<ExportProgress>() ?? throw new JsonException("Missing export progress.");
     }
     /// <summary>Bounded polling without persistence or background infrastructure. Caller can resume using GetExportProgressAsync.</summary>
     public async Task<ExportProgress> WaitForExportAsync(string surveyId, string progressId, TimeSpan? pollingInterval = null,
@@ -111,7 +116,10 @@ public sealed partial class QualtricsClient
         throw new TimeoutException("Export polling limit reached; resume with the existing progress ID rather than starting another job.");
     }
     /// <summary>Streams raw compressed/uncompressed export bytes; does not extract archives or close the destination.</summary>
-    public Task DownloadExportAsync(string surveyId, string fileId, Stream output, CancellationToken cancellationToken = default)
-        => _transport.CopyToAsync(SurveyAddress(surveyId, "/export-responses/" + EndpointSafety.Segment(fileId) + "/file"), output, cancellationToken);
+    public async Task DownloadExportAsync(string surveyId, string fileId, Stream output, CancellationToken cancellationToken = default)
+    {
+        try { await _transport.CopyToAsync(SurveyAddress(surveyId, "/export-responses/" + EndpointSafety.Segment(fileId) + "/file"), output, cancellationToken); }
+        catch (IntegrationRequestException failure) { throw QualtricsApiException.FromTransportFailure(failure); }
+    }
     private Uri SurveyAddress(string id, string suffix = "") => new(_root, "surveys/" + EndpointSafety.Segment(id) + suffix);
 }

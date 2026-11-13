@@ -62,8 +62,13 @@ public sealed class QualtricsClientExpansionTests
     }
     [Fact] public async Task DownloadFailuresDoNotWriteProviderErrorsToOutput()
     {
+        // QLT-005: DownloadExportAsync is now classified like the other single-resource reads (GetSurveyAsync,
+        // GetExportProgressAsync) rather than surfacing the raw transport exception; only EnumerateSurveysAsync's
+        // pagination and the StartResponseExportAsync write stay pinned to the raw IntegrationRequestException
+        // contract, matching the read-vs-write/pagination split already established for the ADP connector.
         using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("private-response",HttpStatusCode.Forbidden))));
         var c=QualtricsClient.Create(h,new Token(),new(QualtricsRoot));using var output=new MemoryStream();
-        var error=await Assert.ThrowsAsync<IntegrationRequestException>(()=>c.DownloadExportAsync("SV_synthetic","file",output));Assert.Equal(0,output.Length);Assert.DoesNotContain("private-response",error.ToString());
+        var error=await Assert.ThrowsAsync<QualtricsApiException>(()=>c.DownloadExportAsync("SV_synthetic","file",output));
+        Assert.Equal(HttpStatusCode.Forbidden,error.StatusCode);Assert.Equal(0,output.Length);Assert.DoesNotContain("private-response",error.ToString());
     }
 }

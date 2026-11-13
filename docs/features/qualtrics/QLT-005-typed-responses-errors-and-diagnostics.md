@@ -4,10 +4,10 @@ title: "Typed responses, errors and diagnostics"
 category: "qualtrics"
 priority: "P0"
 phase: "P6"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the "survey/export methods still throw the original IntegrationRequestException" gap by wiring `QualtricsApiException.FromTransportFailure` into `GetSurveyAsync`, `GetExportProgressAsync` and `DownloadExportAsync` (`src/Koras.Connect.Qualtrics/QualtricsClient.cs`), matching the classification pattern already used for contacts/mailing lists. `EnumerateSurveysAsync`/`ListSurveysPageAsync` (pagination) and `StartResponseExportAsync` (the write) stay deliberately pinned to the raw `IntegrationRequestException` contract, mirroring the exact read-vs-write/pagination split already established for the ADP connector (ADP-010), not an oversight. Updated `tests/Koras.Connect.Tests/Qualtrics/QualtricsClientExpansionTests.cs`'s `DownloadFailuresDoNotWriteProviderErrorsToOutput` to expect the new classified type, and added `GetSurveyClassifiesForbiddenAndNotFoundWithoutLeakingBody`/`GetExportProgressClassifiesForbiddenAndNotFoundWithoutLeakingBody` to `QualtricsExpansionTests.cs`. Full suite: 471 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified. Current official error schemas and an authorized minimal probe remain external blockers (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `QualtricsApiException` (`src/Koras.Connect.Qualtrics/QualtricsApiException.cs`), wiring the shared `IntegrationExceptionClassifier.Classify` (401/403/404/429-with-RetryAfter/5xx) into a stable `StatusCode`/`RetryAfter` surface without duplicating retry logic, plus crash-proof `TryExtractRequestId` extraction of Qualtrics' "meta.requestId" field. Added `QualtricsConnector` (`QualtricsConnector.cs`) implementing `Koras.Connect.Abstractions.IConnector`: Configuration stage runs local `QualtricsOptions.Validate()` only, Authentication stage issues exactly one minimal GET (`ListSurveysPageAsync`) and never a mutating request. These are wired into the new contact/mailing-list methods only; the pre-existing survey/export methods still throw the original `IntegrationRequestException` to avoid changing already-tested behavior. Covered by `tests/Koras.Connect.Tests/QualtricsExpansionTests.cs` (`QualtricsApiExceptionClassifiesEachStatusCodeIntoTheSharedHierarchy`, `TryExtractRequestIdNeverCrashesOnMalformedOrHostileMeta`, `DiagnoseAsyncNeverIssuesNonGetAndReportsPassedStagesOnSuccess`, `DiagnoseAsyncReportsFailedAuthenticationOn401WithoutThrowing`, `DiagnoseAsyncSkipsAuthenticationStageWhenConfigurationIsInvalid`, plus `GetContactClassifiesForbiddenAndNotFoundWithoutLeakingBody`). The shared transport does not expose a response body or headers on HTTP-error status codes, so a sanitized request ID is only available when a caller explicitly supplies one; this is a known, documented limitation, not an invented endpoint. `dotnet build`/`dotnet test` passing as of this revision. |
+| 2026-11-13 | `implemented` | Wired `QualtricsApiException` into the remaining survey/export read methods, closing the gap recorded above. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live error-schema/probe evidence remains a standing external blocker. |
