@@ -116,6 +116,53 @@ public sealed class SapClientExpansionTests
         Assert.False(result[0].Succeeded);Assert.Equal(403,result[0].HttpCode);Assert.DoesNotContain("private",result[0].ToString());
         await Assert.ThrowsAsync<InvalidOperationException>(()=>c.UpsertAsync("PerPerson",[payload.RootElement]));
     }
+    [Theory]
+    [InlineData(0,typeof(ArgumentException))]
+    [InlineData(1000,null)]
+    [InlineData(1001,typeof(ArgumentException))]
+    public async Task UpsertAsyncEnforcesTheOneToOneThousandRecordBoundaryExactly(int count,Type? expectedError)
+    {
+        var calls=0;using var h=new HttpClient(new Handler(async(r,ct)=>
+        {
+            calls++;
+            using var sent=JsonDocument.Parse(await r.Content!.ReadAsStringAsync(ct));
+            Assert.Equal(count,sent.RootElement.GetArrayLength());
+            return Json(JsonSerializer.Serialize(new{d=Enumerable.Range(0,count).Select(i=>new{key=$"k{i}",status="OK",httpCode=200,index=i,message=(string?)null}).ToArray()}));
+        }));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        var rows=Enumerable.Range(0,count).Select(i=>JsonDocument.Parse($$"""{"personIdExternal":"p{{i}}"}""").RootElement).ToArray();
+        if(expectedError is null)
+        {
+            var result=await c.UpsertAsync("PerPerson",rows,writesEnabled:true);
+            Assert.Equal(count,result.Count);Assert.Equal(1,calls);
+        }
+        else
+        {
+            await Assert.ThrowsAsync(expectedError,()=>c.UpsertAsync("PerPerson",rows,writesEnabled:true));
+            Assert.Equal(0,calls);
+        }
+    }
+    [Theory]
+    [InlineData("""{"notD":[]}""")]
+    [InlineData("""{"d":"not-an-array-or-object"}""")]
+    public async Task UpsertAsyncThrowsRatherThanSilentlyReturningNoResultsOnAMalformedBody(string malformedBody)
+    {
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json(malformedBody))));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var payload=JsonDocument.Parse("""{"personIdExternal":"synthetic"}""");
+        await Assert.ThrowsAnyAsync<Exception>(()=>c.UpsertAsync("PerPerson",[payload.RootElement],writesEnabled:true));
+    }
+    [Fact] public async Task UpsertResultPreservesEditStatusDistinguishingInsertFromUpdate()
+    {
+        // Confirmed against the official SAP SuccessFactors API Reference Guide (2H 2026), section 6.3.6.4.1
+        // "HTTP Response Status Codes for Upsert": editStatus is INSERTED/UPDATED/UPSERTED, independent of httpCode.
+        using var h=new HttpClient(new Handler((r,ct)=>Task.FromResult(Json("""{"d":[{"key":"newuser","status":"OK","editStatus":"INSERTED","httpCode":201,"index":0,"message":null},{"key":"existuser","status":"OK","editStatus":"UPDATED","httpCode":204,"index":1,"message":null}]}"""))));
+        var c=new SuccessFactorsClient(new(h,new Token()),new(SapRoot));
+        using var a=JsonDocument.Parse("""{"personIdExternal":"a"}"""); using var b=JsonDocument.Parse("""{"personIdExternal":"b"}""");
+        var result=await c.UpsertAsync("PerPerson",[a.RootElement,b.RootElement],writesEnabled:true);
+        Assert.Equal("INSERTED",result[0].EditStatus);Assert.True(result[0].Succeeded);
+        Assert.Equal("UPDATED",result[1].EditStatus);Assert.True(result[1].Succeeded);
+    }
     [Fact] public async Task SapUpsertDoesNotRetryOrAcceptArbitraryMetadata()
     {
         // SAP-005: a transport-level failure (non-2xx for the whole request) is now classified like every other

@@ -22,15 +22,23 @@ public sealed class PerPerson
     [JsonPropertyName("dateOfBirth")] public JsonElement? DateOfBirth { get; set; }
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalData { get; set; }
 }
+/// <summary>One row's upsert outcome. Field shape confirmed against the official "SAP SuccessFactors API Reference
+/// Guide" (2H 2026 edition), section 6.3.6.4.1 "HTTP Response Status Codes for Upsert": <see cref="EditStatus"/>
+/// distinguishes an insert ("INSERTED") from an update ("UPDATED") within a single upsert call - information
+/// <see cref="HttpCode"/> alone cannot always convey, since SAP documents HTTP 200 for both a successful update
+/// and an upserted-without-further-detail row. <see cref="InlineResults"/> is typically <c>null</c> but documented
+/// as present on some navigation-property upsert responses.</summary>
 public sealed class UpsertResult
 {
     [JsonPropertyName("key")] public string? Key { get; set; }
     [JsonPropertyName("status")] public string? Status { get; set; }
+    [JsonPropertyName("editStatus")] public string? EditStatus { get; set; }
     [JsonPropertyName("httpCode")] public int HttpCode { get; set; }
     [JsonPropertyName("index")] public int Index { get; set; }
     [JsonPropertyName("message")] public string? Message { get; set; }
+    [JsonPropertyName("inlineResults")] public JsonElement? InlineResults { get; set; }
     [JsonIgnore] public bool Succeeded => HttpCode is >= 200 and < 300 && Status == "OK";
-    public override string ToString() => $"UpsertResult {{ httpCode={HttpCode}, succeeded={Succeeded}, details=[REDACTED] }}";
+    public override string ToString() => $"UpsertResult {{ httpCode={HttpCode}, editStatus={EditStatus}, succeeded={Succeeded}, details=[REDACTED] }}";
 }
 /// <summary>Explicit tenant OData V2 root and host-owned valid OAuth/OIDC token source. No UI-host or API-host inference.</summary>
 public sealed partial class SuccessFactorsClient

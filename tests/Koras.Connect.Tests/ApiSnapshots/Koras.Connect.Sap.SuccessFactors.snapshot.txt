@@ -159,8 +159,10 @@ abstract class Koras.Connect.Sap.SuccessFactors.SuccessFactorsServiceCollectionE
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasSuccessFactors(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Sap.SuccessFactors.SuccessFactorsConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
 sealed class Koras.Connect.Sap.SuccessFactors.UpsertResult
   ctor()
+  property System.String EditStatus {get+set}
   property System.Int32 HttpCode {get+set}
   property System.Int32 Index {get+set}
+  property System.Nullable<System.Text.Json.JsonElement> InlineResults {get+set}
   property System.String Key {get+set}
   property System.String Message {get+set}
   property System.String Status {get+set}
