@@ -4,7 +4,7 @@ title: "Export provider interfaces"
 category: "sdk"
 priority: "P0"
 phase: "P3"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `dotnet test Koras.Connect.slnx -c Release --no-build`: Passed 329, Skipped 3 (live-sandbox, unrelated), Failed 0. `CoreTests.ExportsEscapeDataAndLeaveStreamOpen` already covered one formula prefix, XML escaping, and stream-stays-open; no test exercised `ExportSchema<T>.Project` itself. New `ExportProviderTests.cs` (14 tests) closes the rest: null/`IFormattable`/culture-aware/Unicode projection through a real `CsvExportProvider` (a `de-DE`-cultured decimal and a custom-format date render correctly, an all-null record falls back to `NullText`), every formula-injection prefix the implementation actually guards against (`=`,`+`,`-`,`@`, and leading tab/CR/LF — the prior test only exercised `=`), a real embedded-newline-and-quote CSV round-trip (not just a loose `Contains` check), empty record sets producing a valid header-only document for CSV/XML/Excel, row-width-mismatch rejection, and Excel's column-count bounds (0 and 16385). "Canceled stream" is covered by SDK-010's `CancellationAndTimeoutTests.CancelingMidExportLeavesWhateverWasAlreadyStreamedInTheDestinationWhichTheCallerMustTreatAsInvalid`, not duplicated here. The implementation's XLSX writer is a minimal hand-rolled OOXML writer (`TabularExport.WriteExcel`/`WriteExcelAsync`), not a third-party library, so this ticket's "third-party Excel library requires license review if chosen" blocker does not apply — no third-party dependency was chosen. |
+| Remaining work / blockers | Excel's 1,048,576-row ceiling (`TabularExport`'s `if (++count > 1048576) throw`) is verified by code inspection only — driving a real test past that boundary would mean writing over a million rows, impractical for a fast unit test; the column-count bound test exercises the same guard-clause shape at a reachable scale instead. No other functional gap found. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added the proposed `IExportProvider`/`ExportSchema<T>`/`ExportColumn<T>` contracts and `CsvExportProvider`/`JsonExportProvider`/`XmlExportProvider`/`XlsxExportProvider` implementations in `src/Koras.Connect/Export/ExportProvider.cs`, wrapping the existing `TabularExport` static methods (kept, not replaced, per the migration note in master section 6/8). `TabularExport` itself gained `IAsyncEnumerable<T>`/`IAsyncEnumerable<IReadOnlyList<string?>>` overloads for `WriteJsonAsync`/`WriteCsvAsync`/`WriteXmlAsync`/`WriteExcelAsync` so records can stream from provider `IAsyncEnumerable<T>` sources without buffering the whole population first — this closes the cross-cutting gap flagged against every provider's export feature (ADP-008/009, and the SAP/Qualtrics equivalents). Provider-specific projections (e.g. mapping `Worker`/`PerPerson`/`SurveySummary` to an `ExportSchema<T>`) are being added per-provider; see their own trackers. `dotnet build`/`dotnet test` (55 baseline tests) pass unaffected; no new test in this shared location yet exercises `ExportSchema<T>.Project` directly (covered indirectly once provider projections land). |
+| 2026-11-12 | `implemented` | Added `ExportProviderTests.cs` to exercise `ExportSchema<T>.Project` directly (null/culture/Unicode) and close every remaining named unit-test requirement. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |
