@@ -4,10 +4,10 @@ title: "API capability/entitlement matrix"
 category: "adp"
 priority: "P0"
 phase: "P1 baseline"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,17 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available (uncommitted at time of writing) |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: Passed 231, Skipped 3, Failed 0, Total 234 (includes `AdpConnectorTests.EveryAdpOperationHasExactlyOneEntitlementEntry`/`.RecordedDeniedEntitlementShortCircuitsBeforeAnyNetworkCall` and the new `AdpEntitlementScopeTests`) |
-| Remaining work / blockers | **Closed this pass:** one more matrix field, the documented candidate CAR scope string, is now modeled via `AdpOperationCatalog.CandidateScopes`. The remaining richer matrix fields from the spec (product/version, family, schema, actor/population, paging/quota, evidence date) are still not modeled, and no evidence has been recorded from an actual tenant (every operation starts, and in this repo stays, `Unknown`). |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: closed the remaining richer-matrix-fields gap by adding `AdpOperationCapability`/`AdpOperationCapabilityCatalog` (`src/Koras.Connect.Adp/AdpOperationCapabilityCatalog.cs`) — a third sibling lookup, alongside `AdpEntitlementTracker` (live state) and `AdpOperationCatalog.CandidateScopes` (candidate grant string), rather than widening either. Models, for every `AdpOperation`, product/version scope (uniformly U.S. WFN only, per the matrix's own scope line), an informal family grouping (Lifecycle/Work assignment/Organization/Personal communication/Payroll/Time/Benefits/Events), the matrix's "Source / access" column transcribed verbatim as `GrantOrAccessNote`, `PagingOrQuota` (explicitly `null` for every operation here — the matrix's only paging bound applies to `AdpWorkersClient`'s read surfaces, not this enum, so asserting `null` keeps that distinction explicit rather than silently implying a bound exists), and `EvidenceSource`/`EvidenceDate` (the S1-S8 alias and the matrix's "reviewed November 11, 2026" date). Added `tests/Koras.Connect.Tests/AdpOperationCapabilityCatalogTests.cs`: exactly one entry per operation plus "matrix-to-catalog consistency" (the capability key set must equal `AdpOperationCatalog.Contracts`'s operation set exactly), non-empty product/family/grant-note/evidence on every entry, the explicit paging/quota `null` assertion, and spot checks on family grouping. Updated `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Adp.snapshot.txt` for the two new public types. Full suite: 405 passed, 3 skipped, 0 failed (one unrelated pre-existing `ResiliencePolicyTests` timing flake observed and reconfirmed non-reproducing in isolation, as in prior ADP passes). No evidence has been recorded from an actual tenant — every operation's live `AdpEntitlementTracker` state still starts, and in this repo stays, `Unknown`; that live-verification gap is unchanged by this pass and remains external. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `Koras.Connect.Adp.AdpEntitlementTracker` (`src/Koras.Connect.Adp/AdpEntitlementTracker.cs`), which gives every `AdpOperation` enum value exactly one `EntitlementEvidence` entry (defaulting to `EntitlementState.Unknown`) and lets a host `Record` `Configured`/`Verified`/`Denied` evidence after a real opt-in or call outcome. Wired into `AdpOperationsClient` (optional constructor parameter) so a `Denied` operation throws `Koras.Connect.Exceptions.AuthorizationException` from `Contract(...)` before any HTTP request — true deny-before-network. `AdpConnector.CreateDescriptor(tracker)` surfaces the tracker's snapshot as `ConnectorDescriptor.Entitlements`. Tests in `tests/Koras.Connect.Tests/AdpConnectorTests.cs`: `EveryAdpOperationHasExactlyOneEntitlementEntry` (enumerates `AdpOperation` and asserts a 1:1 mapping), `RecordedDeniedEntitlementShortCircuitsBeforeAnyNetworkCall` (handler throws if ever invoked), and `DescriptorSurfacesEntitlementEvidenceFromTheSharedTracker`. Still `partial`: this is the P1-baseline state-machine primitive only, not the full matrix described in the spec, and carries no live tenant evidence. |
 | 2026-11-12 | `partial` | Added `AdpOperationCatalog.CandidateScopes` (`src/Koras.Connect.Adp/AdpOperationsClient.cs`), a sibling lookup (chosen over widening `AdpOperationContract` itself, to avoid touching all fifteen existing contract constructions) mapping each `AdpOperation` to the documented candidate CAR scope string cited in `docs/features/KORAS-CONNECT-SDK-MASTER-FEATURES.md` section 13 (refs A1/A2) for `ModifyWorkAssignment`, `ChangeManager` and `ModifyDepartmentAllocations`; every other operation maps explicitly to `null` rather than a synthesized string, per that section's own warning against concatenating event names. Doc comments repeat the "documented candidate scope, not a confirmed tenant grant" caution. Tests in `tests/Koras.Connect.Tests/AdpEntitlementScopeTests.cs` assert every `AdpOperation` has exactly one entry, the three documented operations carry the exact cited string, and every other operation is explicitly `null`. Still `partial`: this is metadata only, not a new matrix field category, and the richer fields (product/version, family, actor/population, paging/quota, evidence date) remain unmodeled. |
+| 2026-11-13 | `implemented` | Added `AdpOperationCapabilityCatalog`, modeling the remaining richer matrix fields (product/version, family, grant/access note, paging/quota, evidence source and date) as a third sibling lookup, transcribed directly from `docs/features/ADP-FEATURE-MATRIX.md`. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented` since every functional-requirement field category is now modeled somewhere across the three sibling lookups. `verification` moved from `unverified` to `partial`: no live-tenant entitlement evidence exists, and this pass does not claim any — `AdpEntitlementTracker` state remains `Unknown` for every operation until a host records a real outcome. |

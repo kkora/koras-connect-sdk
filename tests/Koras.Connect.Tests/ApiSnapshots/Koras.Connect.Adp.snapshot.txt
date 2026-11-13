@@ -38,6 +38,23 @@ enum Koras.Connect.Adp.AdpOperation
   enum-value ModifyWorkAssignment = 12
   enum-value ModifyDepartmentAllocations = 13
   enum-value SpendingAccountEnrollments = 14
+sealed class Koras.Connect.Adp.AdpOperationCapability
+  ctor(Koras.Connect.Adp.AdpOperation Operation, System.String Product, System.String Family, System.String GrantOrAccessNote, System.String PagingOrQuota, System.String EvidenceSource, System.DateOnly EvidenceDate)
+  property System.DateOnly EvidenceDate {get+init}
+  property System.String EvidenceSource {get+init}
+  property System.String Family {get+init}
+  property System.String GrantOrAccessNote {get+init}
+  property Koras.Connect.Adp.AdpOperation Operation {get+init}
+  property System.String PagingOrQuota {get+init}
+  property System.String Product {get+init}
+  method Koras.Connect.Adp.AdpOperationCapability <Clone>$()
+  method System.Void Deconstruct(Koras.Connect.Adp.AdpOperation& Operation, System.String& Product, System.String& Family, System.String& GrantOrAccessNote, System.String& PagingOrQuota, System.String& EvidenceSource, System.DateOnly& EvidenceDate)
+  method System.Boolean Equals(Koras.Connect.Adp.AdpOperationCapability other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Adp.AdpOperationCapabilityCatalog
+  property System.Collections.Generic.IReadOnlyDictionary<Koras.Connect.Adp.AdpOperation, Koras.Connect.Adp.AdpOperationCapability> Capabilities {get}
 abstract class Koras.Connect.Adp.AdpOperationCatalog
   property System.Collections.Generic.IReadOnlyDictionary<Koras.Connect.Adp.AdpOperation, System.String> CandidateScopes {get}
   property System.Collections.Generic.IReadOnlyList<Koras.Connect.Adp.AdpOperationContract> Contracts {get}
