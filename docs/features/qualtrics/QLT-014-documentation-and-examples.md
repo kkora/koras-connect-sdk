@@ -4,10 +4,10 @@ title: "Documentation and examples"
 category: "qualtrics"
 priority: "P0"
 phase: "P6"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "partial"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -44,18 +44,18 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Validation commands / results | Added `samples/Qualtrics.DirectoryContacts` (standalone console project, `ProjectReference` to `Koras.Connect.Qualtrics` only, not added to `Koras.Connect.slnx`, same convention as `samples/Qualtrics.SurveyExport`), closing the "directory/contact/mailing-list surface not yet demonstrated" gap recorded below. Demonstrates `ListContactsAsync` -> `GetContactAsync` -> `CreateContactAsync` (opt-in write) -> `UpdateContactAsync` with the QLT-015 `ContactChange` partial-update type (opt-in write, only the touched field is sent) -> `ListMailingListsAsync` -> `CreateMailingListAsync` (opt-in write), entirely against a synthetic in-process `HttpMessageHandler` with no network access and no token/data-center/directory setup required. Verified with `dotnet build` and `dotnet run` from a clean checkout; both succeeded and the console output narrates the synthetic nature of every step. `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: full suite unaffected (the sample is outside the solution's test discovery), 492 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No further engineering gap identified for the offline example surface. Live mode (authorized token/data center/survey/directory) remains an external blocker (see above), unchanged by this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `samples/Qualtrics.SurveyExport` (standalone console project, `ProjectReference` to `Koras.Connect.Qualtrics` only, not added to `Koras.Connect.slnx`, following the same non-slnx-member convention as `samples/PackageConsumer`). Demonstrates survey enumeration -> `StartResponseExportAsync` -> an explicit `GetExportProgressAsync` poll followed by a simulated process-restart -> `WaitForExportAsync` resume using the same progress ID -> `DownloadExportAsync`, entirely against a synthetic in-process `HttpMessageHandler` with no network access, no token/data-center/survey setup required, and no message/distribution ever sent. Verified with `dotnet build samples/Qualtrics.SurveyExport/Qualtrics.SurveyExport.csproj` and `dotnet run --project samples/Qualtrics.SurveyExport` on a clean checkout; both succeeded and the console output clearly narrates the synthetic nature of every step. The directory/contact/mailing-list surface added under QLT-006/009/015 is not yet demonstrated by a dedicated example; only the survey/export flow is covered here. |
+| 2026-11-13 | `implemented` | Added `samples/Qualtrics.DirectoryContacts`, closing the directory/contact/mailing-list example gap recorded above. Checked the unit/contract/integration, security/cancellation/resource-ownership, and documentation/consumer-example completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live mode (authorized token/data center/survey/directory) remains a standing external blocker. |
