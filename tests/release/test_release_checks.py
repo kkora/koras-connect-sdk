@@ -24,6 +24,11 @@ class ReleaseChecksTests(unittest.TestCase):
         self.folder.cleanup()
     def test_validation_requires_no_publication_credentials(self):
         self.assertEqual(['Example'], checks.validate(self.manifest, self.sbom, self.path))
+    def test_invalid_semver_is_rejected(self):
+        for bad_version in ('1.2', '1.2.3.4', 'v1.2.3', '1.2.3-', 'latest'):
+            self.manifest['version'] = bad_version
+            with self.assertRaisesRegex(ValueError, 'Invalid release version'):
+                checks.validate(self.manifest, self.sbom, self.path)
     def test_publish_fails_closed_without_owner_approval(self):
         with self.assertRaisesRegex(ValueError, 'not approved'):
             checks.validate(self.manifest, self.sbom, self.path, True, 'refs/tags/v1.2.3')

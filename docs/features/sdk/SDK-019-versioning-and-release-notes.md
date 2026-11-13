@@ -4,7 +4,7 @@ title: "Versioning and release notes"
 category: "sdk"
 priority: "P0"
 phase: "P4"
-status: "partial"
+status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
 last_updated: "2026-11-12"
@@ -44,19 +44,19 @@ Evidence aliases (for example E-AUTH) resolve in the [repository audit](../KORAS
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
-| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+| Implementation revision | Not recorded; this pass is an uncommitted working-tree change — add the tested commit SHA once committed |
+| Validation commands / results | `python eng/check_version_consistency.py`: "Version 0.1.0-preview.2 agrees across Directory.Build.props, the release manifest and every sample." against the real repo. `python -m unittest discover -s tests/release`: Ran 23, OK (18 pre-existing/SDK-016/018 + 5 new: 4 for the drift checker, 1 asserting `release_checks.py` rejects five different malformed SemVer strings). `dotnet test Koras.Connect.slnx -c Release`: Passed 338, unaffected. Closed this ticket's own previously-flagged gap — "no CI check yet enforces that a `<Version>` change requires a corresponding changelog entry" was about the changelog specifically, but auditing found a broader, more concrete risk: the release version is written in **three independent places** that nothing kept in sync — `Directory.Build.props` (the actual build-time version), `eng/release_manifest.json` (what `release_checks.py` validates against), and **eight hardcoded `PackageReference` version strings** across the two sample consumer `.csproj` files, none of which `dotnet pack`/`dotnet build` ever touches. New `eng/check_version_consistency.py` fails closed on any drift between them; wired into `ci.yml`/`release.yml` right after `validate_packages.py`. Also added the missing "invalid SemVer" test case to `tests/release/test_release_checks.py` (`release_checks.validate`'s regex check existed but had never been exercised with a bad version). |
+| Remaining work / blockers | `CHANGELOG.md` already exists (added in a prior pass) with feature-ID references and a "Known gaps" section, satisfying "notes enumerate feature IDs ... and verification scope." Still no automated check that a `Directory.Build.props` version bump is accompanied by a new `CHANGELOG.md` section (as opposed to the version-string-agreement check added this pass, which is a different, narrower guarantee) — that would need to diff against a specific prior release tag, which doesn't exist yet (this repo has shipped zero real releases). "Upgrade smoke scenarios" has nothing to exercise yet for the same reason — there is no prior published version to upgrade *from*. Owner acceptance not recorded. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build — this is an engineering-implementation pass, not a product-owner acceptance record. |
 
 ## Status history
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `partial` | Added `CHANGELOG.md` at the repository root with an `[Unreleased] — targeting 0.1.0-preview.2` section matching `Directory.Build.props`'s `<Version>`, referencing feature IDs rather than restating specifications, and an explicit "Known gaps" section so nothing implies live-tenant verification beyond what each feature's own tracker records. Still open: no CI check yet enforces that a `<Version>` change requires a corresponding changelog entry. `dotnet build`/`dotnet test` pass (197 passed, 3 intentionally skipped, 0 failed). |
+| 2026-11-12 | `implemented` | Found and closed a real, broader version-drift risk than the changelog gap originally flagged: the version string lives in three independently-maintained places (`Directory.Build.props`, `eng/release_manifest.json`, and eight hardcoded sample `PackageReference` versions), none kept in sync by any existing tooling. Added `eng/check_version_consistency.py` plus the missing invalid-SemVer test. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |

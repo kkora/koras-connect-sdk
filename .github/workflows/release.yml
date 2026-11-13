@@ -21,6 +21,7 @@ jobs:
       - run: dotnet test Koras.Connect.slnx -c Release --no-build
       - run: dotnet pack Koras.Connect.slnx -c Release --no-build -o artifacts
       - run: python eng/validate_packages.py
+      - run: python eng/check_version_consistency.py
       - run: python eng/generate_sbom.py
       - run: python eng/generate_tooling_inventory.py
       - run: python eng/release_checks.py

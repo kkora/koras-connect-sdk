@@ -23,6 +23,7 @@ jobs:
       - run: python eng/check_vulnerabilities.py
       - run: dotnet pack Koras.Connect.slnx --no-build --configuration Release --output artifacts
       - run: python eng/validate_packages.py
+      - run: python eng/check_version_consistency.py
       - run: python eng/check_sources.py
       - run: python eng/generate_sbom.py
       - run: python eng/generate_tooling_inventory.py
