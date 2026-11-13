@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Koras.Connect.Adp.Workers;
 using Koras.Connect.Export;
 namespace Koras.Connect.Adp.Export;
@@ -24,38 +23,17 @@ public static class WorkerExportProjection
 
     /// <summary>Streams workers from an <see cref="AdpWorkersClient.EnumerateTypedWorkersAsync"/>-shaped sequence
     /// straight through the given <see cref="IExportProvider"/> without buffering the whole population in memory.
-    /// <see cref="CsvExportProvider"/>, <see cref="XmlExportProvider"/> and <see cref="XlsxExportProvider"/> all
-    /// honor the supplied <see cref="ExportSchema{T}"/> and therefore only ever emit the documented columns. The
-    /// generic <see cref="JsonExportProvider"/> instead serializes the raw record type, which would also surface
-    /// <see cref="Worker.AdditionalData"/>; use <see cref="ExportJsonAsync"/> instead when a column-restricted JSON
-    /// export is required.</summary>
+    /// The CSV/XML/XLSX export providers all honor the supplied <see cref="ExportSchema{T}"/> and therefore only
+    /// ever emit the documented columns. The generic JSON export provider instead serializes the raw record type,
+    /// which would also surface <see cref="Worker.AdditionalData"/>; callers needing a column-restricted JSON
+    /// export should project through <see cref="CreateSchema"/> themselves in the consuming application, which
+    /// already references Koras.Connect.Export directly (this package does not, by design: see
+    /// KORAS-CONNECT-SDK-MASTER-FEATURES.md section 7 &#8212; "ADP does not require Export transitively").</summary>
     public static Task ExportAsync(IExportProvider provider, Stream destination, IAsyncEnumerable<Worker> workers,
         DateOnly? effectiveAssignmentAsOf = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(provider);
         return provider.WriteAsync(destination, workers, CreateSchema(effectiveAssignmentAsOf), cancellationToken);
-    }
-
-    /// <summary>Streams a column-restricted JSON export: each worker becomes a JSON object with exactly
-    /// <see cref="ColumnNames"/> as keys. Unlike the generic <see cref="JsonExportProvider"/>, this never surfaces
-    /// <see cref="Worker.AdditionalData"/> vendor extension fields, matching the CSV/XML/XLSX behavior.</summary>
-    public static Task ExportJsonAsync(Stream destination, IAsyncEnumerable<Worker> workers,
-        DateOnly? effectiveAssignmentAsOf = null, CancellationToken cancellationToken = default)
-    {
-        var schema = CreateSchema(effectiveAssignmentAsOf);
-        return TabularExport.WriteJsonAsync(destination, ProjectRows(workers, schema, cancellationToken), cancellationToken);
-    }
-
-    private static async IAsyncEnumerable<IReadOnlyDictionary<string, string?>> ProjectRows(IAsyncEnumerable<Worker> workers, ExportSchema<Worker> schema,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        await foreach (var worker in workers.WithCancellation(cancellationToken))
-        {
-            var values = schema.Project(worker);
-            var row = new Dictionary<string, string?>(schema.ColumnNames.Count, StringComparer.Ordinal);
-            for (var i = 0; i < schema.ColumnNames.Count; i++) row[schema.ColumnNames[i]] = values[i];
-            yield return row;
-        }
     }
 
     private static WorkAssignment? Effective(Worker worker, DateOnly? asOf)

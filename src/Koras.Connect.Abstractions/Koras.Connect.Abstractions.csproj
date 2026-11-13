@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Koras.Connect.Abstractions</PackageId><Description>Provider-neutral connector, credential, paging, mapping, export and transport contracts; no HTTP implementation</Description></PropertyGroup></Project>

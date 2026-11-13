@@ -1,11 +1,6 @@
 using System.Net.Http.Headers;
 namespace Koras.Connect.Transport;
 
-/// <summary>Applies credentials immediately before sending. Implementations must not log or retain request data.</summary>
-public interface IRequestAuthenticator
-{
-    ValueTask AuthenticateAsync(HttpRequestMessage request, CancellationToken cancellationToken = default);
-}
 public sealed class BearerTokenAuthenticator(IAccessTokenSource tokens) : IRequestAuthenticator
 {
     private readonly IAccessTokenSource _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));

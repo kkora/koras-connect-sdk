@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup><PackageReference Include="Koras.Connect.Abstractions" Version="0.1.0-preview.2"/><PackageReference Include="Koras.Connect.Core" Version="0.1.0-preview.2"/><PackageReference Include="Koras.Connect.Authentication" Version="0.1.0-preview.2"/><PackageReference Include="Koras.Connect.Export" Version="0.1.0-preview.2"/></ItemGroup>
+</Project>

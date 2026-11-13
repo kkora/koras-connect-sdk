@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Koras.Connect.Export</PackageId><Description>CSV/JSON/XML/XLSX export providers over the neutral export schema contract</Description></PropertyGroup><ItemGroup><ProjectReference Include="../Koras.Connect.Abstractions/Koras.Connect.Abstractions.csproj"/></ItemGroup></Project>

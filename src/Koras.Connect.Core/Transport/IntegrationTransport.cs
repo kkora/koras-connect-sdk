@@ -34,10 +34,6 @@ public sealed record IntegrationJsonResponse(JsonDocument Body, IReadOnlyDiction
 {
     public void Dispose() => Body.Dispose();
 }
-public interface IAccessTokenSource
-{
-    ValueTask<string> GetTokenAsync(CancellationToken cancellationToken = default);
-}
 public sealed record TransportOptions : Koras.Connect.Abstractions.IValidatableOptions
 {
     public int MaxRetries { get; init; } = 3;
