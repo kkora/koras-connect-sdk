@@ -95,8 +95,16 @@ public sealed partial class SalesforceClient
             cancellationToken.ThrowIfCancellationRequested();
             using var response = await CometDConnectAsync(clientId, cancellationToken);
             foreach (var message in response.RootElement.EnumerateArray())
-                if (message.TryGetProperty("channel", out var ch) && ch.GetString() == channel && message.TryGetProperty("data", out var data))
+            {
+                if (message.TryGetProperty("channel", out var ch) && ch.GetString() == "/meta/connect"
+                    && message.TryGetProperty("successful", out var successful) && successful.ValueKind == JsonValueKind.False)
+                    // An unsuccessful /meta/connect advisory (for example an expired/unknown clientId) must stop the
+                    // loop rather than silently reconnecting with the same rejected clientId in a tight, unthrottled
+                    // retry loop - the caller decides whether and how to start a fresh subscription.
+                    throw new ContractException("CometD /meta/connect was not successful.", new ErrorDetails("cometd_connect_failed"));
+                if (message.TryGetProperty("channel", out var dataChannel) && dataChannel.GetString() == channel && message.TryGetProperty("data", out var data))
                     yield return data.Clone();
+            }
         }
     }
 

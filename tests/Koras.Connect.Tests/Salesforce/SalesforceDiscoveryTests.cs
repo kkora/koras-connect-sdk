@@ -33,10 +33,18 @@ public sealed class SalesforceDiscoveryTests
     private sealed record AuthenticationHeaderValueHolder(System.Net.Http.Headers.AuthenticationHeaderValue? Value);
 
     [Fact]
-    public async Task UnreachableHostSurfacesATransportExceptionNotASilentEmptyList()
+    public async Task AReachableHostReturningAServerErrorSurfacesASalesforceApiExceptionNotASilentEmptyList()
     {
         var client = new HttpClient(new Handler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable) { Content = new StringContent("{}") })));
         await Assert.ThrowsAsync<SalesforceApiException>(() => SalesforceDiscovery.ListApiVersionsAsync(client, new Uri("https://login.salesforce.com/")));
+    }
+
+    [Fact]
+    public async Task AGenuinelyUnreachableHostWrapsIntoATransportExceptionRatherThanARawHttpRequestException()
+    {
+        var client = new HttpClient(new Handler((_, _) => throw new HttpRequestException("simulated connection failure")));
+        var ex = await Assert.ThrowsAsync<TransportException>(() => SalesforceDiscovery.ListApiVersionsAsync(client, new Uri("https://login.salesforce.com/")));
+        Assert.IsType<HttpRequestException>(ex.InnerException);
     }
 
     [Fact]

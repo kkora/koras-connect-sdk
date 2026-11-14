@@ -7,7 +7,7 @@ phase: "P2-D2"
 status: "implemented"
 baseline_status: "Implemented: UpsertByAlternateKeyAsync always requests return=representation to disambiguate 201/created from 200/updated, and supports UpdateOnly/CreateOnly via If-Match/If-None-Match: *. Unit-tested; no live tenant with a configured alternate key available this pass."
 verification: "partial"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -62,7 +62,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseUpsert.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseUpsertTests.cs`. Covers: upsert without `writesEnabled` throws before any HTTP call; at least one alternate-key field required; the key segment escapes an internal quote by doubling it (OData string-literal convention) rather than percent-encoding it; `201 Created` reports `Created=true`, `200 OK` reports `Created=false`; `UpdateOnly` sends `If-Match: *` and `CreateOnly` sends `If-None-Match: *`; a mode violation (412) surfaces as `DataverseConcurrencyException` (DVT-013). The SDK does not pre-verify the alternate key exists on the target table - an unconfigured key surfaces as the server's own error. Full suite: 656 passed, 3 skipped, 0 failed. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseUpsert.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseUpsertTests.cs`. Covers: upsert without `writesEnabled` throws before any HTTP call; at least one alternate-key field required; the key segment escapes an internal quote by doubling it (OData string-literal convention) rather than percent-encoding it; `201 Created` reports `Created=true`, `200 OK` reports `Created=false`; `UpdateOnly` sends `If-Match: *` and `CreateOnly` sends `If-None-Match: *`; a mode violation (412) surfaces as `DataverseConcurrencyException` (DVT-013) for **both** `UpdateOnly` and `CreateOnly` (review pass 1 found only the `UpdateOnly` direction was actually tested despite the doc claiming both; added `CreateOnlyViolationSurfacesAsDataverseConcurrencyException`). The SDK does not pre-verify the alternate key exists on the target table - an unconfigured key surfaces as the server's own error. |
 | Remaining work / blockers | No authorized sandbox table with a real alternate key configured available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
@@ -71,4 +71,5 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found the `CreateOnly` precondition-violation direction was untested (only `UpdateOnly` had a test, despite the doc describing both as covered); added the missing test. No code behavior changed. |
 | 2026-11-13 | `implemented` | Added `UpsertByAlternateKeyAsync`/`DataverseUpsertResult`/`DataverseUpsertMode` plus `DataverseUpsertTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live tenant with a configured alternate key available this pass. |

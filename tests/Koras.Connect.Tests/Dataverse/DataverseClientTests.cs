@@ -123,6 +123,27 @@ public sealed class DataverseClientTests
     }
 
     [Fact]
+    public async Task AnUrlExceedingTheDocumented32KiBBoundIsRejectedLocally()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        var hugeSelect = string.Join(",", Enumerable.Repeat("a", 20_000));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", Guid.NewGuid(), new DataverseQuery(Select: hugeSelect)));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task APathSegmentExceedingTheDocumented260CharacterBoundIsRejectedLocally()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        var hugeProperty = new string('a', 300);
+        using var value = System.Text.Json.JsonDocument.Parse(""" "x" """);
+        await Assert.ThrowsAsync<ArgumentException>(() => client.UpdatePropertyAsync("accounts", Guid.NewGuid(), hugeProperty, value.RootElement, writesEnabled: true));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
     public void DescriptorIdentifiesMicrosoftDataverseAtTheFixedApiVersion()
     {
         var client = Client((_, _) => Task.FromResult(Json("{}")));

@@ -7,7 +7,7 @@ phase: "P2-D2"
 status: "implemented"
 baseline_status: "Implemented: DataverseClient composes {environment-url}/api/data/v9.2/, requires OData-MaxVersion/OData-Version headers, and enforces the documented 32 KB (64 KB in $batch) URL-length and 260-character segment-length bounds locally before send. Unit-tested; no live environment available this pass."
 verification: "partial"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -62,8 +62,8 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseClient.cs`/`DataverseOptions.cs` and `DataverseClientTests.cs`. Covers: non-HTTPS/credential-bearing root rejected at construction (reusing `EndpointSafety.ValidateRoot`), page-size bounds, base URL composed as `{environment-url}/api/data/v9.2/`, every request carrying `OData-MaxVersion: 4.0`/`OData-Version: 4.0`/`Accept: application/json`. The 32 KB/64 KB URL-length and 260-character segment-length local pre-send validation (`ValidateRequestUri`) is implemented but not yet exercised by a dedicated test in this commit - no request built by DVT-001/002/003 alone produces a URL long enough to trigger it; coverage is deferred to DVT-004's CRUD paths, which build URLs from caller-supplied table/row identifiers. Full suite: 594 passed, 3 skipped, 0 failed. |
-| Remaining work / blockers | `ValidateRequestUri`'s oversized-URL/segment rejection needs a dedicated test once a caller-controlled long identifier exists (DVT-004). No live Dataverse environment available this pass. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseClient.cs`/`DataverseOptions.cs` and `DataverseClientTests.cs`. Covers: non-HTTPS/credential-bearing root rejected at construction (reusing `EndpointSafety.ValidateRoot`), page-size bounds, base URL composed as `{environment-url}/api/data/v9.2/`, every request carrying `OData-MaxVersion: 4.0`/`OData-Version: 4.0`/`Accept: application/json`. The 32 KB URL-length and 260-character segment-length local pre-send validation (`ValidateRequestUri`) was deferred to DVT-004's CRUD paths at the time this was first written, but review pass 1 found DVT-004's own test file never actually added that coverage either, leaving the gap open across both trackers - closed now with `AnUrlExceedingTheDocumented32KiBBoundIsRejectedLocally` (an oversized `$select` on `GetRowAsync`) and `APathSegmentExceedingTheDocumented260CharacterBoundIsRejectedLocally` (an oversized property name on `UpdatePropertyAsync`), both added directly to this feature's own test file. |
+| Remaining work / blockers | No live Dataverse environment available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -72,3 +72,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-13 | `implemented` | Added `DataverseClient`/`DataverseOptions`/`DataverseApiException` plus `DataverseClientTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: the URL/segment-length bound is implemented but not yet directly tested (tracked, see Remaining work), and no live environment is available this pass. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found the URL/segment-length deferral to DVT-004 was never actually picked up there either - added the two missing tests directly to this feature's own test file instead of deferring again. |

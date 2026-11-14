@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -29,6 +30,12 @@ public sealed record DataverseClientCredentialsOptions(
         var failures = new List<string>();
         if (TenantTokenEndpoint is null || !TenantTokenEndpoint.IsAbsoluteUri || TenantTokenEndpoint.Scheme != Uri.UriSchemeHttps || TenantTokenEndpoint.UserInfo.Length != 0)
             failures.Add($"{nameof(TenantTokenEndpoint)}: must be an absolute HTTPS URI without user information.");
+        else
+        {
+            var tenantSegment = TenantTokenEndpoint.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            if (tenantSegment is "common" or "organizations" or "consumers")
+                failures.Add($"{nameof(TenantTokenEndpoint)}: '{tenantSegment}' is not a valid Entra tenant alias for a Dataverse app-only scenario - an explicit tenant GUID or verified domain is required.");
+        }
         if (string.IsNullOrWhiteSpace(ClientId)) failures.Add($"{nameof(ClientId)}: is required.");
         if (string.IsNullOrWhiteSpace(EnvironmentUrl) || !Uri.TryCreate(EnvironmentUrl, UriKind.Absolute, out var environmentUri) || environmentUri.Scheme != Uri.UriSchemeHttps)
             failures.Add($"{nameof(EnvironmentUrl)}: must be an absolute HTTPS URI.");

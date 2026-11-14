@@ -69,6 +69,8 @@ public sealed class DataverseQueryTests
         await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", RowId, new DataverseQuery(Filter: "name eq 'x'")));
         await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", RowId, new DataverseQuery(Top: 1)));
         await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", RowId, new DataverseQuery(Count: true)));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", RowId, new DataverseQuery(OrderBy: "name asc")));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.GetRowAsync("accounts", RowId, new DataverseQuery(Apply: "groupby((name))")));
     }
 
     [Fact]

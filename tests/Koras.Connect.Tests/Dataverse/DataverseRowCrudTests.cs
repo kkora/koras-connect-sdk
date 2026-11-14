@@ -103,6 +103,42 @@ public sealed class DataverseRowCrudTests
     }
 
     [Fact]
+    public async Task UpdatePropertyWithoutWritesEnabledThrowsBeforeAnyHttpCall()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.UpdatePropertyAsync("accounts", RowId, "name", Fields(""" "Contoso" """)));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task UpdatePropertySendsAPutToTheDocumentedPropertyAddressWithAValueEnvelope()
+    {
+        HttpMethod? method = null; Uri? requested = null; string? body = null;
+        var client = Client(async (r, ct) =>
+        {
+            method = r.Method; requested = r.RequestUri; body = await r.Content!.ReadAsStringAsync(ct);
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        });
+        await client.UpdatePropertyAsync("accounts", RowId, "name", Fields(""" "Contoso" """), writesEnabled: true);
+        Assert.Equal(HttpMethod.Put, method);
+        Assert.Equal($"https://contoso.api.crm.dynamics.com/api/data/v9.2/accounts({RowId:D})/name", requested!.AbsoluteUri);
+        Assert.Equal("""{"value":"Contoso"}""", body);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("name/other")]
+    [InlineData("name(1)")]
+    public async Task UpdatePropertyRejectsAnUnsafePropertyNameLocally(string property)
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)); });
+        await Assert.ThrowsAsync<ArgumentException>(() => client.UpdatePropertyAsync("accounts", RowId, property, Fields(""" "Contoso" """), writesEnabled: true));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
     public async Task DeleteWithoutWritesEnabledThrowsBeforeAnyHttpCall()
     {
         var calls = 0;

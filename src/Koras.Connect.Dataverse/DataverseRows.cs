@@ -73,7 +73,7 @@ public sealed partial class DataverseClient
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
         var address = RowAddress(entitySet, id);
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, WithIfMatch(ifMatchETag), cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, WithIfMatch(ifMatchETag), cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
@@ -84,7 +84,23 @@ public sealed partial class DataverseClient
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
         var address = RowAddress(entitySet, id);
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, WithIfMatch(ifMatchETag), cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, null, WithIfMatch(ifMatchETag), cancellationToken)) { } }
+        catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
+    }
+
+    /// <summary>Updates a single property via <c>PUT {entityset}(guid)/{property}</c> with a <c>{"value": ...}</c>
+    /// body (DVT-004) - distinct from <see cref="UpdateRowAsync"/>'s full-row <c>PATCH</c>. Disabled unless
+    /// <paramref name="writesEnabled"/> is explicitly <c>true</c>. Never retried.</summary>
+    public async Task UpdatePropertyAsync(string entitySet, Guid id, string property, JsonElement value, bool writesEnabled = false, CancellationToken cancellationToken = default)
+    {
+        if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
+        if (string.IsNullOrWhiteSpace(property) || property.Contains('/') || property.Contains('(') || property.Contains(')'))
+            throw new ArgumentException("A single, unencoded property name is required.", nameof(property));
+        ValidateEntitySet(entitySet);
+        var address = new Uri(_root, $"{entitySet}({id:D})/{Uri.EscapeDataString(property)}");
+        ValidateRequestUri(address);
+        using var body = JsonDocument.Parse($$"""{"value":{{value.GetRawText()}}}""");
+        try { using (await _transport.SendResponseAsync(HttpMethod.Put, address, body.RootElement, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 

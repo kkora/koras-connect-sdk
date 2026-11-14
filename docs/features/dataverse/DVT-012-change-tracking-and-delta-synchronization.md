@@ -7,7 +7,7 @@ phase: "P2-D2"
 status: "implemented"
 baseline_status: "Implemented: GetChangesAsync sends Prefer: odata.track-changes, separates changed rows from documented deleted-row entries, and carries both @odata.nextLink and @odata.deltaLink as the same opaque ContinuationToken. Unit-tested; no live change-tracked table available this pass."
 verification: "partial"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,7 +50,7 @@ public Task<DataverseDeltaPage<T>> GetChangesAsync<T>(string entitySet, string? 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [x] Functional requirements and public API contract satisfied.
+- [ ] Functional requirements and public API contract satisfied.
 - [x] Acceptance criteria and Definition of Done satisfied.
 - [x] Required unit, contract and integration checks pass at the recorded revision.
 - [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
@@ -70,3 +70,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-13 | `implemented` | Added `GetChangesAsync`/`DataverseDeltaPage<T>`/`DataverseDeletedRow` plus `DataverseDeltaTests.cs` (adapted to a `JsonElement`-based, non-generic signature for consistency with `EnumerateAsync`). Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live change-tracked tenant available this pass, and the expired-token/not-enabled error shapes remain unconfirmed. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 correctly flagged that the "Functional requirements and public API contract satisfied" checkbox was checked despite functional requirement #15 (classify an expired delta token distinctly) being unmet - unchecked that gate rather than fabricating a classification for a server error shape this session never independently confirmed (standing Section 28/external-blocker gap, same category as SFD-014's "confirmed blocked, not attempted"). No code changed: guessing at an unverified vendor error shape would risk silently misclassifying a real failure as something else. |

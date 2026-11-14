@@ -32,9 +32,22 @@ public sealed class DataverseActionsTests
     {
         HttpMethod? method = null; Uri? requested = null;
         var client = Client((r, _) => { method = r.Method; requested = r.RequestUri; return Task.FromResult(Json("{}")); });
-        await client.InvokeUnboundActionAsync("Merge", Parameters("""{"Target":{}}"""), writesEnabled: true);
+        using var _ = await client.InvokeUnboundActionAsync("Merge", Parameters("""{"Target":{}}"""), writesEnabled: true);
         Assert.Equal(HttpMethod.Post, method);
         Assert.Equal("https://contoso.api.crm.dynamics.com/api/data/v9.2/Merge", requested!.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task AnAmbiguousParameterTypesODataTypeAnnotationPassesThroughVerbatim()
+    {
+        // @odata.type is composed by the caller inside the parameters they already own and supply - the SDK
+        // forwards the body verbatim rather than inferring or injecting the annotation itself, the same
+        // caller-owns-the-literal precedent already documented for function parameter quoting.
+        string? sentBody = null;
+        var client = Client(async (r, ct) => { sentBody = await r.Content!.ReadAsStringAsync(ct); return Json("{}"); });
+        var parameters = Parameters("""{"Target":{"@odata.type":"Microsoft.Dynamics.CRM.account","accountid":"11111111-1111-1111-1111-111111111111"}}""");
+        using var _ = await client.InvokeUnboundActionAsync("Merge", parameters, writesEnabled: true);
+        Assert.Contains("\"@odata.type\":\"Microsoft.Dynamics.CRM.account\"", sentBody);
     }
 
     [Fact]
@@ -51,7 +64,7 @@ public sealed class DataverseActionsTests
     {
         Uri? requested = null;
         var client = Client((r, _) => { requested = r.RequestUri; return Task.FromResult(Json("{}")); });
-        await client.InvokeBoundActionAsync("accounts", RowId, "WinOpportunity", Parameters(), writesEnabled: true);
+        using var _ = await client.InvokeBoundActionAsync("accounts", RowId, "WinOpportunity", Parameters(), writesEnabled: true);
         Assert.Equal($"https://contoso.api.crm.dynamics.com/api/data/v9.2/accounts({RowId:D})/Microsoft.Dynamics.CRM.WinOpportunity", requested!.AbsoluteUri);
     }
 
@@ -60,7 +73,7 @@ public sealed class DataverseActionsTests
     {
         Uri? requested = null;
         var client = Client((r, _) => { requested = r.RequestUri; return Task.FromResult(Json("{}")); });
-        await client.InvokeFunctionAsync("RetrieveTotalRecordCount", new Dictionary<string, string> { ["EntityNames"] = "['account']" });
+        using var _ = await client.InvokeFunctionAsync("RetrieveTotalRecordCount", new Dictionary<string, string> { ["EntityNames"] = "['account']" });
         var decoded = Uri.UnescapeDataString(requested!.AbsoluteUri);
         Assert.Contains("RetrieveTotalRecordCount(EntityNames=@p1)", decoded);
         Assert.Contains("@p1=['account']", decoded);
@@ -71,7 +84,7 @@ public sealed class DataverseActionsTests
     {
         Uri? requested = null;
         var client = Client((r, _) => { requested = r.RequestUri; return Task.FromResult(Json("{}")); });
-        await client.InvokeFunctionAsync("WhoAmI");
+        using var _ = await client.InvokeFunctionAsync("WhoAmI");
         Assert.Equal("https://contoso.api.crm.dynamics.com/api/data/v9.2/WhoAmI()", requested!.AbsoluteUri);
     }
 

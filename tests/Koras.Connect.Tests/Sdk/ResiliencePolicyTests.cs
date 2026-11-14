@@ -42,6 +42,28 @@ public sealed class ResiliencePolicyTests
     }
 
     [Fact]
+    public async Task APersistentConnectionFailureThatExhaustsTheGetRetryBudgetWrapsIntoTransportException()
+    {
+        var calls = 0;
+        using var h = new HttpClient(new Handler(_ => { calls++; throw new HttpRequestException("simulated persistent connection failure"); }));
+        var transport = new IntegrationTransport(h, new Token(), new() { BaseDelay = TimeSpan.Zero, MaxRetries = 2 });
+        var ex = await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(() => transport.ReadJsonAsync(new("https://api.test")));
+        Assert.Equal(3, calls); // the initial attempt plus exactly MaxRetries retries
+        Assert.IsType<HttpRequestException>(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task AConnectionFailureOnAWriteMethodWrapsIntoTransportExceptionImmediatelyWithNoRetry()
+    {
+        var calls = 0;
+        using var h = new HttpClient(new Handler(_ => { calls++; throw new HttpRequestException("simulated connection failure"); }));
+        var transport = new IntegrationTransport(h, new Token(), new() { BaseDelay = TimeSpan.Zero, MaxRetries = 3 });
+        using var payload = JsonDocument.Parse("{}");
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(() => transport.SendJsonAsync(HttpMethod.Post, new("https://api.test"), payload.RootElement));
+        Assert.Equal(1, calls); // writes are never retried, including on a connection-level failure
+    }
+
+    [Fact]
     public async Task PersistentTransientFailureExhaustsTheRetryBudgetAndThrowsWithTheFinalAttemptCount()
     {
         var calls = 0;

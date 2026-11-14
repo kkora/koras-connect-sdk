@@ -47,6 +47,17 @@ public sealed class DataverseAuthenticationTests
                 "client", "https://contoso.api.crm.dynamics.com/", ClientSecret: "secret").Validate());
     }
 
+    [Theory]
+    [InlineData("common")]
+    [InlineData("organizations")]
+    [InlineData("consumers")]
+    public void TenantAliasesInvalidForAppOnlyAreRejected(string alias)
+    {
+        Assert.Throws<OptionsValidationException>(() =>
+            new DataverseClientCredentialsOptions(new Uri($"https://login.microsoftonline.com/{alias}/oauth2/v2.0/token"),
+                "client", "https://contoso.api.crm.dynamics.com/", ClientSecret: "secret").Validate());
+    }
+
     [Fact]
     public void CreateTokenSourceWithSecretReturnsClientCredentialsTokenSource()
     {
@@ -116,6 +127,29 @@ public sealed class DataverseAuthenticationTests
         clock.Now = clock.Now.AddSeconds(50);
         await source.GetTokenAsync();
         Assert.Equal(2, calls); // margin crossed - real renewal
+    }
+
+    [Fact]
+    public async Task ConcurrentCallersShareOneTokenRequest()
+    {
+        var calls = 0;
+        var gate = new SemaphoreSlim(0);
+        using var certificate = SelfSigned();
+        using var http = new HttpClient(new Handler(async (_, ct) =>
+        {
+            Interlocked.Increment(ref calls);
+            await gate.WaitAsync(ct);
+            return Json("""{"access_token":"shared","token_type":"Bearer","expires_in":3600}""");
+        }));
+        var options = new DataverseClientCredentialsOptions(TokenEndpoint, "client", "https://contoso.api.crm.dynamics.com/",
+            CertificateSource: _ => ValueTask.FromResult(certificate));
+        using var source = new DataverseCertificateAssertionTokenSource(http, options, "scope");
+        var first = source.GetTokenAsync().AsTask();
+        var second = source.GetTokenAsync().AsTask();
+        gate.Release(2);
+        var tokens = await Task.WhenAll(first, second);
+        Assert.Equal(1, calls);
+        Assert.Equal(["shared", "shared"], tokens);
     }
 
     [Fact]

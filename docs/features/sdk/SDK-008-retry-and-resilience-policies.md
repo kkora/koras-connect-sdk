@@ -7,7 +7,7 @@ phase: "P2"
 status: "implemented"
 baseline_status: "Partially implemented"
 verification: "unverified"
-last_updated: "2026-11-12"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `implemented` | Closed every remaining named unit-test requirement with `ResiliencePolicyTests.cs`: network-level failure retry, budget exhaustion, jitter bounds, circuit cancellation during backoff, date-form Retry-After, and no-replay across all unsafe HTTP methods. Checked 5 of 6 completion gates; left "docs/acceptance recorded" unchecked pending owner acceptance. |
+| 2026-11-14 | `implemented` | Fixed a genuine bug found incidentally during Phase 2 Salesforce connector review (not this ticket's own review pass): once a GET's connection-level `HttpRequestException` retry budget was exhausted, or on any non-GET method (never retried at all), the exception escaped `IntegrationTransport.ExecuteAsync` as a raw `HttpRequestException` instead of the dedicated `TransportException` the shared exception hierarchy already defines for exactly this case - no connector's `catch (IntegrationRequestException ex)` pattern could ever observe it, since a plain `HttpRequestException` is not an `IntegrationRequestException`. Wrapped the connection-failure catch at the `_http.SendAsync` call site; added `APersistentConnectionFailureThatExhaustsTheGetRetryBudgetWrapsIntoTransportException` and `AConnectionFailureOnAWriteMethodWrapsIntoTransportExceptionImmediatelyWithNoRetry` to `ResiliencePolicyTests.cs`. |

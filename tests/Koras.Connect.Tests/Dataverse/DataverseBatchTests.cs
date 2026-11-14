@@ -164,6 +164,38 @@ public sealed class DataverseBatchTests
     }
 
     [Fact]
+    public async Task AChangesetFailureWithEqualPartCountStillReportsRollbackForEveryMember()
+    {
+        // Equal part count (one per member), but one member failed - the changeset still rolled back atomically;
+        // reporting each part's own status individually would misleadingly claim the 204 member actually applied.
+        var boundary = "batchresponse_1";
+        var inner = SinglePart("inner", 204, null) + SinglePart("inner", 400, null) + "--inner--";
+        var body = $"--{boundary}\r\nContent-Type: multipart/mixed; boundary=inner\r\n\r\n{inner}\r\n\r\n--{boundary}--";
+        var client = Client((_, _) => Task.FromResult(MultipartResponse(boundary, body)));
+        var changeset = new DataverseChangeset([
+            new DataverseBatchRequest(HttpMethod.Patch, "accounts(1)", Fields()),
+            new DataverseBatchRequest(HttpMethod.Patch, "accounts(2)", Fields()),
+        ]);
+        var results = await client.ExecuteBatchAsync(changesets: [changeset], writesEnabled: true);
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.False(r.Succeeded));
+        Assert.Equal(0, results[0].Index);
+        Assert.Equal(1, results[1].Index);
+    }
+
+    [Theory]
+    [InlineData("accounts(1)\r\nX-Injected: evil", null)]
+    [InlineData("accounts", "1\r\nX-Injected: evil")]
+    public async Task ARelativeUrlOrContentIdContainingCrOrLfIsRejectedLocally(string relativeUrl, string? contentId)
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)); });
+        var requests = new[] { new DataverseBatchRequest(HttpMethod.Get, relativeUrl, ContentId: contentId) };
+        await Assert.ThrowsAsync<ArgumentException>(() => client.ExecuteBatchAsync(requests));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
     public async Task SuccessfulChangesetReportsEveryMemberIndividually()
     {
         var boundary = "batchresponse_1";

@@ -32,7 +32,9 @@ public sealed partial class SalesforceClient
                 201 => new SalesforceUpsertResult(RequireString(response.Body.RootElement, "id"), Created: true, null),
                 204 => new SalesforceUpsertResult(null, Created: false, null),
                 300 => new SalesforceUpsertResult(null, Created: false, ExtractAmbiguousMatchIds(response.Body.RootElement)),
-                _ => throw SalesforceApiException.Classify(response.StatusCode, 1),
+                _ => throw (SalesforceApiException.TryExtractErrorCode(response.Body.RootElement) is { } errorCode
+                    ? SalesforceApiException.ClassifyErrorCode(response.StatusCode, errorCode)
+                    : SalesforceApiException.Classify(response.StatusCode, 1)),
             };
         }
     }

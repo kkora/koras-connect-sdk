@@ -88,4 +88,13 @@ public sealed class SalesforceUpsertTests
         var ex = await Assert.ThrowsAsync<SalesforceApiException>(() => client.UpsertByExternalIdAsync("Account", "External_Id__c", "A-1", Fields(), writesEnabled: true));
         Assert.Equal(HttpStatusCode.Forbidden, ex.StatusCode);
     }
+
+    [Fact]
+    public async Task AFailureWithAParsableErrorBodyExtractsTheRealSalesforceErrorCodeInsteadOfAGenericOne()
+    {
+        var client = Client((_, _) => Task.FromResult(Json("""[{"errorCode":"DUPLICATE_VALUE","message":"duplicate value found"}]""", HttpStatusCode.BadRequest)));
+        var ex = await Assert.ThrowsAsync<SalesforceApiException>(() => client.UpsertByExternalIdAsync("Account", "External_Id__c", "A-1", Fields(), writesEnabled: true));
+        Assert.Equal(HttpStatusCode.BadRequest, ex.StatusCode);
+        Assert.Equal("DUPLICATE_VALUE", ex.Details.Code);
+    }
 }

@@ -113,6 +113,34 @@ public sealed class SalesforceChangeDataCaptureTests
     }
 
     [Fact]
+    public async Task AnUnsuccessfulMetaConnectStopsTheLoopInsteadOfRetryingTightlyWithTheRejectedClientId()
+    {
+        var connectCalls = 0;
+        var client = Client(async (r, ct) =>
+        {
+            var channel = await BayeuxChannel(r, ct);
+            return channel switch
+            {
+                "/meta/handshake" => Json("""[{"channel":"/meta/handshake","clientId":"abc","successful":true}]"""),
+                "/meta/subscribe" => Json("""[{"channel":"/meta/subscribe","successful":true}]"""),
+                "/meta/connect" => Connect(),
+                _ => throw new InvalidOperationException($"unexpected channel {channel}"),
+            };
+
+            HttpResponseMessage Connect()
+            {
+                connectCalls++;
+                return Json("""[{"channel":"/meta/connect","successful":false,"error":"402::Unknown client"}]""");
+            }
+        });
+        await Assert.ThrowsAsync<ContractException>(async () =>
+        {
+            await foreach (var _ in client.SubscribeToChangeEventsAsync("/data/ChangeEvents")) { }
+        });
+        Assert.Equal(1, connectCalls); // never looped back and re-issued a second connect with the rejected clientId
+    }
+
+    [Fact]
     public async Task AChangeEventMissingChangeEventHeaderSurfacesAContractException()
     {
         var client = Client(async (r, ct) =>

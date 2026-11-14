@@ -5,7 +5,7 @@ category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
 status: "implemented"
-baseline_status: "Implemented: SalesforceDiscovery.ListApiVersionsAsync calls the unauthenticated GET {host}/services/data/ endpoint directly via a plain HttpClient (IntegrationTransport always authenticates). instance_url is a separate, explicitly configured SalesforceOptions input, not re-derived from any token response. Unit-tested."
+baseline_status: "Implemented: SalesforceDiscovery.ListApiVersionsAsync calls the unauthenticated GET {host}/services/data/ endpoint directly via a plain HttpClient (IntegrationTransport always authenticates). instance_url is a separate, explicitly configured SalesforceOptions input, not re-derived from any token response. Because this call bypasses IntegrationTransport entirely, it now wraps its own connection-level failures into TransportException - a real gap found and fixed in Phase 2 review pass 1 (the raw HttpClient call had no try/catch at all, so an unreachable host previously escaped as a bare HttpRequestException). Unit-tested."
 verification: "partial"
 last_updated: "2026-11-14"
 implementation_commit: null
@@ -59,7 +59,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceDiscovery.cs` and `tests/Koras.Connect.Tests/Salesforce/SalesforceDiscoveryTests.cs`. Covers: the documented version-list shape parses correctly; the call sends no `Authorization` header; a non-success response classifies through `SalesforceApiException` rather than returning a silent empty list; a malformed (non-array) body surfaces `ContractException`. Full suite: 733 passed, 3 skipped, 0 failed. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceDiscovery.cs` and `tests/Koras.Connect.Tests/Salesforce/SalesforceDiscoveryTests.cs`. Covers: the documented version-list shape parses correctly; the call sends no `Authorization` header; a reachable host returning a non-success status classifies through `SalesforceApiException` rather than returning a silent empty list; a genuinely unreachable host (connection-level `HttpRequestException`) wraps into `TransportException` rather than escaping raw - review pass 1 found the originally-named "unreachable host" test actually only simulated a reachable host returning 503, and the real unreachable-host path had no try/catch at all; fixed both the gap and the misleadingly-named test (renamed to `AReachableHostReturningAServerErrorSurfacesASalesforceApiExceptionNotASilentEmptyList`, plus a new `AGenuinelyUnreachableHostWrapsIntoATransportExceptionRatherThanARawHttpRequestException`); a malformed (non-array) body surfaces `ContractException`. |
 | Remaining work / blockers | None beyond SFD-001's. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `implemented` | Added `SalesforceDiscovery.ListApiVersionsAsync`/`SalesforceApiVersion` plus `SalesforceDiscoveryTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live org available this pass. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found a genuine bug (also present in the shared `Koras.Connect.Core.Transport.IntegrationTransport`, fixed there too): a connection-level failure had no try/catch and would escape as a raw `HttpRequestException`. Added a catch wrapping it into `TransportException`, fixed the misleadingly-named existing test, and added a genuinely-unreachable-host test. |

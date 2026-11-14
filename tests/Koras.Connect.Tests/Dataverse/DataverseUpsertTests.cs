@@ -93,4 +93,12 @@ public sealed class DataverseUpsertTests
         await Assert.ThrowsAsync<DataverseConcurrencyException>(() =>
             client.UpsertByAlternateKeyAsync("accounts", new Dictionary<string, string> { ["emailaddress1"] = "a@b.com" }, Fields(), DataverseUpsertMode.UpdateOnly, writesEnabled: true));
     }
+
+    [Fact]
+    public async Task CreateOnlyViolationSurfacesAsDataverseConcurrencyException()
+    {
+        var client = Client((_, _) => Task.FromResult(Json("{}", HttpStatusCode.PreconditionFailed)));
+        await Assert.ThrowsAsync<DataverseConcurrencyException>(() =>
+            client.UpsertByAlternateKeyAsync("accounts", new Dictionary<string, string> { ["emailaddress1"] = "a@b.com" }, Fields(), DataverseUpsertMode.CreateOnly, writesEnabled: true));
+    }
 }

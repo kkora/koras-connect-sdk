@@ -84,6 +84,31 @@ public sealed class DataversePaginationTests
     }
 
     [Fact]
+    public async Task MaxPageSizeAtTheDocumented5000BoundaryIsSentAsIs()
+    {
+        string? prefer = null;
+        var client = Client((r, _) => { prefer = r.Headers.TryGetValues("Prefer", out var v) ? v.First() : null; return Task.FromResult(Json("""{"value":[]}""")); });
+        await client.EnumeratePageAsync("accounts", maxPageSize: 5000);
+        Assert.Equal("odata.maxpagesize=5000", prefer);
+    }
+
+    [Fact]
+    public async Task MalformedNextLinkSurfacesAsInvalidDataExceptionNotARawUriFormatException()
+    {
+        var calls = 0;
+        var client = Client((r, _) =>
+        {
+            calls++;
+            if (calls == 1) return Task.FromResult(Json("""{"value":[],"@odata.nextLink":"https://contoso.api.crm.dynamics.com:not-a-port/api/data/v9.2/accounts?$skiptoken=cookie"}"""));
+            throw new InvalidOperationException("Should never reach a second request.");
+        });
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+        {
+            await foreach (var _ in client.EnumerateAsync("accounts")) { }
+        });
+    }
+
+    [Fact]
     public async Task OffOriginNextLinkIsRejected()
     {
         var calls = 0;

@@ -57,6 +57,25 @@ public sealed class DataverseThrottlingTests
     }
 
     [Fact]
+    public async Task AMalformedRetryAfterFallsBackToBoundedBackoffRatherThanHanging()
+    {
+        var calls = 0;
+        var client = Client((_, _) =>
+        {
+            calls++;
+            if (calls < 2)
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests) { Content = new StringContent("{}", Encoding.UTF8, "application/json") };
+                response.Headers.TryAddWithoutValidation("Retry-After", "not-a-valid-retry-after-value");
+                return Task.FromResult(response);
+            }
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent($$"""{"accountid":"{{RowId:D}}"}""", Encoding.UTF8, "application/json") });
+        }, new TransportOptions { BaseDelay = TimeSpan.Zero, MaxDelay = TimeSpan.FromSeconds(1) });
+        using var row = await client.GetRowAsync("accounts", RowId);
+        Assert.Equal(2, calls); // fell back to the bounded Backoff(attempt) delay and retried, instead of hanging on an unparsable value
+    }
+
+    [Fact]
     public async Task RetryAfterBeyondMaxDelayFailsFastRatherThanWaiting()
     {
         var calls = 0;

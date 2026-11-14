@@ -36,6 +36,14 @@ public sealed class DataverseChoiceMetadataTests
     }
 
     [Fact]
+    public async Task StatecodeRoundTripsThroughTheSameMechanismAsStatuscode()
+    {
+        var client = Client((_, _) => Task.FromResult(Json($$"""{"accountid":"{{RowId:D}}","statecode":0,"statecode@OData.Community.Display.V1.FormattedValue":"Active"}""")));
+        using var row = await client.GetRowAsync("accounts", RowId, includeFormattedValues: true);
+        Assert.Equal("Active", DataverseClient.TryGetFormattedValue(row.RootElement, "statecode"));
+    }
+
+    [Fact]
     public async Task FormattedValueIsAbsentGracefullyWhenNotRequested()
     {
         var client = Client((_, _) => Task.FromResult(Json($$"""{"accountid":"{{RowId:D}}","statuscode":1}""")));

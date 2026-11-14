@@ -7,7 +7,7 @@ phase: "P2-D2"
 status: "implemented"
 baseline_status: "Implemented: no new contract proposed - fully covered by the existing shared ThrottleException/TransportOptions, confirmed to reach Dataverse's own wrapper paths (DataverseApiException, writes, batch) by dedicated tests."
 verification: "partial"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -56,7 +56,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `tests/Koras.Connect.Tests/Dataverse/DataverseThrottlingTests.cs`. No new source file - confirms the existing `IntegrationExceptionClassifier`/`TransportOptions` behavior reaches Dataverse's own `DataverseApiException` wrapper and every write/batch path: a throttled GET retries then succeeds; exhausting retries surfaces `DataverseApiException` wrapping `ThrottleException` with the correct `RetryAfter`; a `Retry-After` beyond `TransportOptions.MaxDelay` fails fast instead of waiting; a throttled write (`UpdateRowAsync`) and a throttled batch (`ExecuteBatchAsync`, which uses the non-retrying `SendRawAsync`) are each attempted exactly once. The debug-only `x-ms-ratelimit-*` headers are not read or referenced anywhere, matching the explicit "not for throttling decision logic" guidance. Full suite: 686 passed, 3 skipped, 0 failed. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `tests/Koras.Connect.Tests/Dataverse/DataverseThrottlingTests.cs`. No new source file - confirms the existing `IntegrationExceptionClassifier`/`TransportOptions` behavior reaches Dataverse's own `DataverseApiException` wrapper and every write/batch path: a throttled GET retries then succeeds; exhausting retries surfaces `DataverseApiException` wrapping `ThrottleException` with the correct `RetryAfter`; a `Retry-After` beyond `TransportOptions.MaxDelay` fails fast instead of waiting; a malformed `Retry-After` value (review pass 1 found this doc-listed scenario had no test reaching the Dataverse layer - added `AMalformedRetryAfterFallsBackToBoundedBackoffRatherThanHanging`) falls back to `Backoff(attempt)` and retries rather than hanging, since .NET's typed `HttpResponseHeaders.RetryAfter` accessor itself returns `null` for an unparsable raw value rather than throwing; a throttled write (`UpdateRowAsync`) and a throttled batch (`ExecuteBatchAsync`, which uses the non-retrying `SendRawAsync`) are each attempted exactly once. The debug-only `x-ms-ratelimit-*` headers are not read or referenced anywhere, matching the explicit "not for throttling decision logic" guidance. |
 | Remaining work / blockers | None identified; the three documented numeric defaults are intentionally not hardcoded as assertions anywhere in code or tests. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
@@ -66,3 +66,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-13 | `implemented` | Added `DataverseThrottlingTests.cs` confirming the shared throttling/retry behavior reaches every Dataverse wrapper path. Checked all applicable completion gates, including the vendor-schema gate (not applicable per the spec's own guidance against live-tenant breach testing); status moves from `not-started` to `implemented`. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found the malformed-`Retry-After` unit-test requirement was listed but never actually exercised at the Dataverse layer - added the missing test. No code changed; the shared transport's existing fallback behavior was already correct. |

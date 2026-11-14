@@ -36,11 +36,15 @@ public sealed partial class DataverseClient
         var totalCount = requests.Count + changesets.Sum(c => c.Requests.Count);
         if (totalCount == 0) throw new ArgumentException("At least one request or changeset member is required.");
         if (totalCount > MaxBatchRequests) throw new ArgumentException($"A batch may contain at most {MaxBatchRequests} individual requests.");
+        foreach (var request in requests) ValidateBatchPart(request);
         foreach (var changeset in changesets)
         {
             if (changeset.Requests.Count == 0) throw new ArgumentException("A changeset must contain at least one request.");
             foreach (var member in changeset.Requests)
+            {
                 if (member.Method == HttpMethod.Get) throw new ArgumentException("GET is not permitted inside a changeset.");
+                ValidateBatchPart(member);
+            }
         }
         var hasWrite = requests.Concat(changesets.SelectMany(c => c.Requests)).Any(r => r.Method != HttpMethod.Get);
         if (hasWrite && !writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
@@ -58,6 +62,18 @@ public sealed partial class DataverseClient
             ?? throw new ContractException("Batch response did not declare a multipart boundary.", new ErrorDetails("batch_contract"));
         return ParseBatchResponse(response.Body, responseBoundary, requests, changesets);
     }
+
+    /// <summary>Rejects a CR/LF in <see cref="DataverseBatchRequest.RelativeUrl"/>/<see cref="DataverseBatchRequest.ContentId"/>
+    /// before either is concatenated into the hand-built multipart/mixed wire body. Both are caller-controlled
+    /// strings; without this check a value containing "\r\n" could inject an extra request line or header into
+    /// the batch body, undermining the documented guarantee that a caller never hand-constructs multipart text.</summary>
+    private static void ValidateBatchPart(DataverseBatchRequest request)
+    {
+        if (ContainsCrOrLf(request.RelativeUrl)) throw new ArgumentException("RelativeUrl must not contain a carriage return or line feed.", nameof(request));
+        if (request.ContentId is not null && ContainsCrOrLf(request.ContentId)) throw new ArgumentException("ContentId must not contain a carriage return or line feed.", nameof(request));
+    }
+
+    private static bool ContainsCrOrLf(string value) => value.Contains('\r') || value.Contains('\n');
 
     private static string BuildBatchBody(IReadOnlyList<DataverseBatchRequest> requests, IReadOnlyList<DataverseChangeset> changesets, string boundary)
     {
@@ -184,7 +200,17 @@ public sealed partial class DataverseClient
                 foreach (var _ in changeset.Requests) results.Add(failure with { Index = index++ });
                 continue;
             }
-            for (var i = 0; i < changeset.Requests.Count; i++) results.Add(ToBatchItemResult(index++, nestedParts[i].Content));
+            var memberResults = nestedParts.Select(part => ToBatchItemResult(0, part.Content)).ToArray();
+            if (memberResults.Any(r => !r.Succeeded))
+            {
+                // Equal part count but at least one member failed: the changeset was still rolled back atomically -
+                // report every member with that same failure rather than the misleading partial success of letting
+                // each part's individual (and otherwise-successful-looking) status stand on its own.
+                var failure = memberResults.First(r => !r.Succeeded);
+                foreach (var _ in changeset.Requests) results.Add(failure with { Index = index++ });
+                continue;
+            }
+            foreach (var result in memberResults) results.Add(result with { Index = index++ });
         }
         return results;
     }

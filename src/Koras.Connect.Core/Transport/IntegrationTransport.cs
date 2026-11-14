@@ -263,6 +263,16 @@ public sealed class IntegrationTransport
                     _logger?.LogWarning(DiagnosticEvents.RequestRetried, "Request attempt {Attempt} failed to connect; retrying.", attempt + 1);
                     await Task.Delay(Backoff(attempt), _clock, ct); continue;
                 }
+                catch (HttpRequestException ex)
+                {
+                    // A connection-level failure (unreachable host, DNS failure, refused connection) that either
+                    // exhausted the GET retry budget above or occurred on a method never retried at all. Wrapped
+                    // into the dedicated TransportException rather than left to escape as a raw HttpRequestException,
+                    // which no connector's IntegrationRequestException-scoped catch clause would ever observe.
+                    activity?.SetStatus(ActivityStatusCode.Error);
+                    _logger?.LogError(DiagnosticEvents.RequestFailed, "Request failed to connect after {Attempts} attempt(s).", attempt + 1);
+                    throw new TransportException($"Failed to connect after {attempt + 1} attempt(s).", new ErrorDetails("transport_connection_failed"), ex);
+                }
                 using (response)
                 {
                     Requests.Add(1, new KeyValuePair<string, object?>("http.response.status_code", (int)response.StatusCode));
