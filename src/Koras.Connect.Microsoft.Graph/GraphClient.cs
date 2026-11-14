@@ -31,7 +31,10 @@ public sealed partial class GraphClient : IConnector
 
     public ConnectorDescriptor Descriptor => new("MicrosoftGraph", "Microsoft Graph", _options.UseBetaEndpoint ? "beta" : "v1.0",
         SupportedOperations: ["EnumerateUsers", "GetUser", "GetMe", "CreateUser", "UpdateUser", "DeleteUser",
-            "EnumerateGroups", "EnumerateGroupMembers", "AddGroupMember", "RemoveGroupMember"],
+            "EnumerateGroups", "EnumerateGroupMembers", "AddGroupMember", "RemoveGroupMember",
+            "EnumerateDirectoryRoles", "EnumerateAdministrativeUnits",
+            "EnumerateApplications", "GetApplication", "CreateApplication",
+            "EnumerateServicePrincipals", "GetServicePrincipal", "CreateServicePrincipal"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). Only the Configuration stage is
