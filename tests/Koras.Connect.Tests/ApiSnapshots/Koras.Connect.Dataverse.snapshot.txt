@@ -1,3 +1,8 @@
+sealed class Koras.Connect.Dataverse.DataverseAccount
+  ctor()
+  property System.Nullable<System.Guid> AccountId {get+set}
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Name {get+set}
 sealed class Koras.Connect.Dataverse.DataverseAnnotation
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
@@ -47,14 +52,18 @@ sealed class Koras.Connect.Dataverse.DataverseClient
   method System.Threading.Tasks.Task BindLookupAsync(System.String entitySet, System.Guid id, System.String navigationProperty, System.String targetEntitySet, System.Guid targetId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task ClearLookupAsync(System.String entitySet, System.Guid id, System.String navigationProperty, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Guid> CreateRowAsync(System.String entitySet, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Guid> CreateRowInSolutionAsync(System.String entitySet, System.Text.Json.JsonElement fields, System.String solutionUniqueName, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteFileColumnAsync(System.String entitySet, System.Guid id, System.String column, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteRowAsync(System.String entitySet, System.Guid id, System.String ifMatchETag = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DisassociateAsync(System.String entitySet, System.Guid id, System.String collectionNavigationProperty, System.Guid targetId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DownloadFileColumnAsync(System.String entitySet, System.Guid id, System.String column, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseAccount> EnumerateAccountsAsync(Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseContact> EnumerateContactsAsync(Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateEntityDefinitionsAsync(Koras.Connect.Dataverse.DataverseQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateGlobalOptionSetsAsync(System.String filterByName = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseOpportunity> EnumerateOpportunitiesAsync(Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<System.Text.Json.JsonElement>> EnumeratePageAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Nullable<System.Int32> maxPageSize = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.BatchItemResult<System.Text.Json.JsonElement>>> ExecuteBatchAsync(System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseBatchRequest> requests = null, System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseChangeset> changesets = null, System.Boolean continueOnError = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.DataverseDeltaPage<System.Text.Json.JsonElement>> GetChangesAsync(System.String entitySet, System.String select = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
@@ -101,6 +110,10 @@ sealed class Koras.Connect.Dataverse.DataverseConnectionOptions
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseContact
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Guid> ContactId {get+set}
 sealed class Koras.Connect.Dataverse.DataverseDeletedRow
   ctor(System.Guid Id)
   property System.Guid Id {get+init}
@@ -151,6 +164,10 @@ sealed class Koras.Connect.Dataverse.DataverseInstance
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseOpportunity
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.Nullable<System.Guid> OpportunityId {get+set}
 sealed class Koras.Connect.Dataverse.DataverseOptionSetValue
   ctor(System.Int32 Value, System.String FormattedLabel)
   property System.String FormattedLabel {get+init}

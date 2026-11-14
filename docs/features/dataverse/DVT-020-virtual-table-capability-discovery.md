@@ -5,9 +5,9 @@ category: "dataverse"
 priority: "P2"
 phase: "P2-D7"
 status: "not-started"
-baseline_status: "Not started"
+baseline_status: "Confirmed blocked, not attempted this pass: this feature's own specification explicitly directs 'do not implement a guessed field name' and states it 'cannot be marked beyond Not started/Planned' until the EntityDefinitions field distinguishing a virtual table is independently verified. No such verification happened this session, so GetVirtualTableInfoAsync was deliberately not written - matching the SAP-007 precedent of confirming a feature blocked rather than silently skipping it."
 verification: "unverified"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `not-started` | Confirmed blocked, not attempted, while implementing the rest of the Dataverse connector's P1/P2 features: the specific `EntityDefinitions` field distinguishing a virtual table was not independently verified this session, and this feature's own Section 18/19 explicitly forbid implementing a guessed field name. No code added; remains `not-started` by design. |

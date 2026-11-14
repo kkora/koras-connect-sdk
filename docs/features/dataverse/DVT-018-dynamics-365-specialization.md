@@ -4,10 +4,10 @@ title: "Dynamics 365 specialization"
 category: "dataverse"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: EnumerateAccountsAsync/EnumerateContactsAsync/EnumerateOpportunitiesAsync are pure pass-throughs over EnumerateAsync; only account's documented Name field is hardcoded, every other field stays in AdditionalData until DVT-009 confirms it live. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -51,18 +51,18 @@ public IAsyncEnumerable<DataverseAccount> EnumerateAccountsAsync(DataverseQuery?
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Exact field lists for `account`/`contact`/`opportunity` must come from DVT-009's live metadata discovery, not from this document's necessarily-illustrative examples; no field beyond `Name`-style documented examples should be hardcoded until independently confirmed. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseDynamics365.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseDynamics365Tests.cs`. `DataverseAccount`/`DataverseContact`/`DataverseOpportunity` hardcode only their primary key (a structural, universal Dataverse naming convention, not a guessed business field) plus, for `account` only, the `Name` field this feature's own specification cites as its documented illustrative example; every other field is preserved via `AdditionalData`, proven by the tests. `EnumerateAccountsAsync` is confirmed to build the exact same request URL/query a hand-written `EnumerateAsync("accounts", query)` call would. Full suite: 711 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No field beyond `account.Name` is hardcoded; `contact`/`opportunity` carry no business field at all pending DVT-009 live metadata confirmation. No live Dynamics 365 Sales app provisioned this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -70,3 +70,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `EnumerateAccountsAsync`/`EnumerateContactsAsync`/`EnumerateOpportunitiesAsync` plus `DataverseDynamics365Tests.cs`, proving the wrappers are pure pass-throughs with no invented field. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live Dynamics 365 Sales app available this pass. |

@@ -23,14 +23,19 @@ public sealed partial class DataverseClient
     /// <c>OData-EntityId</c> response header (no <c>Prefer</c> header sent - the default, minimal round-trip) or
     /// an <c>@odata.id</c> annotation in the response body, when present. Disabled unless <paramref name="writesEnabled"/>
     /// is explicitly <c>true</c>, matching every existing Phase 1 write operation's convention.</summary>
-    public async Task<Guid> CreateRowAsync(string entitySet, JsonElement fields, bool writesEnabled = false, CancellationToken cancellationToken = default)
+    public Task<Guid> CreateRowAsync(string entitySet, JsonElement fields, bool writesEnabled = false, CancellationToken cancellationToken = default)
+        => CreateRowCoreAsync(entitySet, fields, RequiredHeaders, writesEnabled, cancellationToken);
+
+    /// <summary>Shared create implementation behind <see cref="CreateRowAsync"/> and <c>CreateRowInSolutionAsync</c>
+    /// (DVT-019), which differs only in the extra <c>MSCRM.SolutionUniqueName</c> header it supplies.</summary>
+    private async Task<Guid> CreateRowCoreAsync(string entitySet, JsonElement fields, IReadOnlyDictionary<string, string> headers, bool writesEnabled, CancellationToken cancellationToken)
     {
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
         ValidateEntitySet(entitySet);
         var address = new Uri(_root, entitySet);
         ValidateRequestUri(address);
         IntegrationJsonResponse response;
-        try { response = await _transport.SendResponseAsync(HttpMethod.Post, address, fields, RequiredHeaders, cancellationToken); }
+        try { response = await _transport.SendResponseAsync(HttpMethod.Post, address, fields, headers, cancellationToken); }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
         using (response)
         {

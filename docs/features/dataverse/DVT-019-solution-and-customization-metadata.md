@@ -4,10 +4,10 @@ title: "Solution and customization metadata"
 category: "dataverse"
 priority: "P2"
 phase: "P2-D7"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: CreateRowInSolutionAsync sends the documented MSCRM.SolutionUniqueName header alongside DVT-004's create. ImportSolution/ExportSolution action signatures remain an explicit, unimplemented open gap. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async Task<Guid> CreateRowInSolutionAsync(string entitySet, JsonElement f
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (header mechanism only; import/export explicitly out of scope - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (import/export actions explicitly deferred).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Publisher/prefix mechanics and solution import/export action signatures were not independently re-fetched this session. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseSolution.cs` (`CreateRowInSolutionAsync`, sharing `CreateRowAsync`'s response-parsing core via a new private `CreateRowCoreAsync` helper) and `tests/Koras.Connect.Tests/Dataverse/DataverseSolutionTests.cs`. Covers: the `MSCRM.SolutionUniqueName` header is sent correctly on create; the operation requires `writesEnabled` before any HTTP call; an invalid (multi-line) solution name is rejected locally. The `solutions` entity set itself needs no dedicated method - it is reachable today via DVT-004's generic CRUD primitives unchanged. Full suite: 711 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | `ImportSolution`/`ExportSolution` action signatures are explicitly not implemented - their shapes were not independently re-fetched this session (Section 28 open question), and implementing them from an unconfirmed signature would risk shipping a guessed contract. Publisher/prefix mechanics are documentation-only, not exercised by any SDK code. No authorized sandbox with System Customizer privilege and a real unmanaged solution available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `CreateRowInSolutionAsync` plus `DataverseSolutionTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented header mechanism; held at `partial` because `ImportSolution`/`ExportSolution` - explicit functional requirements - remain unimplemented pending independent signature verification. |
