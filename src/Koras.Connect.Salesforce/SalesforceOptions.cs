@@ -7,7 +7,7 @@ namespace Koras.Connect.Salesforce;
 /// <c>instance_url</c> (or My Domain host) - a separate, explicitly configured input rather than something
 /// re-derived from a token refresh (see <see cref="SalesforceAuthentication"/>). <see cref="ApiVersion"/> is
 /// isolated to one constant-defaulted field for a future bump; current version at research time is v68.0.</summary>
-public sealed record SalesforceOptions(Uri InstanceRoot, string ApiVersion = "v68.0") : IValidatableOptions
+public sealed record SalesforceOptions(Uri InstanceRoot, string ApiVersion = "v68.0", int MaxPages = 10000) : IValidatableOptions
 {
     public void Validate()
     {
@@ -16,6 +16,7 @@ public sealed record SalesforceOptions(Uri InstanceRoot, string ApiVersion = "v6
             failures.Add($"{nameof(InstanceRoot)}: must be an absolute HTTPS URI without user information.");
         if (string.IsNullOrWhiteSpace(ApiVersion) || ApiVersion[0] != 'v' || !double.TryParse(ApiVersion.AsSpan(1), out _))
             failures.Add($"{nameof(ApiVersion)}: must be a version string like 'v68.0'.");
+        if (MaxPages is < 1 or > 100000) failures.Add($"{nameof(MaxPages)}: must be between 1 and 100000.");
         if (failures.Count > 0) throw new OptionsValidationException(nameof(SalesforceOptions), failures);
     }
 }

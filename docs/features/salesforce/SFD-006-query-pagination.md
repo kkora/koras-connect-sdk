@@ -4,10 +4,10 @@ title: "Query pagination"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: EnumerateQueryAsync<T> transparently follows nextRecordsUrl with cycle/max-page guards; batchSize outside [200,2000] is rejected locally; the maxBatchSize-vs-Sforce-Query-Options reconciliation gap remains open and undocumented in code, matching the spec's own flagged gap. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -48,18 +48,18 @@ public IAsyncEnumerable<T> EnumerateQueryAsync<T>(string soql, int? batchSize = 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The relationship between the org-level `maxBatchSize` (from Global Describe) and the per-request `Sforce-Query-Options` override was not reconciled in any fetched official text (Section 28 open question). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `EnumerateQueryAsync<T>`/`QueryPageAsync<T>` to `SalesforceQuery.cs`, tested by `SalesforceQueryTests.cs`. Covers: `batchSize` outside `[200, 2000]` rejected locally before any HTTP call; `Sforce-Query-Options: batchSize=N` sent correctly; `nextRecordsUrl` followed transparently including an empty page with `done=false`; a repeated/cyclic link and a runaway page count both throw `InvalidDataException`. Full suite: 756 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The relationship between the org-level `maxBatchSize` (Global Describe) and the per-request `Sforce-Query-Options` override remains unreconciled (Section 28) - the SDK does not attempt to validate `batchSize` against `maxBatchSize`, only against the documented absolute bounds. No authorized sandbox org with more than 2,000 matching records available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -67,3 +67,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `EnumerateQueryAsync<T>` plus pagination coverage in `SalesforceQueryTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: the `maxBatchSize` reconciliation gap remains open and no live org is available this pass. |

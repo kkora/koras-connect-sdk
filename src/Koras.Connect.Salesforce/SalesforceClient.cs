@@ -56,7 +56,8 @@ public sealed partial class SalesforceClient : IConnector
     }
 
     public ConnectorDescriptor Descriptor => new("Salesforce", "Salesforce", _options.ApiVersion,
-        SupportedOperations: ["GetResourceMap"], Entitlements: new Dictionary<string, EntitlementEvidence>());
+        SupportedOperations: ["GetResourceMap", "CreateRecord", "GetRecord", "UpdateRecord", "DeleteRecord", "Query", "EnumerateQuery"],
+        Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe. Never issues a mutating request - the only call
     /// made is <see cref="GetResourceMapAsync"/>.</summary>
