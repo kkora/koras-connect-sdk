@@ -92,7 +92,7 @@ public sealed partial class DataverseClient : IConnector
     }
 
     public ConnectorDescriptor Descriptor => new("Microsoft", "Dataverse", ApiVersion,
-        SupportedOperations: ["WhoAmI", "CreateRow", "GetRow", "UpdateRow", "DeleteRow", "EnumerateRows"],
+        SupportedOperations: ["WhoAmI", "CreateRow", "GetRow", "UpdateRow", "DeleteRow", "EnumerateRows", "ExecuteBatch", "UpsertByAlternateKey"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe (DVT-002). Never issues a mutating request - the only

@@ -45,34 +45,39 @@ public sealed partial class DataverseClient
 
     /// <summary>Reads a single row. <paramref name="query"/> may only set <see cref="DataverseQuery.Select"/>/
     /// <see cref="DataverseQuery.Expand"/> - the other options apply only to a collection read (DVT-005) and are
-    /// rejected locally rather than silently ignored.</summary>
+    /// rejected locally rather than silently ignored. When <see cref="DataverseQuery.Expand"/> is set, sends
+    /// <c>If-None-Match: null</c> to defeat Dataverse's documented caching of expanded collection-valued
+    /// navigation properties (DVT-013) - a Dataverse-specific quirk, not a generic OData convention.</summary>
     public async Task<JsonDocument> GetRowAsync(string entitySet, Guid id, DataverseQuery? query = null, CancellationToken cancellationToken = default)
     {
         var address = BuildRowAddress(entitySet, id, query);
         ValidateRequestUri(address);
-        try { return await _transport.ReadJsonAsync(address, RequiredHeaders, cancellationToken); }
+        try { return await _transport.ReadJsonAsync(address, WithExpandCacheBusting(query), cancellationToken); }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
     /// <summary>Updates a row via <c>PATCH</c>. Disabled unless <paramref name="writesEnabled"/> is explicitly
-    /// <c>true</c>. Never retried, matching every existing connector's "never replay an uncertain write" policy.</summary>
-    public async Task UpdateRowAsync(string entitySet, Guid id, JsonElement fields, bool writesEnabled = false, CancellationToken cancellationToken = default)
+    /// <c>true</c>. Never retried, matching every existing connector's "never replay an uncertain write" policy.
+    /// <paramref name="ifMatchETag"/>, when supplied, enforces optimistic concurrency (DVT-013): a mismatch
+    /// surfaces as <see cref="DataverseConcurrencyException"/>, distinguishable from every other 4xx failure.</summary>
+    public async Task UpdateRowAsync(string entitySet, Guid id, JsonElement fields, string? ifMatchETag = null, bool writesEnabled = false, CancellationToken cancellationToken = default)
     {
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
         var address = RowAddress(entitySet, id);
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, RequiredHeaders, cancellationToken); }
-        catch (IntegrationRequestException ex) { throw Classify(ex); }
+        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, WithIfMatch(ifMatchETag), cancellationToken); }
+        catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
-    /// <summary>Deletes a row. Disabled unless <paramref name="writesEnabled"/> is explicitly <c>true</c>.</summary>
-    public async Task DeleteRowAsync(string entitySet, Guid id, bool writesEnabled = false, CancellationToken cancellationToken = default)
+    /// <summary>Deletes a row. Disabled unless <paramref name="writesEnabled"/> is explicitly <c>true</c>.
+    /// <paramref name="ifMatchETag"/>, when supplied, enforces optimistic concurrency (DVT-013).</summary>
+    public async Task DeleteRowAsync(string entitySet, Guid id, string? ifMatchETag = null, bool writesEnabled = false, CancellationToken cancellationToken = default)
     {
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the table privilege and business impact.");
         var address = RowAddress(entitySet, id);
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken); }
-        catch (IntegrationRequestException ex) { throw Classify(ex); }
+        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, WithIfMatch(ifMatchETag), cancellationToken); }
+        catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
     /// <summary>Enumerates a whole entity set, transparently following <c>@odata.nextLink</c> (DVT-006) - the
@@ -108,7 +113,7 @@ public sealed partial class DataverseClient
         if (effectiveQuery.Top is <= 0) throw new ArgumentException("$top must be positive.", nameof(query));
         if (maxPageSize is <= 0) throw new ArgumentOutOfRangeException(nameof(maxPageSize), "odata.maxpagesize must be positive.");
 
-        var headers = new Dictionary<string, string>(RequiredHeaders);
+        var headers = new Dictionary<string, string>(WithExpandCacheBusting(effectiveQuery));
         if (maxPageSize is not null) headers["Prefer"] = $"odata.maxpagesize={maxPageSize}";
 
         var address = resumeFrom is not null ? EndpointSafety.Continuation(_root, resumeFrom.OpaqueValue) : BuildListAddress(entitySet, effectiveQuery);
@@ -173,4 +178,32 @@ public sealed partial class DataverseClient
             throw new ContractException("Could not parse an entity id from the create response.", new ErrorDetails("create_contract"));
         return id;
     }
+
+    /// <summary>Adds the <c>If-Match</c> header when a concurrency token is supplied (DVT-013). Returns the shared
+    /// <see cref="RequiredHeaders"/> instance unchanged when none is supplied, avoiding an allocation per call.</summary>
+    private static IReadOnlyDictionary<string, string> WithIfMatch(string? ifMatchETag)
+        => ifMatchETag is null ? RequiredHeaders : new Dictionary<string, string>(RequiredHeaders) { ["If-Match"] = ifMatchETag };
+
+    /// <summary>Adds <c>If-None-Match: null</c> when the query expands a navigation property, defeating
+    /// Dataverse's documented caching quirk for expanded collection-valued properties (DVT-013).</summary>
+    private static IReadOnlyDictionary<string, string> WithExpandCacheBusting(DataverseQuery? query)
+        => string.IsNullOrWhiteSpace(query?.Expand) ? RequiredHeaders : new Dictionary<string, string>(RequiredHeaders) { ["If-None-Match"] = "null" };
+
+    /// <summary>Classifies a write failure, distinguishing a <c>412</c> optimistic-concurrency conflict
+    /// (<see cref="DataverseConcurrencyException"/>) from every other failure, which still goes through the
+    /// shared <see cref="Classify"/> path.</summary>
+    private static Koras.Connect.Exceptions.IntegrationException ClassifyWrite(IntegrationRequestException ex)
+        => ex.ResponseStatus == System.Net.HttpStatusCode.PreconditionFailed
+            ? new DataverseConcurrencyException("The row was modified since it was last read (HTTP 412).", new ErrorDetails("dataverse_concurrency_conflict"))
+            : Classify(ex);
 }
+
+/// <summary>A <c>412 Precondition Failed</c> optimistic-concurrency conflict (DVT-013) - Dataverse documents
+/// <c>ConcurrencyVersionMismatch</c>/<c>DuplicateRecord</c> codes for this status. The shared
+/// <see cref="IntegrationExceptionClassifier"/> has no dedicated mapping for <c>412</c> (its default arm returns
+/// <c>ContractException</c>, which is <c>sealed</c> and so cannot be subclassed); this type derives from
+/// <see cref="IntegrationException"/> directly instead, giving callers a type distinct from every other 4xx
+/// failure so they can implement their own re-read-and-retry policy rather than treating this as a generic
+/// contract error. Kept Dataverse-local per the master specification's "no abstraction creep for one vendor"
+/// principle (Section 8.1) - 412-as-concurrency-conflict is not yet proven needed by Salesforce or Graph.</summary>
+public sealed class DataverseConcurrencyException(string message, ErrorDetails details) : IntegrationException(message, details);

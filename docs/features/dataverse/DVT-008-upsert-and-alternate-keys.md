@@ -4,9 +4,9 @@ title: "Upsert and alternate keys"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: UpsertByAlternateKeyAsync always requests return=representation to disambiguate 201/created from 200/updated, and supports UpdateOnly/CreateOnly via If-Match/If-None-Match: *. Unit-tested; no live tenant with a configured alternate key available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -52,18 +52,18 @@ public enum DataverseUpsertMode { CreateOrUpdate, UpdateOnly, CreateOnly }
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Which tables have alternate keys configured is entirely tenant-specific. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseUpsert.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseUpsertTests.cs`. Covers: upsert without `writesEnabled` throws before any HTTP call; at least one alternate-key field required; the key segment escapes an internal quote by doubling it (OData string-literal convention) rather than percent-encoding it; `201 Created` reports `Created=true`, `200 OK` reports `Created=false`; `UpdateOnly` sends `If-Match: *` and `CreateOnly` sends `If-None-Match: *`; a mode violation (412) surfaces as `DataverseConcurrencyException` (DVT-013). The SDK does not pre-verify the alternate key exists on the target table - an unconfigured key surfaces as the server's own error. Full suite: 656 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No authorized sandbox table with a real alternate key configured available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -71,3 +71,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `UpsertByAlternateKeyAsync`/`DataverseUpsertResult`/`DataverseUpsertMode` plus `DataverseUpsertTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live tenant with a configured alternate key available this pass. |

@@ -4,9 +4,9 @@ title: "ETags and optimistic concurrency"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: UpdateRowAsync/DeleteRowAsync accept an optional If-Match ETag; a 412 classifies as the connector-local DataverseConcurrencyException (adapted from the master spec's proposed ContractException subclass, since ContractException is sealed); GetRowAsync/EnumeratePageAsync send If-None-Match: null when $expand is set. Unit-tested; no live two-writer scenario available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -50,18 +50,18 @@ public async Task UpdateRowAsync(string entitySet, Guid id, JsonElement fields, 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The shared `IntegrationExceptionClassifier` does not currently map 412 to anything specific (its default arm returns `ContractException`) - whether to extend the shared classifier or wrap purely in the Dataverse connector is an open architecture decision (Section 28), leaning toward connector-local wrapping per Section 8's "no abstraction creep for one vendor" principle, since 412-as-concurrency-conflict is not yet proven needed by Salesforce or Graph. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `If-Match`/`If-None-Match` handling to `DataverseRows.cs` and `DataverseConcurrencyException` (DataverseRows.cs), tested by `tests/Koras.Connect.Tests/Dataverse/DataverseConcurrencyTests.cs`. Resolved the Section 28 open question: `ContractException` is `sealed` in this repository, so `DataverseConcurrencyException` derives from `IntegrationException` directly (connector-local, per Section 8.1's "no abstraction creep for one vendor" principle) rather than subclassing `ContractException` as literally proposed. Covers: `If-Match` sent when an ETag is supplied to update/delete, omitted otherwise; a `412` on either surfaces `DataverseConcurrencyException` distinctly from `ContractException`/`DataverseApiException`; other write failures still classify through the shared path; `If-None-Match: null` sent on both single-row and collection reads when `$expand` is set, omitted otherwise. Full suite: 656 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No authorized sandbox with two concurrent writers available this pass to observe a real `412`/`ConcurrencyVersionMismatch`. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `If-Match`/`If-None-Match` support and `DataverseConcurrencyException` plus `DataverseConcurrencyTests.cs`, resolving Section 28's open question in favor of connector-local wrapping. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live two-writer scenario available this pass. |

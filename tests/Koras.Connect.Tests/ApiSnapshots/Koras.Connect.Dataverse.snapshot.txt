@@ -6,22 +6,45 @@ sealed class Koras.Connect.Dataverse.DataverseApiException
   method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
 abstract class Koras.Connect.Dataverse.DataverseAuthentication
   method Koras.Connect.Transport.IAccessTokenSource CreateTokenSource(System.Net.Http.HttpClient httpClient, Koras.Connect.Dataverse.DataverseClientCredentialsOptions options, System.TimeProvider timeProvider = null)
+sealed class Koras.Connect.Dataverse.DataverseBatchRequest
+  ctor(System.Net.Http.HttpMethod Method, System.String RelativeUrl, System.Nullable<System.Text.Json.JsonElement> Body = null, System.String ContentId = null)
+  property System.Nullable<System.Text.Json.JsonElement> Body {get+init}
+  property System.String ContentId {get+init}
+  property System.Net.Http.HttpMethod Method {get+init}
+  property System.String RelativeUrl {get+init}
+  method Koras.Connect.Dataverse.DataverseBatchRequest <Clone>$()
+  method System.Void Deconstruct(System.Net.Http.HttpMethod& Method, System.String& RelativeUrl, System.Nullable`1[[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Body, System.String& ContentId)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseBatchRequest other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Dataverse.DataverseCertificateAssertionTokenSource
   ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Dataverse.DataverseClientCredentialsOptions options, System.String scope, System.TimeProvider timeProvider = null)
   method System.String BuildClientAssertion(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, System.Uri audience, System.String clientId, System.DateTimeOffset now)
   method System.Void Dispose()
   method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Void Invalidate()
+sealed class Koras.Connect.Dataverse.DataverseChangeset
+  ctor(System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseBatchRequest> Requests)
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseBatchRequest> Requests {get+init}
+  method Koras.Connect.Dataverse.DataverseChangeset <Clone>$()
+  method System.Void Deconstruct(System.Collections.Generic.IReadOnlyList`1[[Koras.Connect.Dataverse.DataverseBatchRequest, Koras.Connect.Dataverse, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]& Requests)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseChangeset other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Dataverse.DataverseClient
   ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Dataverse.DataverseOptions options, System.TimeProvider timeProvider = null)
   property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
   method System.Threading.Tasks.Task<System.Guid> CreateRowAsync(System.String entitySet, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task DeleteRowAsync(System.String entitySet, System.Guid id, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DeleteRowAsync(System.String entitySet, System.Guid id, System.String ifMatchETag = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<System.Text.Json.JsonElement>> EnumeratePageAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.BatchItemResult<System.Text.Json.JsonElement>>> ExecuteBatchAsync(System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseBatchRequest> requests = null, System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseChangeset> changesets = null, System.Boolean continueOnError = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRowAsync(System.String entitySet, System.Guid id, Koras.Connect.Dataverse.DataverseQuery query = null, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task UpdateRowAsync(System.String entitySet, System.Guid id, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateRowAsync(System.String entitySet, System.Guid id, System.Text.Json.JsonElement fields, System.String ifMatchETag = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Dataverse.DataverseUpsertResult> UpsertByAlternateKeyAsync(System.String entitySet, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> alternateKey, System.Text.Json.JsonElement fields, Koras.Connect.Dataverse.DataverseUpsertMode mode = CreateOrUpdate, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Void ValidateOptions(Koras.Connect.Dataverse.DataverseOptions options)
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.WhoAmIResult> WhoAmIAsync(System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Dataverse.DataverseClientCredentialsOptions
@@ -38,6 +61,8 @@ sealed class Koras.Connect.Dataverse.DataverseClientCredentialsOptions
   method System.Int32 GetHashCode()
   method System.String ToString()
   method System.Void Validate()
+sealed class Koras.Connect.Dataverse.DataverseConcurrencyException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details)
 sealed class Koras.Connect.Dataverse.DataverseConnectionOptions
   ctor(System.Uri EnvironmentRoot, System.Uri TenantTokenEndpoint, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.Int32 MaxPageSize = 5000)
   property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
@@ -113,6 +138,20 @@ sealed class Koras.Connect.Dataverse.DataverseRowMapper<TTarget>
   method Koras.Connect.Abstractions.MappingResult<TTarget> Map(System.Text.Json.JsonElement source)
 abstract class Koras.Connect.Dataverse.DataverseServiceCollectionExtensions
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasDataverse(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Dataverse.DataverseConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
+enum Koras.Connect.Dataverse.DataverseUpsertMode
+  enum-value CreateOrUpdate = 0
+  enum-value UpdateOnly = 1
+  enum-value CreateOnly = 2
+sealed class Koras.Connect.Dataverse.DataverseUpsertResult
+  ctor(System.Guid RowId, System.Boolean Created)
+  property System.Boolean Created {get+init}
+  property System.Guid RowId {get+init}
+  method Koras.Connect.Dataverse.DataverseUpsertResult <Clone>$()
+  method System.Void Deconstruct(System.Guid& RowId, System.Boolean& Created)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseUpsertResult other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 interface Koras.Connect.Dataverse.IDataverseDiscoveryClient
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseInstance> ListInstancesAsync(System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Dataverse.WhoAmIResult

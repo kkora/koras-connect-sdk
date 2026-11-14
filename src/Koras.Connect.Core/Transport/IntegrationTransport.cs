@@ -34,6 +34,9 @@ public sealed record IntegrationJsonResponse(JsonDocument Body, IReadOnlyDiction
 {
     public void Dispose() => Body.Dispose();
 }
+/// <summary>Raw (non-JSON) response text plus its own declared content type, for wire formats <see cref="IntegrationTransport.SendRawAsync"/>
+/// exists to carry (for example OData's multipart/mixed <c>$batch</c> response).</summary>
+public sealed record IntegrationRawResponse(string Body, IReadOnlyDictionary<string, string[]> Headers, HttpStatusCode StatusCode, string? ContentType);
 public sealed record TransportOptions : Koras.Connect.Abstractions.IValidatableOptions
 {
     public int MaxRetries { get; init; } = 3;
@@ -124,6 +127,40 @@ public sealed class IntegrationTransport
     public Task<string> ReadTextAsync(Uri address, CancellationToken cancellationToken = default)
         => ExecuteAsync(HttpMethod.Get, address, null, new Dictionary<string, string> { ["Accept"] = "application/xml" },
             (response, ct) => response.Content.ReadAsStringAsync(ct), cancellationToken);
+    /// <summary>Sends an arbitrary non-JSON request body (for example a multipart/mixed wire format) and returns
+    /// the raw response text. Bypasses the JSON-oriented Send/ReadJsonAsync family's automatic serialization for
+    /// wire formats they cannot represent. Never retried, matching every write operation's "never replay an
+    /// uncertain write" policy - callers needing retry semantics for a specific read-only raw operation must
+    /// implement their own.</summary>
+    public async Task<IntegrationRawResponse> SendRawAsync(HttpMethod method, Uri address, string? body, string? contentType,
+        IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
+    {
+        if (!address.IsAbsoluteUri || address.Scheme != Uri.UriSchemeHttps || address.UserInfo.Length != 0)
+            throw new ArgumentException("Endpoint must be an absolute HTTPS URI without user information.", nameof(address));
+        if (headers is not null && headers.Keys.Any(k => k.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+            || k.Equals("Host", StringComparison.OrdinalIgnoreCase))) throw new ArgumentException("Reserved request header.", nameof(headers));
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(_options.RequestTimeout);
+        var ct = timeout.Token;
+        using var request = new HttpRequestMessage(method, address);
+        try
+        {
+            await _authentication.AuthenticateAsync(request, ct);
+            if (headers is not null) foreach (var h in headers)
+                if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
+            if (body is not null)
+            {
+                request.Content = new StringContent(body, System.Text.Encoding.UTF8);
+                if (contentType is not null) request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            }
+            using var response = await _http.SendAsync(request, ct);
+            var text = await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));
+            return new IntegrationRawResponse(text, SafeHeaders(response), response.StatusCode, response.Content.Headers.ContentType?.ToString());
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        { throw new DeadlineExceededException("The configured request timeout elapsed before the operation completed."); }
+    }
     private async Task<T> ExecuteAsync<T>(HttpMethod method, Uri address, JsonElement? payload,
         IReadOnlyDictionary<string, string>? headers, Func<HttpResponseMessage, CancellationToken, Task<T>> consume, CancellationToken cancellationToken)
     {

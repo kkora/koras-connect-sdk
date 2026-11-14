@@ -67,6 +67,33 @@ public sealed class CoreTests
         await Assert.ThrowsAsync<ArgumentException>(() => t.ReadJsonAsync(new("https://api.test"), new Dictionary<string,string> { ["Authorization"] = "x" }));
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => t.ReadJsonAsync(new("https://api.test"), cancellationToken: new(true)));
     }
+    [Fact] public async Task SendRawAsyncRoundTripsAnArbitraryContentType()
+    {
+        var calls = 0; string? sentContentType = null; string? sentBody = null;
+        using var h = new HttpClient(new Handler(r =>
+        {
+            calls++; sentContentType = r.Content?.Headers.ContentType?.ToString(); sentBody = r.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+            var reply = Reply("--b\r\nContent-Type: application/http\r\n\r\nHTTP/1.1 204 No Content\r\n\r\n\r\n--b--");
+            reply.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("multipart/mixed; boundary=b");
+            return reply;
+        }));
+        var t = new IntegrationTransport(h, new Token());
+        var response = await t.SendRawAsync(HttpMethod.Post, new("https://api.test"), "raw-body", "multipart/mixed; boundary=in");
+        Assert.Equal(1, calls);
+        Assert.Equal("multipart/mixed; boundary=in", sentContentType);
+        Assert.Equal("raw-body", sentBody);
+        Assert.Contains("multipart/mixed", response.ContentType);
+        Assert.Contains("204 No Content", response.Body);
+    }
+    [Fact] public async Task SendRawAsyncThrowsOnNonSuccessWithoutRetryAndRejectsReservedHeaders()
+    {
+        var calls = 0;
+        using var h = new HttpClient(new Handler(_ => { calls++; return Reply("private", HttpStatusCode.BadRequest); }));
+        var t = new IntegrationTransport(h, new Token());
+        var ex = await Assert.ThrowsAsync<IntegrationRequestException>(() => t.SendRawAsync(HttpMethod.Post, new("https://api.test"), "body", "text/plain"));
+        Assert.Equal(1, calls); Assert.DoesNotContain("private", ex.ToString());
+        await Assert.ThrowsAsync<ArgumentException>(() => t.SendRawAsync(HttpMethod.Post, new("https://api.test"), "body", "text/plain", new Dictionary<string, string> { ["Host"] = "x" }));
+    }
     [Fact] public async Task IndividualWorkerPreservesUnknownFieldsAndEscapesFilters()
     {
         using var h = new HttpClient(new Handler(r => { Assert.Contains("/hr/v2/workers/", r.RequestUri!.AbsolutePath); return Reply("""{"workers":[{"associateOID":"synthetic","person":{"legalName":{"givenName":"Example"}},"future":{"a":1},"workAssignments":[{"jobTitle":"Tester"}]}]}"""); }));
