@@ -4,10 +4,10 @@ title: "Throttling and Retry-After"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: no new public API contract, as this feature's own spec states - fully covered by the existing IntegrationExceptionClassifier 429-to-ThrottleException mapping and TransportOptions' bounded-backoff GET-retry policy, reused unchanged. Confirmed with Graph-specific tests: a 429 classifies correctly, a GET retries within budget honoring the server's Retry-After, and a write is never auto-retried. GraphBatch.cs (MGR-021) surfaces a sub-request's own 429 via that item's ErrorCode rather than retrying it automatically."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -46,18 +46,18 @@ None new - fully covered by the existing `ThrottleException`/`TransportOptions`.
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (no new contract, by design - see above).
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The full per-service throttling-limit table is not exhaustive in the underlying research; only a representative sample of services was captured. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `tests/Koras.Connect.Tests/MicrosoftGraph/GraphThrottlingTests.cs` (no new source file - this feature reuses shared infrastructure unchanged, per its own proposed-contracts section). Covers: a `429` with `Retry-After` classifies as `GraphApiException` wrapping `ThrottleException`; a `GET` retries once within budget and honors the server's `Retry-After` delay before succeeding; a write (`CreateUserAsync`) is never auto-retried on `429`, failing on the first attempt. Full suite: 994 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The full per-service throttling-limit table remains only partially captured in the underlying research and is not treated as exhaustive. Deliberately triggering a real 130,000-req/10s breach is infeasible for this pass. No live tenant available. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphThrottlingTests.cs` confirming the shared classifier/retry-policy reuse holds for Graph specifically. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: the per-service limit table is incomplete and no live tenant is available this pass. |

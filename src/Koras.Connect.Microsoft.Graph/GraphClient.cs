@@ -46,7 +46,8 @@ public sealed partial class GraphClient : IConnector
             "EnumerateMyPlans", "EnumeratePlanTasks",
             "EnumerateTodoLists", "EnumerateTodoTasks", "CreateTodoTask", "UpdateTodoTask",
             "GetDelta",
-            "CreateSubscription", "RenewSubscription", "DeleteSubscription"],
+            "CreateSubscription", "RenewSubscription", "DeleteSubscription",
+            "ExecuteBatch"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). The Authentication/Connectivity stages
