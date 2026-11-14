@@ -62,7 +62,7 @@ public sealed partial class SalesforceClient : IConnector
         SupportedOperations: ["GetResourceMap", "CreateRecord", "GetRecord", "UpdateRecord", "DeleteRecord", "Query", "EnumerateQuery",
             "DescribeObject", "DescribeGlobal", "UpsertByExternalId", "ExecuteComposite", "BulkIngestJob", "BulkQueryJob",
             "SubscribeToChangeEvents", "PublishPlatformEvent", "SubscribeToPlatformEvent",
-            "UploadContentVersion", "LinkContentDocument", "GetLimits"],
+            "UploadContentVersion", "LinkContentDocument", "GetLimits", "EnumerateChanges"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe. Never issues a mutating request - the only call

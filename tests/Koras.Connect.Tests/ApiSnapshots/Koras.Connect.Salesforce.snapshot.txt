@@ -65,6 +65,7 @@ sealed class Koras.Connect.Salesforce.SalesforceClient
   method System.Threading.Tasks.Task DownloadFailedResultsAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DownloadSuccessfulResultsAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DownloadUnprocessedRecordsAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<T> EnumerateChangesAsync(System.String sObject, Koras.Connect.Salesforce.SalesforceDeltaCheckpoint checkpoint, System.Collections.Generic.IReadOnlyList<System.String> fields, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<T> EnumerateQueryAsync(System.String soql, System.Boolean includeDeleted = False, System.Nullable<System.Int32> batchSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.IO.Stream> EnumerateQueryResultsAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.Nullable<System.Int32> maxRecords = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.BatchItemResult<System.Text.Json.JsonElement>>> ExecuteCompositeAsync(System.Collections.Generic.IReadOnlyList<Koras.Connect.Salesforce.SalesforceCompositeSubrequest> requests, System.Boolean allOrNone = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
@@ -121,6 +122,15 @@ sealed class Koras.Connect.Salesforce.SalesforceConnectionOptions
   method Koras.Connect.Salesforce.SalesforceConnectionOptions <Clone>$()
   method System.Void Deconstruct(System.Uri& InstanceRoot, System.Uri& TokenEndpoint, System.String& ClientId, System.String& ClientSecret, System.String& JwtSubject, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource, System.String& ApiVersion)
   method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Salesforce.SalesforceDeltaCheckpoint
+  ctor(System.DateTimeOffset SinceSystemModstamp)
+  property System.DateTimeOffset SinceSystemModstamp {get+init}
+  method Koras.Connect.Salesforce.SalesforceDeltaCheckpoint <Clone>$()
+  method System.Void Deconstruct(System.DateTimeOffset& SinceSystemModstamp)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceDeltaCheckpoint other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
@@ -209,6 +219,19 @@ sealed class Koras.Connect.Salesforce.SalesforceQueryResult<T>
   method Koras.Connect.Salesforce.SalesforceQueryResult<T> <Clone>$()
   method System.Void Deconstruct(System.Int32& TotalSize, System.Boolean& Done, IReadOnlyList`1& Records, Koras.Connect.Abstractions.ContinuationToken& NextRecordsUrl)
   method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceQueryResult<T> other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Salesforce.SalesforceRecordMapper<TTarget>
+  ctor(System.Func<Koras.Connect.Salesforce.SalesforceRecordProjection, Koras.Connect.Abstractions.MappingResult<TTarget>> project, System.String idField = Id)
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Map(System.Text.Json.JsonElement source)
+sealed class Koras.Connect.Salesforce.SalesforceRecordProjection
+  ctor(System.String Id, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Fields)
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Fields {get+init}
+  property System.String Id {get+init}
+  method Koras.Connect.Salesforce.SalesforceRecordProjection <Clone>$()
+  method System.Void Deconstruct(System.String& Id, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Fields)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceRecordProjection other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
