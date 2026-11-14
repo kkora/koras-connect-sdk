@@ -1,0 +1,93 @@
+sealed class Koras.Connect.Dataverse.DataverseApiException
+  property System.Nullable<System.TimeSpan> RetryAfter {get}
+  property System.Net.HttpStatusCode StatusCode {get}
+  method Koras.Connect.Dataverse.DataverseApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Dataverse.DataverseApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
+abstract class Koras.Connect.Dataverse.DataverseAuthentication
+  method Koras.Connect.Transport.IAccessTokenSource CreateTokenSource(System.Net.Http.HttpClient httpClient, Koras.Connect.Dataverse.DataverseClientCredentialsOptions options, System.TimeProvider timeProvider = null)
+sealed class Koras.Connect.Dataverse.DataverseCertificateAssertionTokenSource
+  ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Dataverse.DataverseClientCredentialsOptions options, System.String scope, System.TimeProvider timeProvider = null)
+  method System.String BuildClientAssertion(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, System.Uri audience, System.String clientId, System.DateTimeOffset now)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+sealed class Koras.Connect.Dataverse.DataverseClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Dataverse.DataverseOptions options, System.TimeProvider timeProvider = null)
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void ValidateOptions(Koras.Connect.Dataverse.DataverseOptions options)
+  method System.Threading.Tasks.Task<Koras.Connect.Dataverse.WhoAmIResult> WhoAmIAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Dataverse.DataverseClientCredentialsOptions
+  ctor(System.Uri TenantTokenEndpoint, System.String ClientId, System.String EnvironmentUrl, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.String EnvironmentUrl {get+init}
+  property System.Uri TenantTokenEndpoint {get+init}
+  method Koras.Connect.Dataverse.DataverseClientCredentialsOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& TenantTokenEndpoint, System.String& ClientId, System.String& EnvironmentUrl, System.String& ClientSecret, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseClientCredentialsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Dataverse.DataverseConnectionOptions
+  ctor(System.Uri EnvironmentRoot, System.Uri TenantTokenEndpoint, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.Int32 MaxPageSize = 5000)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.Uri EnvironmentRoot {get+init}
+  property System.Int32 MaxPageSize {get+init}
+  property System.Uri TenantTokenEndpoint {get+init}
+  method Koras.Connect.Dataverse.DataverseConnectionOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& EnvironmentRoot, System.Uri& TenantTokenEndpoint, System.String& ClientId, System.String& ClientSecret, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource, System.Int32& MaxPageSize)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseDiscoveryClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, System.Uri discoveryRoot = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseInstance> ListInstancesAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Dataverse.DataverseInstance
+  ctor(System.String ApiUrl, System.String Id, System.String EnvironmentId, System.String UniqueName, System.String FriendlyName, System.String Region, System.String Version, System.String TenantId)
+  property System.String ApiUrl {get+init}
+  property System.String EnvironmentId {get+init}
+  property System.String FriendlyName {get+init}
+  property System.String Id {get+init}
+  property System.String Region {get+init}
+  property System.String TenantId {get+init}
+  property System.String UniqueName {get+init}
+  property System.String Version {get+init}
+  method Koras.Connect.Dataverse.DataverseInstance <Clone>$()
+  method System.Void Deconstruct(System.String& ApiUrl, System.String& Id, System.String& EnvironmentId, System.String& UniqueName, System.String& FriendlyName, System.String& Region, System.String& Version, System.String& TenantId)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseInstance other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseOptions
+  ctor(System.Uri EnvironmentRoot, System.Int32 MaxPageSize = 5000)
+  property System.Uri EnvironmentRoot {get+init}
+  property System.Int32 MaxPageSize {get+init}
+  method Koras.Connect.Dataverse.DataverseOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& EnvironmentRoot, System.Int32& MaxPageSize)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+abstract class Koras.Connect.Dataverse.DataverseServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasDataverse(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Dataverse.DataverseConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
+interface Koras.Connect.Dataverse.IDataverseDiscoveryClient
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Dataverse.DataverseInstance> ListInstancesAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Dataverse.WhoAmIResult
+  ctor(System.Guid UserId, System.Guid BusinessUnitId, System.Guid OrganizationId)
+  property System.Guid BusinessUnitId {get+init}
+  property System.Guid OrganizationId {get+init}
+  property System.Guid UserId {get+init}
+  method Koras.Connect.Dataverse.WhoAmIResult <Clone>$()
+  method System.Void Deconstruct(System.Guid& UserId, System.Guid& BusinessUnitId, System.Guid& OrganizationId)
+  method System.Boolean Equals(Koras.Connect.Dataverse.WhoAmIResult other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()

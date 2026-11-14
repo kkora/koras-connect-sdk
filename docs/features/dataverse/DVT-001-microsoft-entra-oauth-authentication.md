@@ -4,9 +4,9 @@ title: "Microsoft Entra OAuth authentication"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: client-secret path delegates to Koras.Connect.Authentication.ClientCredentialsTokenSource; certificate path adds DataverseCertificateAssertionTokenSource (RFC 7523 JWT bearer). Unit/contract-tested; no live Entra/Dataverse tenant available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -53,18 +53,18 @@ public sealed record DataverseClientCredentialsOptions(Uri TenantTokenEndpoint, 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The exact Dataverse-specific token-endpoint restatement (vs. generic Entra docs) is a documented gap in the official docs, not an SDK limitation (Section 3 vendor research). No live Dataverse tenant/Entra app registration is available in this documentation pass. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseAuthentication.cs` (`DataverseClientCredentialsOptions`, `DataverseAuthentication.CreateTokenSource`, `DataverseCertificateAssertionTokenSource`) and `tests/Koras.Connect.Tests/Dataverse/DataverseAuthenticationTests.cs`. Covers: exactly-one-of-secret-or-certificate validation, non-HTTPS token endpoint rejection, secret path returns the reused `ClientCredentialsTokenSource`, certificate path builds and RS256-signs a 3-part RFC 7523 JWT (`x5t` thumbprint, `aud`/`iss`/`sub`/`nbf` verified, signature verified against the certificate's public key), cache/expiry-margin renewal, `Invalidate()` forcing reacquisition, certificate without a private key rejected before any network call, non-success token response surfaces `AuthenticationException`, malformed token response shapes never poison the cache, canceled acquisition never reaches the handler. Full suite: 594 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live Entra tenant/Dataverse Application User available this pass to exercise the real `/oauth2/v2.0/token` grant end-to-end; the certificate-assertion flow is tested against the documented RFC 7523 shape, not a live Entra response. Consumer documentation/sample deferred to DVT-022. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -72,3 +72,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `DataverseClientCredentialsOptions`/`DataverseAuthentication`/`DataverseCertificateAssertionTokenSource` plus `DataverseAuthenticationTests.cs` (18 tests). Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live Entra/Dataverse tenant available this pass. |
