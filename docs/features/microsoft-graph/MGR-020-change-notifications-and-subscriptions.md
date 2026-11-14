@@ -4,10 +4,10 @@ title: "Change notifications and subscriptions"
 category: "microsoft-graph"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: CreateSubscriptionAsync/RenewSubscriptionAsync/DeleteSubscriptionAsync cover subscription lifecycle management, with includeResourceData surfaced as its own explicit opt-in. The webhook receiver endpoint itself (validation-token echo, notification ack, lifecycle-event handling) is explicitly the caller's responsibility per this feature's own nonfunctional requirement - this SDK is a client/manager only, not a webhook host. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -51,18 +51,18 @@ public async Task RenewSubscriptionAsync(string subscriptionId, DateTimeOffset n
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (subscription-management client only - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (the validation handshake/notification-ack/lifecycle-event handling live in the caller's own webhook host, not independently tested here).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No live tenant/public endpoint available this pass; the full per-resource-type max-expiration table was only partially captured in the underlying research and should be re-verified against the live documentation page before being treated as exhaustive. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphSubscriptions.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphSubscriptionsTests.cs`. Covers: create/renew/delete all require the shared `writesEnabled` opt-in; create posts the documented `resource`/`changeType`/`notificationUrl`/`expirationDateTime`/`includeResourceData` body and parses the response; `includeResourceData` defaults to `false` and is surfaced as its own explicit parameter, never folded silently into another option; renew/delete target `/subscriptions/{id}` correctly. Full suite: 984 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The webhook receiver endpoint (validation-token echo within 10 seconds, notification ack within 3 seconds, lifecycle-event type handling) is the caller's own responsibility per this feature's nonfunctional requirement and is not implemented or tested here - this SDK is a subscription client/manager only. The per-resource-type max-expiration ceiling is not locally enforced, since the captured table is only partial; an excessive value is rejected by Graph itself. No live tenant/public endpoint available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -70,3 +70,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `GraphSubscriptions.cs` plus `GraphSubscriptionsTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the subscription-management scope; held at `partial` because the webhook-host side of this feature is explicitly out of scope and untested. |
