@@ -95,6 +95,39 @@ public sealed class IntegrationTransport
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
         }, cancellationToken);
+    /// <summary>Like <see cref="SendResponseAsync"/>, but never throws for a non-success status - returns the
+    /// parsed body for every status code, leaving classification entirely to the caller. Exists for documented
+    /// non-2xx "valid outcome" shapes whose response body carries required information that would otherwise be
+    /// discarded (for example Salesforce's upsert <c>300</c> ambiguous-match, which lists the matching records).
+    /// Never retried, matching every write operation's "never replay an uncertain write" policy.</summary>
+    public async Task<IntegrationJsonResponse> SendJsonAllowingAnyStatusAsync(HttpMethod method, Uri address, JsonElement? payload = null,
+        IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
+    {
+        if (!address.IsAbsoluteUri || address.Scheme != Uri.UriSchemeHttps || address.UserInfo.Length != 0)
+            throw new ArgumentException("Endpoint must be an absolute HTTPS URI without user information.", nameof(address));
+        if (headers is not null && headers.Keys.Any(k => k.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+            || k.Equals("Host", StringComparison.OrdinalIgnoreCase))) throw new ArgumentException("Reserved request header.", nameof(headers));
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(_options.RequestTimeout);
+        var ct = timeout.Token;
+        using var request = new HttpRequestMessage(method, address);
+        try
+        {
+            await _authentication.AuthenticateAsync(request, ct);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            if (headers is not null) foreach (var h in headers)
+                if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
+            if (payload is not null) request.Content = new StringContent(payload.Value.GetRawText(), System.Text.Encoding.UTF8, "application/json");
+            var response = await _http.SendAsync(request, ct);
+            var safeHeaders = SafeHeaders(response);
+            if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.Accepted)
+                return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            return new IntegrationJsonResponse(await JsonDocument.ParseAsync(stream, cancellationToken: ct), safeHeaders, response.StatusCode);
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        { throw new DeadlineExceededException("The configured request timeout elapsed before the operation completed."); }
+    }
     /// <summary>Correlation-header values are truncated to this length and stripped of control characters before
     /// capture, so a malicious or misbehaving server cannot bloat logs or inject control sequences through a
     /// request-id-style header.</summary>
