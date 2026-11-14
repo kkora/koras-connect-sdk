@@ -4,10 +4,10 @@ title: "OAuth authentication"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: Client Credentials delegates to the shared ClientCredentialsTokenSource unchanged; SalesforceJwtBearerTokenSource adds a new RFC 7523 JWT Bearer flow signed with the certificate's RSA private key. Unit-tested; no live org available this pass."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,18 +50,18 @@ public sealed record SalesforceJwtBearerOptions(Uri TokenEndpoint, string Client
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Authorization-code/device flows are deliberately out of scope for SDK-managed acquisition (require a browser); exact JWT claim set was snippet-only, not independently re-verified - a release blocker for calling this `implemented`/`verified` rather than `implemented`/`partial`. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceAuthentication.cs` and `tests/Koras.Connect.Tests/Salesforce/SalesforceAuthenticationTests.cs`. Covers: both options types validate independently; the Client Credentials path returns the reused `ClientCredentialsTokenSource`; the JWT Bearer assertion is a valid 3-part RS256 JWT with `iss`/`sub`/`aud` matching the documented claim shape and a verifiable signature; the token source sends the documented `urn:ietf:params:oauth:grant-type:jwt-bearer` grant type, caches until invalidated, rejects a certificate without a private key before any network call, and surfaces `AuthenticationException` on a non-success response. Full suite: 733 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Authorization-code/device flows are deliberately out of scope for SDK-managed acquisition. The exact JWT claim set was snippet-only, not independently re-verified against a live Salesforce-specific page - a release blocker for calling this `verified` rather than `partial`. No real External Client App/Connected App available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `SalesforceClientCredentialsOptions`/`SalesforceAuthentication`/`SalesforceJwtBearerOptions`/`SalesforceJwtBearerTokenSource` plus `SalesforceAuthenticationTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live org available this pass and the JWT claim set is snippet-confidence only. |

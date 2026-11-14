@@ -1,0 +1,86 @@
+sealed class Koras.Connect.Salesforce.SalesforceApiException
+  property System.Nullable<System.TimeSpan> RetryAfter {get}
+  property System.Net.HttpStatusCode StatusCode {get}
+  method Koras.Connect.Salesforce.SalesforceApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Salesforce.SalesforceApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
+sealed class Koras.Connect.Salesforce.SalesforceApiVersion
+  ctor(System.String Label, System.String Url, System.String Version)
+  property System.String Label {get+init}
+  property System.String Url {get+init}
+  property System.String Version {get+init}
+  method Koras.Connect.Salesforce.SalesforceApiVersion <Clone>$()
+  method System.Void Deconstruct(System.String& Label, System.String& Url, System.String& Version)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceApiVersion other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Salesforce.SalesforceAuthentication
+  method Koras.Connect.Transport.IAccessTokenSource CreateClientCredentialsTokenSource(System.Net.Http.HttpClient httpClient, Koras.Connect.Salesforce.SalesforceClientCredentialsOptions options, System.TimeProvider timeProvider = null)
+sealed class Koras.Connect.Salesforce.SalesforceClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Salesforce.SalesforceOptions options, System.TimeProvider timeProvider = null)
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> GetResourceMapAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void ValidateOptions(Koras.Connect.Salesforce.SalesforceOptions options)
+sealed class Koras.Connect.Salesforce.SalesforceClientCredentialsOptions
+  ctor(System.Uri TokenEndpoint, System.String ClientId, System.String ClientSecret)
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.Uri TokenEndpoint {get+init}
+  method Koras.Connect.Salesforce.SalesforceClientCredentialsOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& TokenEndpoint, System.String& ClientId, System.String& ClientSecret)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceClientCredentialsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Salesforce.SalesforceConnectionOptions
+  ctor(System.Uri InstanceRoot, System.Uri TokenEndpoint, System.String ClientId, System.String ClientSecret = null, System.String JwtSubject = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.String ApiVersion = v68.0)
+  property System.String ApiVersion {get+init}
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.Uri InstanceRoot {get+init}
+  property System.String JwtSubject {get+init}
+  property System.Uri TokenEndpoint {get+init}
+  method Koras.Connect.Salesforce.SalesforceConnectionOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& InstanceRoot, System.Uri& TokenEndpoint, System.String& ClientId, System.String& ClientSecret, System.String& JwtSubject, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource, System.String& ApiVersion)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Salesforce.SalesforceDiscovery
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Salesforce.SalesforceApiVersion>> ListApiVersionsAsync(System.Net.Http.HttpClient httpClient, System.Uri host, System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Salesforce.SalesforceJwtBearerOptions
+  ctor(System.Uri TokenEndpoint, System.String ClientId, System.String Subject, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String Subject {get+init}
+  property System.Uri TokenEndpoint {get+init}
+  method Koras.Connect.Salesforce.SalesforceJwtBearerOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& TokenEndpoint, System.String& ClientId, System.String& Subject, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceJwtBearerOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Salesforce.SalesforceJwtBearerTokenSource
+  ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Salesforce.SalesforceJwtBearerOptions options, System.TimeProvider timeProvider = null)
+  method System.String BuildAssertion(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, System.Uri tokenEndpoint, System.String clientId, System.String subject, System.DateTimeOffset now)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+sealed class Koras.Connect.Salesforce.SalesforceOptions
+  ctor(System.Uri InstanceRoot, System.String ApiVersion = v68.0)
+  property System.String ApiVersion {get+init}
+  property System.Uri InstanceRoot {get+init}
+  method Koras.Connect.Salesforce.SalesforceOptions <Clone>$()
+  method System.Void Deconstruct(System.Uri& InstanceRoot, System.String& ApiVersion)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+abstract class Koras.Connect.Salesforce.SalesforceServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasSalesforce(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Salesforce.SalesforceConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)

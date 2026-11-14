@@ -29,6 +29,7 @@ public sealed class ApiSnapshotTests
     [InlineData("Koras.Connect.Sap.SuccessFactors")]
     [InlineData("Koras.Connect.Qualtrics")]
     [InlineData("Koras.Connect.Dataverse")]
+    [InlineData("Koras.Connect.Salesforce")]
     public void PublicSurfaceMatchesCommittedSnapshot(string assemblyName)
     {
         var assembly = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll"));

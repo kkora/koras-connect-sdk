@@ -27,6 +27,7 @@ public sealed class PackageGraphTests
         ["Koras.Connect.Qualtrics"] = ["Koras.Connect.Abstractions", "Koras.Connect.Core"],
         ["Koras.Connect.Sap.SuccessFactors"] = ["Koras.Connect.Abstractions", "Koras.Connect.Core"],
         ["Koras.Connect.Dataverse"] = ["Koras.Connect.Abstractions", "Koras.Connect.Core", "Koras.Connect.Authentication"],
+        ["Koras.Connect.Salesforce"] = ["Koras.Connect.Abstractions", "Koras.Connect.Core", "Koras.Connect.Authentication"],
         ["Koras.Connect"] = ["Koras.Connect.Abstractions", "Koras.Connect.Core", "Koras.Connect.Authentication", "Koras.Connect.Export"],
     };
 
