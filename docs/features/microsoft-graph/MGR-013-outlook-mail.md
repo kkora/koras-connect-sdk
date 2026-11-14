@@ -4,10 +4,10 @@ title: "Outlook mail"
 category: "microsoft-graph"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: EnumerateMyMessagesAsync (delegated-only, applying MGR-004's general /me rule) and EnumerateUserMessagesAsync (app-only path) both clamp $top to the documented 1000 max rather than reject; SendMailAsync composes the documented message/toRecipients envelope and treats 202-no-body as success via the shared transport. GraphMessage.BodyHtml is a computed property over a nested body object, not a flat field, since Graph's wire shape nests content/contentType. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async Task SendMailAsync(string subject, string bodyHtml, IReadOnlyList<s
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (adapted `BodyHtml` shape - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (the `/me`-only restriction for mail was inferred from MGR-004's general rule, not independently confirmed for mail specifically).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphMail.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphMailTests.cs`. Covers: `EnumerateMyMessagesAsync` throws `InvalidOperationException` before any HTTP call without a delegated context; `EnumerateUserMessagesAsync` works without one; a `$top` above 1000 is clamped down to 1000, not rejected; `SendMailAsync` requires both `writesEnabled` and a delegated context, composes the documented `message`/`toRecipients` envelope, and treats a `202`-no-body response as success (the shared transport already does this). Full suite: 951 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The `/me`-only restriction applied to `EnumerateMyMessagesAsync`/`SendMailAsync` is inferred from MGR-004's general `/me` rule - this feature's own spec does not explicitly state mail shares that restriction, so it is a reasoned extension, not an independently confirmed fact, and should be reconfirmed before `verified`. No live tenant available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `GraphMail.cs` plus `GraphMailTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; held at `partial` because the `/me`-only restriction's applicability to mail specifically is inferred, not independently confirmed. |
