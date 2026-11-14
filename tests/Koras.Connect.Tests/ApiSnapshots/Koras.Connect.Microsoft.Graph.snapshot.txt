@@ -1,0 +1,78 @@
+sealed class Koras.Connect.Microsoft.Graph.GraphApiException
+  property System.Nullable<System.TimeSpan> RetryAfter {get}
+  property System.Net.HttpStatusCode StatusCode {get}
+  method Koras.Connect.Microsoft.Graph.GraphApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Microsoft.Graph.GraphApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
+sealed class Koras.Connect.Microsoft.Graph.GraphAppOnlyConnectionOptions
+  ctor(System.String TenantId, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.Boolean UseBetaEndpoint = False)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.String TenantId {get+init}
+  property System.Boolean UseBetaEndpoint {get+init}
+  method Koras.Connect.Microsoft.Graph.GraphAppOnlyConnectionOptions <Clone>$()
+  method System.Void Deconstruct(System.String& TenantId, System.String& ClientId, System.String& ClientSecret, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource, System.Boolean& UseBetaEndpoint)
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphAppOnlyConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Microsoft.Graph.GraphAuthentication
+  method Koras.Connect.Transport.IAccessTokenSource CreateClientCredentialsTokenSource(System.Net.Http.HttpClient httpClient, Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions options, System.TimeProvider timeProvider = null)
+sealed class Koras.Connect.Microsoft.Graph.GraphCertificateAssertionTokenSource
+  ctor(System.Net.Http.HttpClient httpClient, Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions options, System.TimeProvider timeProvider = null)
+  method System.String BuildClientAssertion(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, System.Uri audience, System.String clientId, System.DateTimeOffset now)
+  method System.Void Dispose()
+  method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Void Invalidate()
+sealed class Koras.Connect.Microsoft.Graph.GraphClient
+  ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Microsoft.Graph.GraphOptions options = null, System.TimeProvider timeProvider = null)
+  property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+sealed class Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions
+  ctor(System.String TenantId, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null)
+  property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
+  property System.String ClientId {get+init}
+  property System.String ClientSecret {get+init}
+  property System.String TenantId {get+init}
+  method Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions <Clone>$()
+  method System.Void Deconstruct(System.String& TenantId, System.String& ClientId, System.String& ClientSecret, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource)
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Microsoft.Graph.GraphConnectionOptions
+  ctor(System.String TenantId, System.String ClientId, System.Collections.Generic.IReadOnlyList<Koras.Connect.Microsoft.Graph.GraphPermissionRequirement> RequiredPermissions)
+  property System.String ClientId {get+init}
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Microsoft.Graph.GraphPermissionRequirement> RequiredPermissions {get+init}
+  property System.String TenantId {get+init}
+  method Koras.Connect.Microsoft.Graph.GraphConnectionOptions <Clone>$()
+  method System.Void Deconstruct(System.String& TenantId, System.String& ClientId, System.Collections.Generic.IReadOnlyList`1[[Koras.Connect.Microsoft.Graph.GraphPermissionRequirement, Koras.Connect.Microsoft.Graph, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]& RequiredPermissions)
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Microsoft.Graph.GraphOptions
+  ctor(System.Boolean UseBetaEndpoint = False)
+  property System.Boolean UseBetaEndpoint {get+init}
+  method Koras.Connect.Microsoft.Graph.GraphOptions <Clone>$()
+  method System.Void Deconstruct(System.Boolean& UseBetaEndpoint)
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+  method System.Void Validate()
+sealed class Koras.Connect.Microsoft.Graph.GraphPermissionRequirement
+  ctor(System.String Permission, System.Boolean IsApplicationPermission, System.String Reason)
+  property System.Boolean IsApplicationPermission {get}
+  property System.String Permission {get}
+  property System.String Reason {get}
+  method Koras.Connect.Microsoft.Graph.GraphPermissionRequirement <Clone>$()
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphPermissionRequirement other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+abstract class Koras.Connect.Microsoft.Graph.GraphServiceCollectionExtensions
+  method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasMicrosoftGraph(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Microsoft.Graph.GraphAppOnlyConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
