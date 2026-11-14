@@ -30,13 +30,26 @@ public sealed class GraphClientTests
     }
 
     [Fact]
-    public async Task DiagnoseAsyncReportsConfigurationPassedWithoutAnyHttpCall()
+    public async Task DiagnoseAsyncReportsConfigurationPassedAndProbesOrganization()
     {
-        var calls = 0;
-        var client = new GraphClient(new IntegrationTransport(new HttpClient(new Handler((_, _) => { calls++; throw new InvalidOperationException(); })), new StaticToken("token")));
+        var client = new GraphClient(new IntegrationTransport(new HttpClient(new Handler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"value":[{"id":"org1","displayName":"Contoso","verifiedDomains":[]}]}""", Encoding.UTF8, "application/json") }))),
+            new StaticToken("token")));
         var results = await client.DiagnoseAsync();
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Configuration && r.Outcome == DiagnosticOutcome.Passed);
-        Assert.Equal(0, calls);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Authentication && r.Outcome == DiagnosticOutcome.Passed);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Connectivity && r.Outcome == DiagnosticOutcome.Passed);
+    }
+
+    [Fact]
+    public async Task DiagnoseAsyncSkipsConnectivityAfterAnAuthenticationFailure()
+    {
+        var client = new GraphClient(new IntegrationTransport(new HttpClient(new Handler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("{}", Encoding.UTF8, "application/json") }))),
+            new StaticToken("token")));
+        var results = await client.DiagnoseAsync();
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Authentication && r.Outcome == DiagnosticOutcome.Failed);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Connectivity && r.Outcome == DiagnosticOutcome.Skipped);
     }
 
     [Theory]

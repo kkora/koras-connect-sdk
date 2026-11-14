@@ -34,14 +34,33 @@ public sealed partial class GraphClient : IConnector
             "EnumerateGroups", "EnumerateGroupMembers", "AddGroupMember", "RemoveGroupMember",
             "EnumerateDirectoryRoles", "EnumerateAdministrativeUnits",
             "EnumerateApplications", "GetApplication", "CreateApplication",
-            "EnumerateServicePrincipals", "GetServicePrincipal", "CreateServicePrincipal"],
+            "EnumerateServicePrincipals", "GetServicePrincipal", "CreateServicePrincipal", "GetOrganization"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
-    /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). Only the Configuration stage is
-    /// implemented so far - Authentication/Connectivity wire to MGR-008's <c>GET /organization</c> once that
-    /// feature exists, and a Permissions stage wires to MGR-024's grant-listing once that feature exists. Never
-    /// issues a mutating request.</summary>
-    public ValueTask<IReadOnlyList<ConnectionDiagnostic>> DiagnoseAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult<IReadOnlyList<ConnectionDiagnostic>>(
-            [new(DiagnosticStage.Configuration, DiagnosticOutcome.Passed, "configuration_valid", null, _clock.GetUtcNow())]);
+    /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). The Authentication/Connectivity stages
+    /// use MGR-008's <c>GET /organization</c> as the one permitted minimal, non-mutating probe call. A Permissions
+    /// stage wires to MGR-024's grant-listing once that feature exists. Never issues a mutating request.</summary>
+    public async ValueTask<IReadOnlyList<ConnectionDiagnostic>> DiagnoseAsync(CancellationToken cancellationToken = default)
+    {
+        var results = new List<ConnectionDiagnostic> { new(DiagnosticStage.Configuration, DiagnosticOutcome.Passed, "configuration_valid", null, _clock.GetUtcNow()) };
+        try
+        {
+            await GetOrganizationAsync(cancellationToken);
+            results.Add(new(DiagnosticStage.Authentication, DiagnosticOutcome.Passed, "authenticated", null, _clock.GetUtcNow()));
+            results.Add(new(DiagnosticStage.Connectivity, DiagnosticOutcome.Passed, "connected", null, _clock.GetUtcNow()));
+        }
+        catch (GraphApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            results.Add(new(DiagnosticStage.Authentication, DiagnosticOutcome.Failed, ex.Details.Code, ex.Details.CorrelationId, _clock.GetUtcNow(),
+                "Verify the configured app registration credentials and admin-consented permissions."));
+            results.Add(new(DiagnosticStage.Connectivity, DiagnosticOutcome.Skipped, "skipped_after_authentication_failure", null, _clock.GetUtcNow()));
+        }
+        catch (Koras.Connect.Exceptions.IntegrationException ex)
+        {
+            results.Add(new(DiagnosticStage.Authentication, DiagnosticOutcome.Passed, "authenticated", null, _clock.GetUtcNow()));
+            results.Add(new(DiagnosticStage.Connectivity, DiagnosticOutcome.Failed, ex.Details.Code, ex.Details.CorrelationId, _clock.GetUtcNow(),
+                "Verify network connectivity to graph.microsoft.com and the configured tenant."));
+        }
+        return results;
+    }
 }

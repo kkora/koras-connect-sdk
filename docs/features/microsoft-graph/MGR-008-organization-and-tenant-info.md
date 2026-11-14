@@ -4,10 +4,10 @@ title: "Organization and tenant info"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: GetOrganizationAsync unwraps the documented value-array response and maps the User.Read-only restricted shape's absent fields to null rather than a default. Also now wired as GraphClient.DiagnoseAsync's Authentication/Connectivity probe (MGR-003/026). Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async Task<GraphOrganization> GetOrganizationAsync(CancellationToken ct =
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphOrganization.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphOrganizationTests.cs`, plus wired `GetOrganizationAsync` into `GraphClient.DiagnoseAsync`. Covers: the full-detail response parses correctly, including flattening `verifiedDomains` to plain names; a restricted `User.Read`-only shape maps absent fields to `null`, not a default; an empty `value` array surfaces `ContractException`; `DiagnoseAsync` reports `Authentication`/`Connectivity` `Passed` on success and `Failed`/`Skipped` on a 401. Full suite: 915 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live tenant available this pass to confirm either permission-level response shape against a real org. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphOrganization.cs` plus `GraphOrganizationTests.cs`, and wired `GetOrganizationAsync` into `DiagnoseAsync`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |

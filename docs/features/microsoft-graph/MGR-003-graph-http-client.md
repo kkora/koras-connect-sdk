@@ -5,7 +5,7 @@ category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
 status: "partial"
-baseline_status: "Implemented: GraphClient selects the v1.0 (default) or beta root per GraphOptions.UseBetaEndpoint; GraphApiException.TryExtractErrorCode accepts both innerError/innererror casings. DiagnoseAsync so far implements only the Configuration stage - the Authentication/Connectivity probe (GET /organization) is deferred to MGR-008, and a Permissions stage to MGR-024, per this feature's own cross-reference to those features. ConsistencyLevel header support is deferred to the specific operations that need it (MGR-005/006). Unit-tested."
+baseline_status: "Implemented: GraphClient selects the v1.0 (default) or beta root per GraphOptions.UseBetaEndpoint; GraphApiException.TryExtractErrorCode accepts both innerError/innererror casings. DiagnoseAsync now implements Configuration/Authentication/Connectivity, probing MGR-008's GET /organization; a Permissions stage remains deferred to MGR-024. ConsistencyLevel header support is implemented for $count/$search (MGR-004/019). Unit-tested."
 verification: "partial"
 last_updated: "2026-11-14"
 implementation_commit: null
@@ -49,8 +49,8 @@ public sealed partial class GraphClient { public GraphClient(IntegrationTranspor
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [x] Functional requirements and public API contract satisfied (Configuration-only diagnostic stage so far - see below).
-- [ ] Acceptance criteria and Definition of Done satisfied (`DiagnoseAsync`'s Authentication/Connectivity/Permissions stages remain pending MGR-008/MGR-024).
+- [x] Functional requirements and public API contract satisfied.
+- [ ] Acceptance criteria and Definition of Done satisfied (`DiagnoseAsync`'s Permissions stage remains pending MGR-024).
 - [x] Required unit, contract and integration checks pass at the recorded revision.
 - [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
@@ -59,8 +59,8 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/{GraphOptions,GraphClient}.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphClientTests.cs`. Covers: default options target the `v1.0` root, `UseBetaEndpoint: true` targets the `beta` root; `DiagnoseAsync` reports `Configuration` `Passed` without any HTTP call; `GraphApiException.TryExtractErrorCode` accepts both `innerError` and `innererror` casing and returns `null` for a malformed body; `FromTransportFailure` classifies by HTTP status via the shared classifier. Full suite: 877 passed, 3 skipped, 0 failed. |
-| Remaining work / blockers | `DiagnoseAsync` implements only the `Configuration` stage - `Authentication`/`Connectivity` will wire to MGR-008's `GET /organization` once that feature exists, and a `Permissions` stage to MGR-024's grant-listing once that feature exists, per this feature's own cross-reference. The `ConsistencyLevel` header is now sent by `GraphQuery`/`EnumerateAsync<T>` (MGR-004/019) whenever `$count` or `$search` is used - the only two operations this connector currently knows need it. The `innerError`/`innererror` casing inconsistency remains a genuine, unresolved vendor-documentation inconsistency, not an SDK defect. No live tenant available this pass. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/{GraphOptions,GraphClient}.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphClientTests.cs`, later extended with MGR-008's `GET /organization` probe. Covers: default options target the `v1.0` root, `UseBetaEndpoint: true` targets the `beta` root; `DiagnoseAsync` reports `Configuration`/`Authentication`/`Connectivity` `Passed` on a successful probe and `Failed`/`Skipped` on a 401; `GraphApiException.TryExtractErrorCode` accepts both `innerError` and `innererror` casing and returns `null` for a malformed body; `FromTransportFailure` classifies by HTTP status via the shared classifier. Full suite: 915 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | A `Permissions` diagnostic stage remains pending MGR-024's grant-listing. The `innerError`/`innererror` casing inconsistency remains a genuine, unresolved vendor-documentation inconsistency, not an SDK defect. No live tenant available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `partial` | Added `GraphOptions.cs`/`GraphClient.cs` plus `GraphClientTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented scope; held at `partial` because `DiagnoseAsync`'s non-Configuration stages and the `ConsistencyLevel` header remain unimplemented pending later features. |
+| 2026-11-14 | `partial` | Wired `GetOrganizationAsync` (MGR-008) into `DiagnoseAsync`'s Authentication/Connectivity stages and `GraphQuery` (MGR-004/019) into the `ConsistencyLevel` header. Held at `partial`: a `Permissions` stage remains pending MGR-024. |
