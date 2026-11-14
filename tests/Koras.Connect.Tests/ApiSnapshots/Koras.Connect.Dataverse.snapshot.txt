@@ -48,6 +48,7 @@ sealed class Koras.Connect.Dataverse.DataverseClient
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateGlobalOptionSetsAsync(System.String filterByName = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<System.Text.Json.JsonElement>> EnumeratePageAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Nullable<System.Int32> maxPageSize = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.BatchItemResult<System.Text.Json.JsonElement>>> ExecuteBatchAsync(System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseBatchRequest> requests = null, System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseChangeset> changesets = null, System.Boolean continueOnError = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Dataverse.DataverseDeltaPage<System.Text.Json.JsonElement>> GetChangesAsync(System.String entitySet, System.String select = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> GetMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRowAsync(System.String entitySet, System.Guid id, Koras.Connect.Dataverse.DataverseQuery query = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseEntityDescriptor> ParseEntityDescriptors(System.Xml.Linq.XDocument metadata)
@@ -84,6 +85,26 @@ sealed class Koras.Connect.Dataverse.DataverseConnectionOptions
   method Koras.Connect.Dataverse.DataverseConnectionOptions <Clone>$()
   method System.Void Deconstruct(System.Uri& EnvironmentRoot, System.Uri& TenantTokenEndpoint, System.String& ClientId, System.String& ClientSecret, System.Func`2[[System.Threading.CancellationToken, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Threading.Tasks.ValueTask`1[[System.Security.Cryptography.X509Certificates.X509Certificate2, System.Security.Cryptography, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& CertificateSource, System.Int32& MaxPageSize)
   method System.Boolean Equals(Koras.Connect.Dataverse.DataverseConnectionOptions other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseDeletedRow
+  ctor(System.Guid Id)
+  property System.Guid Id {get+init}
+  method Koras.Connect.Dataverse.DataverseDeletedRow <Clone>$()
+  method System.Void Deconstruct(System.Guid& Id)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseDeletedRow other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseDeltaPage<T>
+  ctor(System.Collections.Generic.IReadOnlyList<T> Changed, System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseDeletedRow> Deleted, Koras.Connect.Abstractions.ContinuationToken Next)
+  property System.Collections.Generic.IReadOnlyList<T> Changed {get+init}
+  property System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseDeletedRow> Deleted {get+init}
+  property Koras.Connect.Abstractions.ContinuationToken Next {get+init}
+  method Koras.Connect.Dataverse.DataverseDeltaPage<T> <Clone>$()
+  method System.Void Deconstruct(IReadOnlyList`1& Changed, System.Collections.Generic.IReadOnlyList`1[[Koras.Connect.Dataverse.DataverseDeletedRow, Koras.Connect.Dataverse, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]& Deleted, Koras.Connect.Abstractions.ContinuationToken& Next)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseDeltaPage<T> other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()

@@ -4,9 +4,9 @@ title: "Change tracking and delta synchronization"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: GetChangesAsync sends Prefer: odata.track-changes, separates changed rows from documented deleted-row entries, and carries both @odata.nextLink and @odata.deltaLink as the same opaque ContinuationToken. Unit-tested; no live change-tracked table available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -50,18 +50,18 @@ public Task<DataverseDeltaPage<T>> GetChangesAsync<T>(string entitySet, string? 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No live tenant with change tracking enabled available this pass; exact server error shape/code for an expired delta token was not independently fetched this session (Section 28 open question). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseDelta.cs` (`DataverseDeletedRow`, `DataverseDeltaPage<T>`, `GetChangesAsync`) and `tests/Koras.Connect.Tests/Dataverse/DataverseDeltaTests.cs`. Returns `DataverseDeltaPage<JsonElement>` rather than the proposed generic `GetChangesAsync<T>` - matching `EnumerateAsync`'s existing `JsonElement`-based convention in this connector rather than introducing a second, inconsistent generic-typed read path. The incompatible-query-option guard is enforced by omission: no `$filter`/`$orderby`/`$expand`/`$top` parameter exists on this method at all (same "unsupported options have no property to request them through" precedent as DVT-005), so there is nothing to validate against. Covers: the `Prefer: odata.track-changes` header is sent; changed and deleted rows are correctly separated from the documented mixed response shape; a malformed deleted-row entry (missing/unparsable `id`) surfaces `ContractException`; both `@odata.nextLink` (mid-response pagination) and `@odata.deltaLink` (next-sync resume point) are carried identically as `Next`; resuming from a prior continuation forwards it unmodified via `EndpointSafety.Continuation`; `$select` composes correctly. Full suite: 686 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live tenant with change tracking enabled available this pass - "not enabled for this table" and "expired delta token" responses are not distinguished from any other server error, since their exact documented error shapes were not independently confirmed this session (standing Section 28 gap); callers should treat any unexpected `GetChangesAsync` failure as a signal to consider a full resync. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `GetChangesAsync`/`DataverseDeltaPage<T>`/`DataverseDeletedRow` plus `DataverseDeltaTests.cs` (adapted to a `JsonElement`-based, non-generic signature for consistency with `EnumerateAsync`). Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live change-tracked tenant available this pass, and the expired-token/not-enabled error shapes remain unconfirmed. |

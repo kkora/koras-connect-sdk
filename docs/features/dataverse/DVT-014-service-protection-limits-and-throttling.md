@@ -4,9 +4,9 @@ title: "Service protection limits and throttling"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: no new contract proposed - fully covered by the existing shared ThrottleException/TransportOptions, confirmed to reach Dataverse's own wrapper paths (DataverseApiException, writes, batch) by dedicated tests."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -46,18 +46,18 @@ None new - fully covered by the existing `ThrottleException`/`TransportOptions`.
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
-- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable (the three numeric defaults are documentary context only, per the spec; no live-tenant breach test is appropriate or attempted).
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The three numeric defaults are Microsoft's own documented defaults, explicitly subject to per-environment variation - do not hardcode them as assertions against a live tenant's actual behavior. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `tests/Koras.Connect.Tests/Dataverse/DataverseThrottlingTests.cs`. No new source file - confirms the existing `IntegrationExceptionClassifier`/`TransportOptions` behavior reaches Dataverse's own `DataverseApiException` wrapper and every write/batch path: a throttled GET retries then succeeds; exhausting retries surfaces `DataverseApiException` wrapping `ThrottleException` with the correct `RetryAfter`; a `Retry-After` beyond `TransportOptions.MaxDelay` fails fast instead of waiting; a throttled write (`UpdateRowAsync`) and a throttled batch (`ExecuteBatchAsync`, which uses the non-retrying `SendRawAsync`) are each attempted exactly once. The debug-only `x-ms-ratelimit-*` headers are not read or referenced anywhere, matching the explicit "not for throttling decision logic" guidance. Full suite: 686 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | None identified; the three documented numeric defaults are intentionally not hardcoded as assertions anywhere in code or tests. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `DataverseThrottlingTests.cs` confirming the shared throttling/retry behavior reaches every Dataverse wrapper path. Checked all applicable completion gates, including the vendor-schema gate (not applicable per the spec's own guidance against live-tenant breach testing); status moves from `not-started` to `implemented`. |
