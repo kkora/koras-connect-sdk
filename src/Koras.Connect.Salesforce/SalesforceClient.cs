@@ -61,7 +61,8 @@ public sealed partial class SalesforceClient : IConnector
     public ConnectorDescriptor Descriptor => new("Salesforce", "Salesforce", _options.ApiVersion,
         SupportedOperations: ["GetResourceMap", "CreateRecord", "GetRecord", "UpdateRecord", "DeleteRecord", "Query", "EnumerateQuery",
             "DescribeObject", "DescribeGlobal", "UpsertByExternalId", "ExecuteComposite", "BulkIngestJob", "BulkQueryJob",
-            "SubscribeToChangeEvents", "PublishPlatformEvent", "SubscribeToPlatformEvent"],
+            "SubscribeToChangeEvents", "PublishPlatformEvent", "SubscribeToPlatformEvent",
+            "UploadContentVersion", "LinkContentDocument", "GetLimits"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe. Never issues a mutating request - the only call
