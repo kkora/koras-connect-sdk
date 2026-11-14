@@ -12,6 +12,7 @@ public sealed partial class SalesforceClient : IConnector
     private readonly IntegrationTransport _transport;
     private readonly SalesforceOptions _options;
     private readonly Uri _root;
+    private readonly Uri _cometdRoot;
     private readonly TimeProvider _clock;
 
     public SalesforceClient(IntegrationTransport transport, SalesforceOptions options, TimeProvider? timeProvider = null)
@@ -21,7 +22,9 @@ public sealed partial class SalesforceClient : IConnector
         options.Validate();
         _transport = transport;
         _options = options;
-        _root = new Uri(EndpointSafety.ValidateRoot(options.InstanceRoot), $"services/data/{options.ApiVersion}/");
+        var instanceRoot = EndpointSafety.ValidateRoot(options.InstanceRoot);
+        _root = new Uri(instanceRoot, $"services/data/{options.ApiVersion}/");
+        _cometdRoot = new Uri(instanceRoot, $"cometd/{options.ApiVersion[1..]}/");
         _clock = timeProvider ?? TimeProvider.System;
     }
 
@@ -57,7 +60,8 @@ public sealed partial class SalesforceClient : IConnector
 
     public ConnectorDescriptor Descriptor => new("Salesforce", "Salesforce", _options.ApiVersion,
         SupportedOperations: ["GetResourceMap", "CreateRecord", "GetRecord", "UpdateRecord", "DeleteRecord", "Query", "EnumerateQuery",
-            "DescribeObject", "DescribeGlobal", "UpsertByExternalId", "ExecuteComposite", "BulkIngestJob", "BulkQueryJob"],
+            "DescribeObject", "DescribeGlobal", "UpsertByExternalId", "ExecuteComposite", "BulkIngestJob", "BulkQueryJob",
+            "SubscribeToChangeEvents", "PublishPlatformEvent", "SubscribeToPlatformEvent"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe. Never issues a mutating request - the only call

@@ -33,6 +33,22 @@ sealed class Koras.Connect.Salesforce.SalesforceBulkJobHandle
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Salesforce.SalesforceChangeEvent
+  ctor(System.String EntityName, System.String ChangeType, System.String ChangeOrigin, System.String TransactionKey, System.DateTimeOffset CommitTimestamp, System.Collections.Generic.IReadOnlyList<System.String> RecordIds, System.Collections.Generic.IReadOnlyList<System.String> ChangedFields, System.Collections.Generic.IReadOnlyList<System.String> NulledFields)
+  property System.String ChangeOrigin {get+init}
+  property System.String ChangeType {get+init}
+  property System.Collections.Generic.IReadOnlyList<System.String> ChangedFields {get+init}
+  property System.DateTimeOffset CommitTimestamp {get+init}
+  property System.String EntityName {get+init}
+  property System.Collections.Generic.IReadOnlyList<System.String> NulledFields {get+init}
+  property System.Collections.Generic.IReadOnlyList<System.String> RecordIds {get+init}
+  property System.String TransactionKey {get+init}
+  method Koras.Connect.Salesforce.SalesforceChangeEvent <Clone>$()
+  method System.Void Deconstruct(System.String& EntityName, System.String& ChangeType, System.String& ChangeOrigin, System.String& TransactionKey, System.DateTimeOffset& CommitTimestamp, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& RecordIds, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ChangedFields, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& NulledFields)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceChangeEvent other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Salesforce.SalesforceClient
   ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Salesforce.SalesforceOptions options, System.TimeProvider timeProvider = null)
   property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
@@ -55,7 +71,10 @@ sealed class Koras.Connect.Salesforce.SalesforceClient
   method System.Threading.Tasks.Task<System.String> GetQueryJobStateAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRecordAsync(System.String sObject, System.String id, System.Collections.Generic.IReadOnlyList<System.String> fields = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> GetResourceMapAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> PublishPlatformEventAsync(System.String eventApiName, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceQueryResult<T>> QueryAsync(System.String soql, System.Boolean includeDeleted = False, System.Nullable<System.Int32> batchSize = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Salesforce.SalesforceChangeEvent> SubscribeToChangeEventsAsync(System.String channel, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> SubscribeToPlatformEventAsync(System.String eventApiName, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateRecordAsync(System.String sObject, System.String id, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UploadIngestBatchAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.IO.Stream csv, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceUpsertResult> UpsertByExternalIdAsync(System.String sObject, System.String externalIdField, System.String externalIdValue, System.Text.Json.JsonElement fields, System.Boolean updateOnly = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)

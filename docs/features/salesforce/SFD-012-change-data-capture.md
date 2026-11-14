@@ -4,10 +4,10 @@ title: "Change Data Capture"
 category: "salesforce"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: SubscribeToChangeEventsAsync runs the public Bayeux handshake/subscribe/connect sequence against the org's CometD endpoint and parses the documented ChangeEventHeader fields. The Salesforce-specific replay-ID resume extension is not implemented - its wire mechanics were not independently confirmed - so every subscription starts fresh with no reconnect-with-replay. Unit-tested against synthetic CometD fixtures."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,18 +50,18 @@ public IAsyncEnumerable<SalesforceChangeEvent> SubscribeToChangeEventsAsync(stri
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (fresh-subscribe only - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (the CometD-vs-Pub/Sub transport choice is implemented as the only available transport this pass, not yet a caller-selectable configuration option).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. CometD deprecation status, exact replay-window duration, and per-edition event-volume limits are all snippet-only or partially corroborated - re-verify before release (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceStreaming.cs` (shared with SFD-013) and `tests/Koras.Connect.Tests/Salesforce/SalesforceChangeDataCaptureTests.cs`. Covers: an invalid channel (not matching `/data/ChangeEvents`, `{Object}ChangeEvent`, or a custom `__chn` channel) is rejected locally before any HTTP call; the CometD handshake/subscribe/connect sequence composes the documented Bayeux message shapes and targets `{instance}/cometd/{numeric-version}/`; an unsuccessful handshake or subscribe surfaces a `ContractException` rather than silently proceeding; a change event's `ChangeEventHeader` fields (`entityName`/`changeType`/`changeOrigin`/`transactionKey`/`commitTimestamp`/`recordIds`/`changedFields`/`nulledFields`) parse correctly from a synthetic connect-response fixture; a malformed event missing `ChangeEventHeader` surfaces a `ContractException`. Full suite: 814 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The Salesforce-specific replay-ID resume extension (the `ext.replay` mechanism on handshake/subscribe) is not implemented - its exact wire mechanics were not independently confirmed this pass, matching this feature's own flagged open question. Every subscription therefore starts fresh with no replay and does not reconnect after a dropped long poll; a caller must re-invoke `SubscribeToChangeEventsAsync` to resume, with no gap-free guarantee. CometD deprecation status, exact replay-window duration, and per-edition event-volume limits remain snippet-only or partially corroborated. No live org with CDC enabled available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `SalesforceStreaming.cs` (CometD handshake/subscribe/connect loop plus `ChangeEventHeader` parsing) and `SalesforceChangeDataCaptureTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented (no-replay) scope; held at `partial` because replay-ID resume is unimplemented and several numeric limits remain unverified. |

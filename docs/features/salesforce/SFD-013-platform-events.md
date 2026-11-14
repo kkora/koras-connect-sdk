@@ -4,10 +4,10 @@ title: "Platform Events"
 category: "salesforce"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: PublishPlatformEventAsync reuses the sObject-create mechanism (SFD-004) against the event's own __e-suffixed API name; SubscribeToPlatformEventAsync shares SFD-012's Bayeux loop against /event/{name}, inheriting its no-replay limitation. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public IAsyncEnumerable<JsonDocument> SubscribeToPlatformEventAsync(string event
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [ ] Acceptance criteria and Definition of Done satisfied (subscribe inherits SFD-012's no-replay limitation).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Exact allocation/limit numbers are snippet-only (SFD-022 carries the detail); re-verify before release. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `PublishPlatformEventAsync`/`SubscribeToPlatformEventAsync` to `src/Koras.Connect.Salesforce/SalesforceStreaming.cs` (shared with SFD-012) plus `tests/Koras.Connect.Tests/Salesforce/SalesforcePlatformEventsTests.cs`. Covers: an event API name without the documented `__e` suffix is rejected locally for both publish and subscribe before any HTTP call; publish requires the shared `writesEnabled` opt-in and posts to `/sobjects/{EventName}__e/`, parsing the same create-response id shape as SFD-004; subscribe runs the shared CometD loop against `/event/{EventName}__e` and yields the raw event payload as a `JsonDocument`. Full suite: 814 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Subscribe inherits SFD-012's unimplemented replay-ID resume - no reconnect-with-replay after a dropped long poll. Exact allocation/limit numbers remain snippet-only (SFD-022 carries the detail). No live org with a custom Platform Event defined available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `PublishPlatformEventAsync`/`SubscribeToPlatformEventAsync` plus `SalesforcePlatformEventsTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; held at `partial` because subscribe inherits SFD-012's no-replay limitation. |

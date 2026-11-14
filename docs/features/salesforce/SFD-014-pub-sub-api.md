@@ -5,9 +5,9 @@ category: "salesforce"
 priority: "P1"
 phase: "P2-D5"
 status: "not-started"
-baseline_status: "Not started"
+baseline_status: "Confirmed blocked, not attempted: this feature's own specification states implementation must be deferred until the Avro-dependency decision is made and the endpoint/port/header details are independently re-verified, and explicitly instructs 'do not implement against unverified wire-format details.' No code was written against the snippet-only gRPC/Avro wire format; CDC (SFD-012) and Platform Events (SFD-013) were implemented against the alternative CometD transport instead, which carries independently-sourced channel/field documentation."
 verification: "unverified"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -64,7 +64,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; no Phase 2 implementation exists yet |
 | Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. This is the single most speculative feature in the entire 70-feature catalog: endpoint port, RPC method names, and Avro-vs-schema-registry mechanics are all snippet-only with an explicitly flagged internal inconsistency (port 7443 vs. 443). Recommend this be the first Salesforce P1 feature re-verified against a live Salesforce Pub/Sub API session or a freshly-fetched official page before any implementation work begins (Section 28). |
+| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains, and is explicitly deferred by this feature's own Definition of Done ("not applicable beyond a design-only state... do not implement against unverified wire-format details"). This is the single most speculative feature in the entire 70-feature catalog: endpoint port, RPC method names, and Avro-vs-schema-registry mechanics are all snippet-only with an explicitly flagged internal inconsistency (port 7443 vs. 443). Recommend this be the first Salesforce P1 feature re-verified against a live Salesforce Pub/Sub API session or a freshly-fetched official page before any implementation work begins (Section 28). |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -72,3 +72,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `not-started` (confirmed blocked) | Revisited while implementing SFD-012/SFD-013 (which share this feature's event-streaming subject matter but were built against the independently-sourced CometD transport instead). This feature's own spec explicitly instructs deferring implementation until the Avro-dependency decision and endpoint/port/header details are re-verified; no gRPC/Avro code was written, matching the DVT-020 "confirmed blocked, not attempted" precedent rather than guessing an unverified wire format. |
