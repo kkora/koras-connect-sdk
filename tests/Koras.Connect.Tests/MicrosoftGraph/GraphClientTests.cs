@@ -73,7 +73,7 @@ public sealed class GraphClientTests
     [Theory]
     [InlineData("""{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff","innerError":{"request-id":"abc"}}}""")]
     [InlineData("""{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff","innererror":{"request-id":"abc"}}}""")]
-    public void TryExtractErrorCodeAcceptsBothInnerErrorCasings(string body)
+    public void TryExtractErrorCodeIsUnaffectedByInnerErrorCasingSinceCodeLivesDirectlyUnderError(string body)
     {
         using var document = JsonDocument.Parse(body);
         var code = GraphApiException.TryExtractErrorCode(document.RootElement);
@@ -85,6 +85,23 @@ public sealed class GraphClientTests
     {
         using var document = JsonDocument.Parse("""{"notAnError":true}""");
         Assert.Null(GraphApiException.TryExtractErrorCode(document.RootElement));
+    }
+
+    [Theory]
+    [InlineData("""{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff","innerError":{"request-id":"abc"}}}""")]
+    [InlineData("""{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff","innererror":{"request-id":"abc"}}}""")]
+    public void TryExtractCorrelationIdAcceptsBothInnerErrorCasings(string body)
+    {
+        using var document = JsonDocument.Parse(body);
+        var correlationId = GraphApiException.TryExtractCorrelationId(document.RootElement);
+        Assert.Equal("abc", correlationId);
+    }
+
+    [Fact]
+    public void TryExtractCorrelationIdReturnsNullWhenNeitherInnerErrorCasingIsPresent()
+    {
+        using var document = JsonDocument.Parse("""{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff"}}""");
+        Assert.Null(GraphApiException.TryExtractCorrelationId(document.RootElement));
     }
 
     [Fact]

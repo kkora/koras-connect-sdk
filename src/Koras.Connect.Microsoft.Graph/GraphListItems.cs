@@ -5,9 +5,13 @@ using Koras.Connect.Transport;
 namespace Koras.Connect.Microsoft.Graph;
 
 /// <summary>A SharePoint list item (MGR-012). <see cref="Fields"/> is the nested <c>fields</c> sub-resource -
-/// every list has caller/tenant-defined columns, so this is never a fixed, hardcoded shape.</summary>
+/// every list has caller/tenant-defined columns, so this is never a fixed, hardcoded shape. Nullable, not an
+/// empty dictionary, because System.Text.Json deserializes a response that omits <c>fields</c> entirely (for
+/// example a <see cref="GraphQuery.Select"/> that excludes it) to <c>null</c> for this reference-typed property -
+/// review pass 1 found this was previously declared non-nullable, risking a caller <see cref="NullReferenceException"/>
+/// on first indexer access rather than a clear, documented absence.</summary>
 public sealed record GraphListItem([property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("fields")] IReadOnlyDictionary<string, JsonElement> Fields);
+    [property: JsonPropertyName("fields")] IReadOnlyDictionary<string, JsonElement>? Fields);
 
 public sealed partial class GraphClient
 {

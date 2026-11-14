@@ -17,8 +17,35 @@ public sealed class GraphCalendarTests
     { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct) => reply(r, ct); }
     private static HttpResponseMessage Json(string body, HttpStatusCode status = HttpStatusCode.OK) => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
-    private static GraphClient Client(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply)
-        => new(new IntegrationTransport(new HttpClient(new Handler(reply)), new StaticToken("token")));
+    private static GraphClient Client(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply, GraphOptions? options = null)
+        => new(new IntegrationTransport(new HttpClient(new Handler(reply)), new StaticToken("token")), options);
+
+    [Fact]
+    public async Task EnumerateMyEventsThrowsLocallyWithoutADelegatedContext()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await foreach (var _ in client.EnumerateMyEventsAsync()) { }
+        });
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task EnumerateMyEventsHitsTheMeResourceWithADelegatedContext()
+    {
+        Uri? requested = null;
+        var client = Client((r, _) =>
+        {
+            requested = r.RequestUri;
+            return Task.FromResult(Json("""{"value":[{"id":"e1","subject":"Standup"}]}"""));
+        }, new GraphOptions(IsDelegatedContext: true));
+        var events = new List<GraphEvent>();
+        await foreach (var ev in client.EnumerateMyEventsAsync()) events.Add(ev);
+        Assert.Single(events);
+        Assert.Equal("https://graph.microsoft.com/v1.0/me/events", requested!.AbsoluteUri);
+    }
 
     [Fact]
     public async Task EnumerateEventsWorksWithoutADelegatedContext()

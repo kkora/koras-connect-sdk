@@ -39,8 +39,20 @@ public sealed class GraphListItemsTests
         await foreach (var item in client.EnumerateListItemsAsync("s1", "l1")) items.Add(item);
         Assert.Single(items);
         Assert.Equal("i1", items[0].Id);
-        Assert.Equal("Row 1", items[0].Fields["Title"].GetString());
+        Assert.Equal("Row 1", items[0].Fields!["Title"].GetString());
         Assert.Equal("https://graph.microsoft.com/v1.0/sites/s1/lists/l1/items", requested!.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task EnumerateListItemsLeavesFieldsNullRatherThanThrowingWhenTheResponseOmitsIt()
+    {
+        // A $select excluding "fields" (or any other response shape omitting it) must deserialize to a documented
+        // null, not force every caller to defend against an NRE on first indexer access.
+        var client = Client((_, _) => Task.FromResult(Json("""{"value":[{"id":"i1"}]}""")));
+        var items = new List<GraphListItem>();
+        await foreach (var item in client.EnumerateListItemsAsync("s1", "l1")) items.Add(item);
+        Assert.Single(items);
+        Assert.Null(items[0].Fields);
     }
 
     [Fact]

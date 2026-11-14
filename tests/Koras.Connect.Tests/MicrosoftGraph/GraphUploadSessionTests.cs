@@ -41,13 +41,34 @@ public sealed class GraphUploadSessionTests
     }
 
     [Fact]
+    public async Task UploadSessionFragmentWithoutWritesEnabledThrowsBeforeAnyHttpCall()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session-gate"), null);
+        using var fragment = new MemoryStream(new byte[Multiple]);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, Multiple));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task CancelUploadSessionWithoutWritesEnabledThrowsBeforeAnyHttpCall()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session-gate2"), null);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.CancelUploadSessionAsync(session));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
     public async Task NonFinalFragmentNotAMultipleOf320KiBIsRejectedLocally()
     {
         var calls = 0;
         var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
         var session = new GraphUploadSession(new Uri("https://up.example.com/session1"), null);
         using var fragment = new MemoryStream(new byte[100]);
-        await Assert.ThrowsAsync<ArgumentException>(() => client.UploadSessionFragmentAsync(session, fragment, 0, 99, 1_000_000));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.UploadSessionFragmentAsync(session, fragment, 0, 99, 1_000_000, writesEnabled: true));
         Assert.Equal(0, calls);
     }
 
@@ -59,9 +80,9 @@ public sealed class GraphUploadSessionTests
         var session = new GraphUploadSession(new Uri("https://up.example.com/session1a"), null);
         var totalSize = Multiple + 100;
         using var first = new MemoryStream(new byte[Multiple]);
-        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize);
+        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize, writesEnabled: true);
         using var final = new MemoryStream(new byte[100]);
-        await client.UploadSessionFragmentAsync(session, final, Multiple, totalSize - 1, totalSize);
+        await client.UploadSessionFragmentAsync(session, final, Multiple, totalSize - 1, totalSize, writesEnabled: true);
         Assert.Equal($"bytes {Multiple}-{totalSize - 1}/{totalSize}", request!.Content!.Headers.GetValues("Content-Range").Single());
     }
 
@@ -73,10 +94,10 @@ public sealed class GraphUploadSessionTests
         var session = new GraphUploadSession(new Uri("https://up.example.com/session2"), null);
         var totalSize = Multiple * 3;
         using var fragment = new MemoryStream(new byte[Multiple]);
-        await client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, totalSize);
+        await client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, totalSize, writesEnabled: true);
         Assert.Equal(1, calls);
         using var outOfOrder = new MemoryStream(new byte[Multiple]);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => client.UploadSessionFragmentAsync(session, outOfOrder, Multiple * 2, Multiple * 3 - 1, totalSize));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.UploadSessionFragmentAsync(session, outOfOrder, Multiple * 2, Multiple * 3 - 1, totalSize, writesEnabled: true));
         Assert.Equal(1, calls);
     }
 
@@ -88,10 +109,24 @@ public sealed class GraphUploadSessionTests
         var session = new GraphUploadSession(new Uri("https://up.example.com/session3"), null);
         var totalSize = Multiple * 2;
         using var first = new MemoryStream(new byte[Multiple]);
-        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize);
+        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize, writesEnabled: true);
         using var second = new MemoryStream(new byte[Multiple]);
-        await client.UploadSessionFragmentAsync(session, second, Multiple, totalSize - 1, totalSize);
+        await client.UploadSessionFragmentAsync(session, second, Multiple, totalSize - 1, totalSize, writesEnabled: true);
         Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public async Task TheFinalFragmentsCompletionRemovesTheSessionsTrackingEntriesRatherThanLeakingThem()
+    {
+        var client = Client((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Created) { Content = new StringContent("{}") }));
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session-complete"), null);
+        using var fragment = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, Multiple, writesEnabled: true);
+        // The session completed (final fragment accepted) - a fresh fragment for the same URL claiming to start
+        // at 0 again must be treated as a brand-new session (starting offset 0), not rejected as "out of order"
+        // against a stale completed-session entry that should no longer exist.
+        using var again = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, again, 0, Multiple - 1, Multiple, writesEnabled: true);
     }
 
     [Fact]
@@ -104,12 +139,27 @@ public sealed class GraphUploadSessionTests
     }
 
     [Fact]
+    public async Task GetUploadSessionStatusResyncAllowsTheNextFragmentAtTheResumedOffsetRatherThanAtZero()
+    {
+        // Proves the resync in GetUploadSessionStatusAsync actually changes what UploadSessionFragmentAsync
+        // accepts next, not just that it parses nextExpectedRanges correctly.
+        var client = Client((r, _) => r.Method == HttpMethod.Get
+            ? Task.FromResult(Json($$"""{"nextExpectedRanges":["{{Multiple}}-"],"expirationDateTime":"2026-11-15T00:00:00Z"}"""))
+            : Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted) { Content = new StringContent("{}") }));
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session-resync"), null);
+        await client.GetUploadSessionStatusAsync(session); // resyncs tracked offset to Multiple, as if resuming after a drop
+        using var resumedFragment = new MemoryStream(new byte[Multiple]);
+        // Would throw InvalidOperationException("...expected rangeStart 0...") if the resync had no effect.
+        await client.UploadSessionFragmentAsync(session, resumedFragment, Multiple, Multiple * 2 - 1, Multiple * 3, writesEnabled: true);
+    }
+
+    [Fact]
     public async Task CancelUploadSessionSendsDelete()
     {
         HttpRequestMessage? request = null;
         var client = Client((r, _) => { request = r; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)); });
         var session = new GraphUploadSession(new Uri("https://up.example.com/session5"), null);
-        await client.CancelUploadSessionAsync(session);
+        await client.CancelUploadSessionAsync(session, writesEnabled: true);
         Assert.Equal(HttpMethod.Delete, request!.Method);
         Assert.Equal("https://up.example.com/session5", request.RequestUri!.AbsoluteUri);
     }

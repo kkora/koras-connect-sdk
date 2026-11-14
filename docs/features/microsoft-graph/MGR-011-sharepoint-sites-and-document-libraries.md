@@ -38,8 +38,8 @@ public async Task<GraphSite> GetSiteByPathAsync(string hostname, string? serverR
 ```
 13. **Dependencies:** MGR-001, MGR-003, MGR-009.
 14. **Security considerations:** Authentication and authorization: `Sites.Read.All` (application or delegated) [G11]. Required permissions/scopes/licenses: As above. Data privacy and security: Site metadata is organizational, not row-level business data.
-15. **Error and edge-case handling:** Pagination, throttling and retry behavior: Single reads; drive-list reuses MGR-019. Error handling and concurrency: Standard classification; a malformed composite site ID is rejected locally before send.
-16. **Unit-test requirements:** All three resolution-path URL compositions match the documented syntax; composite site-ID parsing round-trips.
+15. **Error and edge-case handling:** Pagination, throttling and retry behavior: Single reads; drive-list reuses MGR-019. Error handling and concurrency: Standard classification. **Narrowed by Phase 2 review pass 1**: this previously also claimed "a malformed composite site ID is rejected locally before send," but the shipped `GraphSite.Id`/`EnumerateSiteDrivesAsync(siteId)` treat a site ID as an opaque string, forwarded verbatim like every other Graph resource identifier in this connector - the SDK never decomposes or reconstructs the `{hostname},{site-collection-guid},{site-guid}` shape (it has no need to; only non-empty is checked), so there is no parsing logic to reject a malformed composite against. This matches the proposed C# contract in section 12, which never proposed a decomposition method either.
+16. **Unit-test requirements:** All three resolution-path URL compositions match the documented syntax. **Narrowed by Phase 2 review pass 1**: "composite site-ID parsing round-trips" was removed - there is no parsing to round-trip, per the correction above.
 17. **Integration-test requirements:** Contract-test scenarios: Synthetic fixture for a site resolved by path. Integration-test requirements: Authorized tenant with SharePoint provisioned; not available this pass.
 18. **Acceptance criteria:** Site resolution works correctly for all three documented path forms.
 19. **Definition of Done:** Standard template.
@@ -59,7 +59,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphSites.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphSitesTests.cs`. Covers: `GetRootSiteAsync` hits `/sites/root`; `GetSiteByPathAsync` composes `/sites/{hostname}` with no path and `/sites/{hostname}:/{path}` with one; `EnumerateSiteDrivesAsync` hits `/sites/{id}/drives`; an empty hostname or site id is rejected locally before any HTTP call. Full suite: 939 passed, 3 skipped, 0 failed. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphSites.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphSitesTests.cs`. Covers: `GetRootSiteAsync` hits `/sites/root`; `GetSiteByPathAsync` composes `/sites/{hostname}` with no path and `/sites/{hostname}:/{path}` with one; `EnumerateSiteDrivesAsync` hits `/sites/{id}/drives`; an empty hostname or site id is rejected locally before any HTTP call. |
 | Remaining work / blockers | No live tenant available this pass to confirm against a real SharePoint site. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `implemented` | Added `GraphSites.cs` plus `GraphSitesTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found this doc claimed local malformed-composite-site-ID rejection and round-trip parsing that the shipped code never implements (site IDs are opaque, forwarded verbatim) and that the checked completion-evidence boxes did not carve out. Narrowed the functional/unit-test requirements to match the proposed contract, which never called for decomposition either. No code changed. |

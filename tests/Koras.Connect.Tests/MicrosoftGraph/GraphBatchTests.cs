@@ -106,6 +106,39 @@ public sealed class GraphBatchTests
     }
 
     [Fact]
+    public async Task AFailedSubrequestWithAParsableErrorBodyExtractsTheRealCodeAndCorrelationId()
+    {
+        var client = Client((_, _) => Task.FromResult(Json("""
+            {"responses":[
+              {"id":"0","status":401,"body":{"error":{"code":"InvalidAuthenticationToken","message":"secret stuff","innerError":{"request-id":"abc-123"}}}}
+            ]}
+            """)));
+        var requests = new[] { new GraphBatchRequest("0", HttpMethod.Get, "/me") };
+        var results = await client.ExecuteBatchAsync(requests);
+        Assert.Equal("InvalidAuthenticationToken", results[0].ErrorCode);
+        Assert.Equal("abc-123", results[0].ErrorCorrelationId);
+    }
+
+    [Fact]
+    public async Task AFailedSubrequestWith429IsReportedAsHttp429NotRetriedLocally()
+    {
+        // Each sub-request is independently throttle-evaluated server-side (MGR-022's documented batch-retry
+        // caveat) - the whole /$batch POST is never auto-retried, and this specific item's 429 must surface via
+        // its own BatchItemResult.ErrorCode rather than being silently retried or thrown as an exception.
+        var calls = 0;
+        var client = Client((_, _) =>
+        {
+            calls++;
+            return Task.FromResult(Json("""{"responses":[{"id":"0","status":429}]}"""));
+        });
+        var requests = new[] { new GraphBatchRequest("0", HttpMethod.Get, "/sites/root") };
+        var results = await client.ExecuteBatchAsync(requests);
+        Assert.Equal(1, calls); // the /$batch POST itself was never retried
+        Assert.False(results[0].Succeeded);
+        Assert.Equal("http_429", results[0].ErrorCode);
+    }
+
+    [Fact]
     public async Task AnUnrecognizedResponseIdSurfacesAContractException()
     {
         var client = Client((_, _) => Task.FromResult(Json("""{"responses":[{"id":"unknown","status":200}]}""")));

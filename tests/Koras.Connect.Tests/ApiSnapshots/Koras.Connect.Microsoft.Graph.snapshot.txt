@@ -3,6 +3,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphApiException
   property System.Net.HttpStatusCode StatusCode {get}
   method Koras.Connect.Microsoft.Graph.GraphApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
   method Koras.Connect.Microsoft.Graph.GraphApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method System.String TryExtractCorrelationId(System.Text.Json.JsonElement body)
   method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
 sealed class Koras.Connect.Microsoft.Graph.GraphAppOnlyConnectionOptions
   ctor(System.String TenantId, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.Boolean UseBetaEndpoint = False)
@@ -55,7 +56,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
   method System.Threading.Tasks.Task AddGroupMemberAsync(System.String groupId, System.String memberId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Uri BuildAdminConsentUrl(System.String tenant, System.String clientId, System.Collections.Generic.IReadOnlyList<System.String> scopes, System.Uri redirectUri, System.String state = null)
-  method System.Threading.Tasks.Task CancelUploadSessionAsync(Koras.Connect.Microsoft.Graph.GraphUploadSession session, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task CancelUploadSessionAsync(Koras.Connect.Microsoft.Graph.GraphUploadSession session, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateApplicationAsync(System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateEventAsync(System.String userId, Koras.Connect.Microsoft.Graph.GraphEvent event, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateListItemAsync(System.String siteId, System.String listId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
@@ -83,6 +84,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphGroup> EnumerateGroupsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphListItem> EnumerateListItemsAsync(System.String siteId, System.String listId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateListsAsync(System.String siteId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphEvent> EnumerateMyEventsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphMessage> EnumerateMyMessagesAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateMyPlansAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphPlannerTask> EnumeratePlanTasksAsync(System.String planId, System.Threading.CancellationToken cancellationToken = null)
@@ -118,7 +120,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Threading.Tasks.Task UpdateListItemFieldsAsync(System.String siteId, System.String listId, System.String itemId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateTodoTaskAsync(System.String listId, System.String taskId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateUserAsync(System.String idOrUserPrincipalName, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task UploadSessionFragmentAsync(Koras.Connect.Microsoft.Graph.GraphUploadSession session, System.IO.Stream fragment, System.Int64 rangeStart, System.Int64 rangeEnd, System.Int64 totalSize, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UploadSessionFragmentAsync(Koras.Connect.Microsoft.Graph.GraphUploadSession session, System.IO.Stream fragment, System.Int64 rangeStart, System.Int64 rangeEnd, System.Int64 totalSize, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UploadSmallFileAsync(System.String driveId, System.String parentPath, System.String fileName, System.IO.Stream content, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions
   ctor(System.String TenantId, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null)

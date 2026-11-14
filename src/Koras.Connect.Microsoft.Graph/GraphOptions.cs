@@ -49,10 +49,11 @@ public sealed class GraphApiException : IntegrationException
         return Classify(failure.ResponseStatus, failure.Attempts, correlationId, retryAfter);
     }
 
-    /// <summary>Best-effort extraction of the documented Graph error envelope's sanitized <c>code</c>, accepting
-    /// either <c>innerError</c> or <c>innererror</c> casing for the nested object where present. Malformed,
-    /// oversized, wrong-shaped or missing bodies always yield <c>null</c> rather than throwing. The <c>message</c>
-    /// field is intentionally never read here.</summary>
+    /// <summary>Best-effort extraction of the documented Graph error envelope's sanitized <c>code</c>. The nested
+    /// <c>innerError</c>/<c>innererror</c> object itself is not read here - <c>code</c> lives directly under
+    /// <c>error</c> regardless of that casing - but <see cref="TryExtractCorrelationId"/> is where the dual-casing
+    /// handling actually matters. Malformed, oversized, wrong-shaped or missing bodies always yield <c>null</c>
+    /// rather than throwing. The <c>message</c> field is intentionally never read here.</summary>
     public static string? TryExtractErrorCode(JsonElement body)
     {
         try
@@ -64,5 +65,32 @@ public sealed class GraphApiException : IntegrationException
             return value;
         }
         catch (InvalidOperationException) { return null; }
+    }
+
+    /// <summary>Best-effort extraction of the documented Graph error envelope's nested <c>request-id</c>, read from
+    /// whichever of <c>innerError</c>/<c>innererror</c> is actually present - this is the one place the casing
+    /// inconsistency genuinely matters, since <c>code</c> itself (see <see cref="TryExtractErrorCode"/>) never
+    /// needs to look inside this nested object at all. Malformed, oversized, wrong-shaped or missing bodies always
+    /// yield <c>null</c> rather than throwing.</summary>
+    public static string? TryExtractCorrelationId(JsonElement body)
+    {
+        try
+        {
+            if (body.ValueKind != JsonValueKind.Object || !body.TryGetProperty("error", out var error) || error.ValueKind != JsonValueKind.Object) return null;
+            if (!TryGetInnerError(error, out var innerError)) return null;
+            if (!innerError.TryGetProperty("request-id", out var requestId) || requestId.ValueKind != JsonValueKind.String) return null;
+            var value = requestId.GetString();
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 64 || value.Any(c => c is '\r' or '\n')) return null;
+            return value;
+        }
+        catch (InvalidOperationException) { return null; }
+    }
+
+    private static bool TryGetInnerError(JsonElement error, out JsonElement innerError)
+    {
+        if (error.TryGetProperty("innerError", out innerError) && innerError.ValueKind == JsonValueKind.Object) return true;
+        if (error.TryGetProperty("innererror", out innerError) && innerError.ValueKind == JsonValueKind.Object) return true;
+        innerError = default;
+        return false;
     }
 }

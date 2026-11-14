@@ -111,6 +111,30 @@ public sealed class GraphAuthenticationTests
     }
 
     [Fact]
+    public async Task ExpiredCacheTriggersReacquisitionWithoutManualInvalidate()
+    {
+        // Review pass 1 found the existing cache test only drove reacquisition via manual Invalidate(), never
+        // via the clock crossing the expiry margin - the actual time-based branch this feature documents.
+        var calls = 0; var clock = new Clock();
+        using var certificate = SelfSigned();
+        using var http = new HttpClient(new Handler((_, _) =>
+        {
+            calls++;
+            return Task.FromResult(Json("""{"access_token":"synthetic","token_type":"Bearer","expires_in":100}"""));
+        }));
+        var options = new GraphClientCredentialsOptions("contoso-tenant", "client-id", CertificateSource: _ => ValueTask.FromResult(certificate));
+        using var source = new GraphCertificateAssertionTokenSource(http, options, clock);
+        await source.GetTokenAsync();
+        Assert.Equal(1, calls);
+        clock.Now = clock.Now.AddSeconds(50);
+        await source.GetTokenAsync();
+        Assert.Equal(1, calls); // still within the margin - cached
+        clock.Now = clock.Now.AddSeconds(50);
+        await source.GetTokenAsync();
+        Assert.Equal(2, calls); // margin crossed - real renewal, no Invalidate() call involved
+    }
+
+    [Fact]
     public async Task CertificateWithoutPrivateKeyIsRejectedBeforeAnyNetworkCall()
     {
         var calls = 0;

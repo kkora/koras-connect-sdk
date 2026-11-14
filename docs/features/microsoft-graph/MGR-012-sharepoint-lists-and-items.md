@@ -5,7 +5,7 @@ category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
 status: "implemented"
-baseline_status: "Implemented: EnumerateListsAsync/EnumerateListItemsAsync/CreateListItemAsync/UpdateListItemFieldsAsync all require a siteId, satisfying the no-top-level-/lists/{id}-resource constraint by construction (no method accepts a bare listId). Unit-tested."
+baseline_status: "Implemented: EnumerateListsAsync/EnumerateListItemsAsync/CreateListItemAsync/UpdateListItemFieldsAsync all require a siteId, satisfying the no-top-level-/lists/{id}-resource constraint by construction (no method accepts a bare listId). GraphListItem.Fields is nullable (fixed in review pass 1 - a response omitting fields, e.g. via a narrowing $select, previously risked an NRE on first indexer access rather than a documented null). Unit-tested."
 verification: "partial"
 last_updated: "2026-11-14"
 implementation_commit: null
@@ -59,7 +59,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Evidence | Record |
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
-| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphListItems.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphListItemsTests.cs`. Covers: list/item enumeration hit the site-scoped resources; `GraphListItem` parses the nested `fields` sub-resource correctly; create/update both require the shared `writesEnabled` opt-in; create posts the documented `{"fields":...}` envelope and parses the returned `id`; update targets the `.../items/{itemId}/fields` sub-resource specifically. Full suite: 939 passed, 3 skipped, 0 failed. |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphListItems.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphListItemsTests.cs`. Covers: list/item enumeration hit the site-scoped resources; `GraphListItem` parses the nested `fields` sub-resource correctly; create/update both require the shared `writesEnabled` opt-in; create posts the documented `{"fields":...}` envelope and parses the returned `id`; update targets the `.../items/{itemId}/fields` sub-resource specifically; a response omitting `fields` entirely now deserializes to a documented `null` rather than risking an NRE (review pass 1 fix - `EnumerateListItemsLeavesFieldsNullRatherThanThrowingWhenTheResponseOmitsIt`). |
 | Remaining work / blockers | No live tenant available this pass to confirm against a real SharePoint list. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `implemented` | Added `GraphListItems.cs` plus `GraphListItemsTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found `GraphListItem.Fields` was non-nullable despite being a reference-typed property that can legitimately deserialize to `null` (response omitting `fields`) - fixed the type and added a regression test. |

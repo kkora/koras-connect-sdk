@@ -21,8 +21,17 @@ public sealed partial class GraphClient
 
     /// <summary>Tracks the next expected fragment start byte per upload session, since sequential order is a
     /// hard, documented requirement enforced locally before any out-of-order fragment is sent. Keyed by
-    /// <see cref="GraphUploadSession.UploadUrl"/>, the session's own identity.</summary>
+    /// <see cref="GraphUploadSession.UploadUrl"/>, the session's own identity. An entry is removed once its
+    /// session completes (final fragment accepted) or is cancelled, so a long-running process does not
+    /// accumulate an entry per session forever.</summary>
     private readonly ConcurrentDictionary<Uri, long> _nextExpectedUploadRangeStart = new();
+
+    /// <summary>Serializes fragment uploads for the same session, keyed by <see cref="GraphUploadSession.UploadUrl"/>.
+    /// The vendor documents strict sequential order as a hard requirement, so two concurrent fragment uploads for
+    /// the same session are never a legitimate, independently-progressing pair of operations - without this lock,
+    /// the check-expected-offset-then-update-it sequence in <see cref="UploadSessionFragmentAsync"/> would be a
+    /// read-then-write race rather than an atomic reservation.</summary>
+    private readonly ConcurrentDictionary<Uri, SemaphoreSlim> _uploadSessionLocks = new();
 
     /// <summary>Creates a resumable upload session via <c>POST .../root:/{parentPath}/{fileName}:/createUploadSession</c>
     /// (MGR-023), for files too large for <see cref="UploadSmallFileAsync"/>'s simple-upload ceiling. Disabled
@@ -56,9 +65,14 @@ public sealed partial class GraphClient
     /// header (MGR-023). The fragment size (<c>rangeEnd - rangeStart + 1</c>) must be a multiple of
     /// <see cref="UploadFragmentSizeMultiple"/> unless this is the final fragment (<c>rangeEnd + 1 == totalSize</c>),
     /// and fragments must arrive in strict sequential order - both are rejected locally, before any HTTP call,
-    /// since the vendor documents them as hard requirements rather than best-effort guidance.</summary>
-    public async Task UploadSessionFragmentAsync(GraphUploadSession session, Stream fragment, long rangeStart, long rangeEnd, long totalSize, CancellationToken cancellationToken = default)
+    /// since the vendor documents them as hard requirements rather than best-effort guidance. The per-session
+    /// order check and update are serialized (see <see cref="_uploadSessionLocks"/>) so two concurrent calls for
+    /// the same session can never both pass the sequential-order check for the same offset. Disabled unless
+    /// <paramref name="writesEnabled"/> is explicitly <c>true</c>, matching every other mutating Graph call.</summary>
+    public async Task UploadSessionFragmentAsync(GraphUploadSession session, Stream fragment, long rangeStart, long rangeEnd, long totalSize,
+        bool writesEnabled = false, CancellationToken cancellationToken = default)
     {
+        if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the drive-write privilege and business impact.");
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(fragment);
         if (rangeStart < 0 || rangeEnd < rangeStart) throw new ArgumentOutOfRangeException(nameof(rangeEnd), "rangeEnd must be >= rangeStart >= 0.");
@@ -68,13 +82,26 @@ public sealed partial class GraphClient
         if (fragmentSize > MaxUploadFragmentSize) throw new ArgumentException($"A fragment must not exceed {MaxUploadFragmentSize} bytes.", nameof(rangeEnd));
         if (!isFinalFragment && fragmentSize % UploadFragmentSizeMultiple != 0)
             throw new ArgumentException($"Every fragment except the final one must be a multiple of {UploadFragmentSizeMultiple} bytes.", nameof(rangeEnd));
-        var expectedStart = _nextExpectedUploadRangeStart.GetOrAdd(session.UploadUrl, 0);
-        if (rangeStart != expectedStart)
-            throw new InvalidOperationException($"Fragments must be uploaded in sequential order; expected rangeStart {expectedStart} but got {rangeStart}.");
-        var headers = new Dictionary<string, string> { ["Content-Range"] = $"bytes {rangeStart}-{rangeEnd}/{totalSize}" };
-        try { await _transport.UploadAsync(HttpMethod.Put, session.UploadUrl, fragment, "application/octet-stream", headers, cancellationToken); }
-        catch (IntegrationRequestException ex) { throw Classify(ex); }
-        _nextExpectedUploadRangeStart[session.UploadUrl] = rangeEnd + 1;
+        var sessionLock = _uploadSessionLocks.GetOrAdd(session.UploadUrl, _ => new SemaphoreSlim(1, 1));
+        await sessionLock.WaitAsync(cancellationToken);
+        try
+        {
+            var expectedStart = _nextExpectedUploadRangeStart.GetOrAdd(session.UploadUrl, 0);
+            if (rangeStart != expectedStart)
+                throw new InvalidOperationException($"Fragments must be uploaded in sequential order; expected rangeStart {expectedStart} but got {rangeStart}.");
+            var headers = new Dictionary<string, string> { ["Content-Range"] = $"bytes {rangeStart}-{rangeEnd}/{totalSize}" };
+            try { await _transport.UploadAsync(HttpMethod.Put, session.UploadUrl, fragment, "application/octet-stream", headers, cancellationToken); }
+            catch (IntegrationRequestException ex) { throw Classify(ex); }
+            if (isFinalFragment)
+            {
+                // The session is complete - no further fragment will ever be sent for this UploadUrl, so drop
+                // its tracking entries rather than let them accumulate forever in a long-running process.
+                _nextExpectedUploadRangeStart.TryRemove(session.UploadUrl, out _);
+                _uploadSessionLocks.TryRemove(session.UploadUrl, out _);
+            }
+            else _nextExpectedUploadRangeStart[session.UploadUrl] = rangeEnd + 1;
+        }
+        finally { sessionLock.Release(); }
     }
 
     /// <summary>Reads an upload session's current status via <c>GET {session.UploadUrl}</c> (MGR-023), returning
@@ -99,12 +126,19 @@ public sealed partial class GraphClient
         }
     }
 
-    /// <summary>Cancels an upload session via <c>DELETE {session.UploadUrl}</c>, expecting <c>204</c> (MGR-023).</summary>
-    public async Task CancelUploadSessionAsync(GraphUploadSession session, CancellationToken cancellationToken = default)
+    /// <summary>Cancels an upload session via <c>DELETE {session.UploadUrl}</c>, expecting <c>204</c> (MGR-023).
+    /// Disabled unless <paramref name="writesEnabled"/> is explicitly <c>true</c>, matching every other mutating
+    /// Graph call.</summary>
+    public async Task CancelUploadSessionAsync(GraphUploadSession session, bool writesEnabled = false, CancellationToken cancellationToken = default)
     {
+        if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the drive-write privilege and business impact.");
         ArgumentNullException.ThrowIfNull(session);
         try { await _transport.SendResponseAsync(HttpMethod.Delete, session.UploadUrl, cancellationToken: cancellationToken); }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
-        finally { _nextExpectedUploadRangeStart.TryRemove(session.UploadUrl, out _); }
+        finally
+        {
+            _nextExpectedUploadRangeStart.TryRemove(session.UploadUrl, out _);
+            _uploadSessionLocks.TryRemove(session.UploadUrl, out _);
+        }
     }
 }

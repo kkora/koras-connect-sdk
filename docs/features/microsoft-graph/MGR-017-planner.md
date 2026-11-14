@@ -21,8 +21,8 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 
 1. **Feature ID:** MGR-017.
 2. **Feature name:** Planner.
-3. **Description:** Read and manage Microsoft Planner plans, buckets, and tasks.
-4. **Business value:** Read and manage Microsoft Planner plans, buckets, and tasks.
+3. **Description:** Read Microsoft Planner plans and tasks. **Narrowed by Phase 2 review pass 1 to match what shipped**: the original wording ("read and manage... plans, buckets, and tasks") overpromised relative to the proposed C# contracts in section 12, which only ever proposed the two read/enumerate methods actually implemented - no bucket resource and no create/update/delete operation exist in this connector.
+4. **Business value:** Read Microsoft Planner plans and tasks from a delegated context, without the connector silently pretending to support buckets or writes it does not implement.
 5. **Owning package:** `Koras.Connect.Microsoft.Graph`.
 6. **Priority:** P2.
 7. **Planned development phase:** P2-D7; see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
@@ -60,7 +60,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphPlanner.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphPlannerTests.cs`. Covers: `EnumerateMyPlansAsync`/`EnumeratePlanTasksAsync` both throw `InvalidOperationException` naming the delegated-only constraint before any HTTP call without a delegated context, and both succeed with one, hitting `/me/planner/plans` and `/planner/plans/{id}/tasks` respectively. Full suite: 971 passed, 3 skipped, 0 failed. |
-| Remaining work / blockers | No live tenant available this pass to confirm against real Planner plans/tasks. |
+| Remaining work / blockers | No live tenant available this pass to confirm against real Planner plans/tasks. Buckets and any write (create/update/delete) operation are not implemented - the original feature title/description overpromised this scope; narrowed in review pass 1 to match the proposed C# contracts, which never called for them either. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `implemented` | Added `GraphPlanner.cs` plus `GraphPlannerTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |
+| 2026-11-14 | `implemented` | Phase 2 review pass 1 found the title/description promised buckets and write operations the proposed contract and shipped code never covered - narrowed both to match reality. No code changed. |

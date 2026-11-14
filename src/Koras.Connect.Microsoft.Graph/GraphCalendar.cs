@@ -33,6 +33,19 @@ public sealed partial class GraphClient
         return EnumerateAsync<GraphEvent>($"users/{Uri.EscapeDataString(userId)}/events", query, cancellationToken);
     }
 
+    /// <summary>Enumerates the signed-in user's own calendar events via <c>GET /me/events</c> (MGR-014/019) -
+    /// found missing by Phase 2 review pass 1 despite being a documented functional requirement alongside
+    /// <see cref="EnumerateEventsAsync"/>. Unlike <see cref="EnumerateEventsAsync"/>, <c>/me</c> itself is
+    /// delegated-only - application permissions have no signed-in-user context - so this throws locally, before
+    /// any HTTP call, unless <see cref="GraphOptions.IsDelegatedContext"/> was explicitly set, matching every
+    /// other <c>/me</c>-shortcut method in this connector (MGR-004/009/013/017).</summary>
+    public IAsyncEnumerable<GraphEvent> EnumerateMyEventsAsync(GraphQuery? query = null, CancellationToken cancellationToken = default)
+    {
+        if (!_options.IsDelegatedContext)
+            throw new InvalidOperationException("/me/events requires a delegated (signed-in-user) context; application permissions must use EnumerateEventsAsync against /users/{id}/events instead.");
+        return EnumerateAsync<GraphEvent>("me/events", query, cancellationToken);
+    }
+
     /// <summary>Creates an event via <c>POST /users/{userId}/events</c> (MGR-014). Disabled unless
     /// <paramref name="writesEnabled"/> is explicitly <c>true</c>.</summary>
     public async Task<string> CreateEventAsync(string userId, GraphEvent @event, bool writesEnabled = false, CancellationToken cancellationToken = default)

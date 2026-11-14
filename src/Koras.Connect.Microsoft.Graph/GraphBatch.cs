@@ -65,7 +65,8 @@ public sealed partial class GraphClient
                 var succeeded = status is >= 200 and < 300;
                 var body = item.TryGetProperty("body", out var bodyElement) ? bodyElement : (JsonElement?)null;
                 var errorCode = succeeded ? null : (body is not null ? GraphApiException.TryExtractErrorCode(body.Value) : null) ?? $"http_{status}";
-                results.Add(new BatchItemResult<JsonElement>(index, succeeded, succeeded && body is not null ? body.Value.Clone() : default, errorCode));
+                var errorCorrelationId = succeeded || body is null ? null : GraphApiException.TryExtractCorrelationId(body.Value);
+                results.Add(new BatchItemResult<JsonElement>(index, succeeded, succeeded && body is not null ? body.Value.Clone() : default, errorCode, errorCorrelationId));
             }
             return results.OrderBy(r => r.Index).ToList();
         }

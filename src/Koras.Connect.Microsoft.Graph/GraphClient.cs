@@ -40,7 +40,7 @@ public sealed partial class GraphClient : IConnector
             "GetRootSite", "GetSiteByPath", "EnumerateSiteDrives",
             "EnumerateLists", "EnumerateListItems", "CreateListItem", "UpdateListItemFields",
             "EnumerateMyMessages", "EnumerateUserMessages", "SendMail",
-            "EnumerateEvents", "CreateEvent", "UpdateEvent", "DeleteEvent",
+            "EnumerateEvents", "EnumerateMyEvents", "CreateEvent", "UpdateEvent", "DeleteEvent",
             "EnumerateTeams", "GetTeam", "EnumerateChannels",
             "EnumerateChannelMessages", "SendChannelMessage", "EnumerateChatMessages", "SendChatMessage",
             "EnumerateMyPlans", "EnumeratePlanTasks",
