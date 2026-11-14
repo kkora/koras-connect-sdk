@@ -4,10 +4,10 @@ title: "Large file transfer and resumability"
 category: "microsoft-graph"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: CreateUploadSessionAsync/UploadSessionFragmentAsync/GetUploadSessionStatusAsync/CancelUploadSessionAsync cover the full session lifecycle. Fragment-size-not-a-multiple-of-320KiB and out-of-order fragments are both rejected locally before any HTTP call; GetUploadSessionStatusAsync resynchronizes local sequential-order tracking from the server's nextExpectedRanges for resume-after-interruption. Required extending Core's IntegrationTransport.UploadAsync to route a Content-Range header entry to the request content's own header collection, since .NET rejects it as a request header. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -51,18 +51,18 @@ public async Task CancelUploadSessionAsync(GraphUploadSession session, Cancellat
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No fixed session-expiration duration is documented (by design, it's dynamic) - the SDK must not assume or hardcode an expected lifetime. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphUploadSession.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphUploadSessionTests.cs`, extending `Koras.Connect.Core`'s `IntegrationTransport.UploadAsync` to route a `Content-Range` header entry to the request content's header collection (a request-header add of that name is rejected by .NET). Covers: session creation requires `writesEnabled` and composes the documented `root:/{path}:/createUploadSession` address; a non-final fragment not a multiple of 320 KiB is rejected locally; a final fragment smaller than the multiple is allowed; an out-of-order fragment throws before any HTTP call; sequential fragments succeed and advance the tracked offset; `GetUploadSessionStatusAsync` parses `nextExpectedRanges` and resynchronizes order tracking; cancellation sends `DELETE`. Full suite: 1008 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Sequential-order tracking is held in an in-memory dictionary keyed by `UploadUrl` and does not itself persist across a process restart - `GetUploadSessionStatusAsync` exists specifically to resynchronize it from the server after exactly that scenario, but a caller resuming in a new process must call it before the next fragment. No fixed session-expiration duration is documented (by design) and none is assumed. No live tenant available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -70,3 +70,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphUploadSession.cs` plus `GraphUploadSessionTests.cs`, and extended Core's `UploadAsync` for `Content-Range` support. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |

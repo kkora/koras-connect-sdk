@@ -24,12 +24,16 @@ public sealed record ConnectorDescriptor(
     IReadOnlyList<string> SupportedOperations,
     IReadOnlyDictionary<string, EntitlementEvidence> Entitlements);
 
-/// <summary>Stage of a <see cref="IConnector.DiagnoseAsync"/> probe.</summary>
+/// <summary>Stage of a <see cref="IConnector.DiagnoseAsync"/> probe. <see cref="Permissions"/> is an optional
+/// stage beyond the base three - a connector surfaces it only when it has its own permission/consent
+/// inspection surface to probe (for example Microsoft Graph's MGR-024); connectors without one simply never
+/// emit it.</summary>
 public enum DiagnosticStage
 {
     Configuration,
     Authentication,
-    Connectivity
+    Connectivity,
+    Permissions
 }
 
 /// <summary>Outcome of a single diagnostic stage.</summary>

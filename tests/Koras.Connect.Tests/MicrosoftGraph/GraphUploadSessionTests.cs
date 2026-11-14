@@ -1,0 +1,116 @@
+using System.Net;
+using System.Text;
+using Koras.Connect.Abstractions;
+using Koras.Connect.Microsoft.Graph;
+using Koras.Connect.Transport;
+using Xunit;
+namespace Koras.Connect.Tests;
+
+/// <summary>MGR-023: large file transfer and resumability - the 320 KiB fragment-size multiple, strict
+/// sequential ordering, resume via <c>nextExpectedRanges</c>, and cancellation.</summary>
+public sealed class GraphUploadSessionTests
+{
+    private sealed class StaticToken(string token) : IAccessTokenSource
+    { public ValueTask<string> GetTokenAsync(CancellationToken ct = default) => ValueTask.FromResult(token); }
+    private sealed class Handler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply) : HttpMessageHandler
+    { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct) => reply(r, ct); }
+    private static HttpResponseMessage Json(string body, HttpStatusCode status = HttpStatusCode.OK) => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+    private const long Multiple = GraphClient.UploadFragmentSizeMultiple;
+
+    private static GraphClient Client(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply)
+        => new(new IntegrationTransport(new HttpClient(new Handler(reply)), new StaticToken("token")));
+
+    [Fact]
+    public async Task CreateUploadSessionRequiresWritesEnabled()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.CreateUploadSessionAsync("d1", null, "big.bin", 1_000_000));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task CreateUploadSessionComposesTheDocumentedAddressAndParsesTheResponse()
+    {
+        HttpRequestMessage? request = null;
+        var client = Client((r, _) => { request = r; return Task.FromResult(Json("""{"uploadUrl":"https://up.example.com/session1","expirationDateTime":"2026-11-15T00:00:00Z"}""")); });
+        var session = await client.CreateUploadSessionAsync("d1", "Documents", "big.bin", 1_000_000, writesEnabled: true);
+        Assert.Equal("https://up.example.com/session1", session.UploadUrl.AbsoluteUri);
+        Assert.NotNull(session.ExpirationDateTime);
+        Assert.Equal("https://graph.microsoft.com/v1.0/drives/d1/root:/Documents/big.bin:/createUploadSession", request!.RequestUri!.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task NonFinalFragmentNotAMultipleOf320KiBIsRejectedLocally()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("{}")); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session1"), null);
+        using var fragment = new MemoryStream(new byte[100]);
+        await Assert.ThrowsAsync<ArgumentException>(() => client.UploadSessionFragmentAsync(session, fragment, 0, 99, 1_000_000));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task AFinalFragmentSmallerThanTheMultipleIsAllowed()
+    {
+        HttpRequestMessage? request = null;
+        var client = Client((r, _) => { request = r; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Created) { Content = new StringContent("{}") }); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session1a"), null);
+        var totalSize = Multiple + 100;
+        using var first = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize);
+        using var final = new MemoryStream(new byte[100]);
+        await client.UploadSessionFragmentAsync(session, final, Multiple, totalSize - 1, totalSize);
+        Assert.Equal($"bytes {Multiple}-{totalSize - 1}/{totalSize}", request!.Content!.Headers.GetValues("Content-Range").Single());
+    }
+
+    [Fact]
+    public async Task AnOutOfOrderFragmentIsRejectedLocally()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted) { Content = new StringContent("{}") }); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session2"), null);
+        var totalSize = Multiple * 3;
+        using var fragment = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, totalSize);
+        Assert.Equal(1, calls);
+        using var outOfOrder = new MemoryStream(new byte[Multiple]);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.UploadSessionFragmentAsync(session, outOfOrder, Multiple * 2, Multiple * 3 - 1, totalSize));
+        Assert.Equal(1, calls);
+    }
+
+    [Fact]
+    public async Task SequentialFragmentsSucceedInOrder()
+    {
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted) { Content = new StringContent("{}") }); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session3"), null);
+        var totalSize = Multiple * 2;
+        using var first = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, first, 0, Multiple - 1, totalSize);
+        using var second = new MemoryStream(new byte[Multiple]);
+        await client.UploadSessionFragmentAsync(session, second, Multiple, totalSize - 1, totalSize);
+        Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public async Task GetUploadSessionStatusReturnsNextExpectedRangesAndResyncsOrderTracking()
+    {
+        var client = Client((_, _) => Task.FromResult(Json("""{"nextExpectedRanges":["327680-"],"expirationDateTime":"2026-11-15T00:00:00Z"}""")));
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session4"), null);
+        var ranges = await client.GetUploadSessionStatusAsync(session);
+        Assert.Equal(["327680-"], ranges);
+    }
+
+    [Fact]
+    public async Task CancelUploadSessionSendsDelete()
+    {
+        HttpRequestMessage? request = null;
+        var client = Client((r, _) => { request = r; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)); });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session5"), null);
+        await client.CancelUploadSessionAsync(session);
+        Assert.Equal(HttpMethod.Delete, request!.Method);
+        Assert.Equal("https://up.example.com/session5", request.RequestUri!.AbsoluteUri);
+    }
+}

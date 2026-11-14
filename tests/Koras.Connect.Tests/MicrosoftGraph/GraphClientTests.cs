@@ -39,10 +39,11 @@ public sealed class GraphClientTests
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Configuration && r.Outcome == DiagnosticOutcome.Passed);
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Authentication && r.Outcome == DiagnosticOutcome.Passed);
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Connectivity && r.Outcome == DiagnosticOutcome.Passed);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Permissions && r.Outcome == DiagnosticOutcome.Passed);
     }
 
     [Fact]
-    public async Task DiagnoseAsyncSkipsConnectivityAfterAnAuthenticationFailure()
+    public async Task DiagnoseAsyncSkipsConnectivityAndPermissionsAfterAnAuthenticationFailure()
     {
         var client = new GraphClient(new IntegrationTransport(new HttpClient(new Handler((_, _) =>
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("{}", Encoding.UTF8, "application/json") }))),
@@ -50,6 +51,23 @@ public sealed class GraphClientTests
         var results = await client.DiagnoseAsync();
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Authentication && r.Outcome == DiagnosticOutcome.Failed);
         Assert.Contains(results, r => r.Stage == DiagnosticStage.Connectivity && r.Outcome == DiagnosticOutcome.Skipped);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Permissions && r.Outcome == DiagnosticOutcome.Skipped);
+    }
+
+    [Fact]
+    public async Task DiagnoseAsyncReportsPermissionsFailedWhenGrantListingFails()
+    {
+        var calls = 0;
+        var client = new GraphClient(new IntegrationTransport(new HttpClient(new Handler((r, _) =>
+        {
+            calls++;
+            if (r.RequestUri!.AbsolutePath.Contains("oauth2PermissionGrants"))
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Forbidden) { Content = new StringContent("{}", Encoding.UTF8, "application/json") });
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"value":[{"id":"org1"}]}""", Encoding.UTF8, "application/json") });
+        })), new StaticToken("token")));
+        var results = await client.DiagnoseAsync();
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Connectivity && r.Outcome == DiagnosticOutcome.Passed);
+        Assert.Contains(results, r => r.Stage == DiagnosticStage.Permissions && r.Outcome == DiagnosticOutcome.Failed);
     }
 
     [Theory]

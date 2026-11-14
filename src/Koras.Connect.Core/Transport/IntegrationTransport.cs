@@ -162,7 +162,10 @@ public sealed class IntegrationTransport
             (response, ct) => response.Content.ReadAsStringAsync(ct), cancellationToken);
     /// <summary>Streams <paramref name="content"/> as the request body (for example a binary file upload). Never
     /// retried, matching every write operation's "never replay an uncertain write" policy. Caller owns
-    /// <paramref name="content"/>'s lifetime and position.</summary>
+    /// <paramref name="content"/>'s lifetime and position. <paramref name="headers"/> entries named
+    /// <c>Content-Range</c> (for chunked/resumable upload sessions) are routed to the request content's own
+    /// header collection, since that is a content header, not a request header, and .NET rejects it from the
+    /// latter.</summary>
     public async Task<IntegrationRawResponse> UploadAsync(HttpMethod method, Uri address, Stream content, string contentType,
         IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
@@ -178,10 +181,14 @@ public sealed class IntegrationTransport
         try
         {
             await _authentication.AuthenticateAsync(request, ct);
-            if (headers is not null) foreach (var h in headers)
-                if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
             request.Content = new StreamContent(content);
             request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            if (headers is not null) foreach (var h in headers)
+            {
+                if (h.Key.Equals("Content-Range", StringComparison.OrdinalIgnoreCase))
+                { if (!request.Content.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers)); }
+                else if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
+            }
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
             if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));

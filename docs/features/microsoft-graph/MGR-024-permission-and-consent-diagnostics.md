@@ -4,10 +4,10 @@ title: "Permission and consent diagnostics"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: ListGrantsForCurrentAppAsync/ListMyGrantsAsync cover both documented list endpoints; BuildAdminConsentUrl is a pure local URL composer rejecting tenant==\"common\" before building anything. Also wires a new Permissions diagnostic stage into GraphClient.DiagnoseAsync (MGR-003/026), which required adding Permissions to the shared Koras.Connect.Abstractions.DiagnosticStage enum as an optional, Graph-specific stage. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,18 +50,18 @@ public Uri BuildAdminConsentUrl(string tenant, string clientId, IReadOnlyList<st
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphPermissionDiagnostics.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphPermissionDiagnosticsTests.cs`; added `Permissions` to the shared `Koras.Connect.Abstractions.DiagnosticStage` enum (documented as an optional, connector-specific stage) and wired it into `GraphClient.DiagnoseAsync` with matching tests in `GraphClientTests.cs`. Covers: both list endpoints hit their documented resources; `BuildAdminConsentUrl` rejects `tenant == \"common\"` locally and composes the exact documented query shape, correctly omitting `state` when not supplied; `DiagnoseAsync` reports `Permissions` `Passed`/`Skipped`/`Failed` correctly depending on prior-stage outcome and the grant-list call's own result. Full suite: 1008 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The 3,850-character scope-string boundary is not locally validated, since this is a read path parsing whatever Graph returns, not a value this SDK composes. No live tenant available this pass to confirm the admin-consent redirect flow end-to-end. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphPermissionDiagnostics.cs` plus tests, and the new shared `DiagnosticStage.Permissions` value wired into `DiagnoseAsync`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |

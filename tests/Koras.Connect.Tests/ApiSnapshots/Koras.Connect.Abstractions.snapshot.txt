@@ -61,6 +61,7 @@ enum Koras.Connect.Abstractions.DiagnosticStage
   enum-value Configuration = 0
   enum-value Authentication = 1
   enum-value Connectivity = 2
+  enum-value Permissions = 3
 sealed class Koras.Connect.Abstractions.EntitlementEvidence
   ctor(Koras.Connect.Abstractions.EntitlementState State, System.Nullable<System.DateTimeOffset> RecordedAt = null, System.String Reference = null)
   property System.Nullable<System.DateTimeOffset> RecordedAt {get+init}
