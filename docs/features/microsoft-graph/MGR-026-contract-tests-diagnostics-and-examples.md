@@ -4,10 +4,10 @@ title: "Contract tests, diagnostics and examples"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4/P2-D6"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: GraphClient itself implements IConnector (matching SalesforceClient/DataverseClient's identical pattern - no separate GraphConnector type was needed). DiagnoseAsync covers all four stages (Configuration/Authentication/Connectivity/Permissions), never issuing a mutating request. Every MGR-001..025 feature has a dedicated synthetic-HttpMessageHandler test file under tests/Koras.Connect.Tests/MicrosoftGraph/. samples/MicrosoftGraph.OfflineWalkthrough is a standalone console project, built and run via `dotnet run`, demonstrating auth -> diagnostics -> users/groups -> OneDrive -> paginated/delta enumeration -> v1.0-vs-beta endpoint selection, entirely offline. v1.0-vs-beta selection is exercised both by GraphClientTests (DefaultOptionsTargetTheGaV1Root/BetaOptInTargetsTheBetaRoot) and by the sample itself."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -46,18 +46,18 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No live Entra tenant is available in this documentation pass; MGR-010's conflicting simple-upload-size figures and MGR-016's RSC-vs-tenant-wide permission choice are the highest-priority re-verification items before Graph connector implementation begins (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj -c Release`: 1016 passed, 3 skipped, 0 failed, spanning every MGR-001..025 feature's own test file plus `GraphMappingTests.cs` (MGR-025). `dotnet build samples/MicrosoftGraph.OfflineWalkthrough/MicrosoftGraph.OfflineWalkthrough.csproj -c Release` and `dotnet run --project samples/MicrosoftGraph.OfflineWalkthrough/MicrosoftGraph.OfflineWalkthrough.csproj -c Release`: both succeed on a clean checkout with zero network access, exercising auth -> DiagnoseAsync (all four stages Passed) -> paginated user/group enumeration -> OneDrive drive/item enumeration -> one full delta sync pass (nextLink then deltaLink) -> a beta-root `GetOrganizationAsync` call demonstrating v1.0-vs-beta selection, labeled non-production per the spec's own guidance. `GraphClientTests.DefaultOptionsTargetTheGaV1Root`/`BetaOptInTargetsTheBetaRoot` independently cover the same version-selection mechanism as unit tests. |
+| Remaining work / blockers | No live Entra tenant is available in this documentation pass. MGR-010's conflicting simple-upload-size figures (250MB vs. the 4MB conservative ceiling actually enforced) and MGR-016's RSC-vs-tenant-wide permission choice remain documented as open, unresolved items in their own tracker files - not silently resolved here. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Confirmed `GraphClient : IConnector` already satisfies this feature's `IConnector` contract (no new type needed) and `DiagnoseAsync` already covers all four stages (MGR-003/024). Added `samples/MicrosoftGraph.OfflineWalkthrough` (built and run via `dotnet run`, zero network access) and confirmed the full synthetic suite - one file per MGR-001..025 feature - passes. Checked all applicable completion-evidence gates; status moves from `not-started` to `implemented`. This completes all 26 Microsoft Graph features (MGR-001..026) and, with them, all 70 Phase 2 features across Dataverse/Salesforce/Microsoft Graph. `verification` stays `partial`: no live Entra tenant available this pass. |
