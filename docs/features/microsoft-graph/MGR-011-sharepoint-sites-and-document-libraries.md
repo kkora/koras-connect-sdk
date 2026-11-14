@@ -4,10 +4,10 @@ title: "SharePoint sites and document libraries"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: GetRootSiteAsync/GetSiteByPathAsync cover all three documented resolution-path forms (root, hostname-only, hostname-plus-colon-path); EnumerateSiteDrivesAsync reuses the Drive model's JsonDocument shape (MGR-009). Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async Task<GraphSite> GetSiteByPathAsync(string hostname, string? serverR
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphSites.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphSitesTests.cs`. Covers: `GetRootSiteAsync` hits `/sites/root`; `GetSiteByPathAsync` composes `/sites/{hostname}` with no path and `/sites/{hostname}:/{path}` with one; `EnumerateSiteDrivesAsync` hits `/sites/{id}/drives`; an empty hostname or site id is rejected locally before any HTTP call. Full suite: 939 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live tenant available this pass to confirm against a real SharePoint site. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphSites.cs` plus `GraphSitesTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |
