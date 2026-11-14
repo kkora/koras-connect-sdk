@@ -25,6 +25,16 @@ public sealed class SecurityAndLifecycleTests
         clock.Now=clock.Now.AddSeconds(2); await source.GetTokenAsync(); Assert.Equal(2,calls);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>source.GetTokenAsync(new(true)).AsTask());
     }
+    [Fact] public async Task AConnectionFailureDuringTokenAcquisitionWrapsIntoTransportException()
+    {
+        // Found during the Phase 1 review sweep: this shared token source called _http.SendAsync with no
+        // try/catch at all, so a connection-level failure (DNS/TLS/refused) escaped as a raw HttpRequestException
+        // instead of the SDK's own exception hierarchy - the same bug class already fixed in IntegrationTransport.
+        using var h=new HttpClient(new Handler(_=>throw new HttpRequestException("simulated connection failure")));
+        using var source=new ClientCredentialsTokenSource(h,new(new("https://auth.test"),"id","secret"));
+        var ex=await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(()=>source.GetTokenAsync().AsTask());
+        Assert.IsType<HttpRequestException>(ex.InnerException);
+    }
     [Fact] public async Task DeadlineCancelsInFlightResponse()
     {
         using var h=new HttpClient(new SlowHandler());

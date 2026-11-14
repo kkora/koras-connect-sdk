@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Koras.Connect.Exceptions;
 using Koras.Connect.Transport;
 namespace Koras.Connect.Sap.SuccessFactors;
 
@@ -36,15 +37,20 @@ public sealed class SamlBearerTokenSource : IAccessTokenSource, IDisposable
             using var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
             { Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 { ["company_id"] = _company, ["client_id"] = _client, ["grant_type"] = "urn:ietf:params:oauth:grant-type:saml2-bearer", ["assertion"] = assertion }) };
-            using var response = await _http.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1);
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken); var root = doc.RootElement;
-            var token = root.GetProperty("access_token").GetString();
-            if (string.IsNullOrWhiteSpace(token) || !root.TryGetProperty("expires_in", out var expiry) || !expiry.TryGetInt32(out var seconds) || seconds <= 0
-                || !root.TryGetProperty("token_type", out var type) || !string.Equals(type.GetString(), "Bearer", StringComparison.OrdinalIgnoreCase))
-                throw new JsonException("Invalid SAP token response.");
-            _token = token; _expires = _clock.GetUtcNow().AddSeconds(seconds - Math.Min(60, seconds / 10)); return token;
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, cancellationToken); }
+            catch (HttpRequestException ex) { throw new TransportException("Failed to connect to the SAP OAuth token endpoint.", new ErrorDetails("transport_connection_failed"), ex); }
+            using (response)
+            {
+                if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1);
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken); var root = doc.RootElement;
+                var token = root.GetProperty("access_token").GetString();
+                if (string.IsNullOrWhiteSpace(token) || !root.TryGetProperty("expires_in", out var expiry) || !expiry.TryGetInt32(out var seconds) || seconds <= 0
+                    || !root.TryGetProperty("token_type", out var type) || !string.Equals(type.GetString(), "Bearer", StringComparison.OrdinalIgnoreCase))
+                    throw new JsonException("Invalid SAP token response.");
+                _token = token; _expires = _clock.GetUtcNow().AddSeconds(seconds - Math.Min(60, seconds / 10)); return token;
+            }
         }
         finally { _mutex.Release(); }
     }

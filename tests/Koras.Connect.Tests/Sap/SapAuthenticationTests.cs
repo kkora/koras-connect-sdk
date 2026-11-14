@@ -75,6 +75,17 @@ public sealed class SapAuthenticationTests
         Assert.Equal(1,calls);
     }
 
+    [Fact] public async Task AConnectionFailureDuringTheExchangeWrapsIntoTransportException()
+    {
+        // Found during the Phase 1 review sweep: this token source called _http.SendAsync with no try/catch at
+        // all, so a connection-level failure escaped as a raw HttpRequestException instead of this SDK's own
+        // exception hierarchy - the same bug class already fixed in IntegrationTransport and ClientCredentialsTokenSource.
+        using var h=new HttpClient(new Handler((r,ct)=>throw new HttpRequestException("simulated connection failure")));
+        using var tokens=new SamlBearerTokenSource(h,TokenEndpoint,"synthetic","client",ct=>ValueTask.FromResult("synthetic-assertion"));
+        var ex=await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(()=>tokens.GetTokenAsync().AsTask());
+        Assert.IsType<HttpRequestException>(ex.InnerException);
+    }
+
     [Fact] public async Task CanceledExchangeNeverReachesTheHandlerAndNeverCachesAnything()
     {
         var calls=0;using var h=new HttpClient(new Handler((r,ct)=>{calls++;return Task.FromResult(Json("""{"access_token":"x","token_type":"Bearer","expires_in":100}"""));}));

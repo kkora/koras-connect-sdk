@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
 | 2026-11-14 | `partial` | Added `GraphMail.cs` plus `GraphMailTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; held at `partial` because the `/me`-only restriction's applicability to mail specifically is inferred, not independently confirmed. |
+| 2026-11-14 | `partial` | A targeted sweep found `SendMailAsync` discarded the disposable `IntegrationJsonResponse` from `SendResponseAsync` without disposing it - the same pattern already fixed in Dataverse's equivalent methods, but never checked in this connector. Fixed. |

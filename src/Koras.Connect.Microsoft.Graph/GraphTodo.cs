@@ -52,7 +52,7 @@ public sealed partial class GraphClient
         ValidateTodoListId(listId);
         if (string.IsNullOrWhiteSpace(taskId)) throw new ArgumentException("A task id is required.", nameof(taskId));
         var address = new Uri(_root, $"me/todo/lists/{Uri.EscapeDataString(listId)}/tasks/{Uri.EscapeDataString(taskId)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 

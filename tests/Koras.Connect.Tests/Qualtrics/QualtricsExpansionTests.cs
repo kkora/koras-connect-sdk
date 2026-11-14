@@ -712,6 +712,8 @@ public sealed class QualtricsExpansionTests
 
         await Assert.ThrowsAsync<ArgumentException>(() => c.CreateEventSubscriptionAsync([], publicationUrl, writesEnabled: true));
         await Assert.ThrowsAsync<ArgumentException>(() => c.CreateEventSubscriptionAsync(topics, new Uri("http://host.test/hook"), writesEnabled: true));
+        // A topic containing a comma would silently split into two topics once joined - rejected locally instead.
+        await Assert.ThrowsAsync<ArgumentException>(() => c.CreateEventSubscriptionAsync(["foo,bar"], publicationUrl, writesEnabled: true));
         Assert.Equal(0, calls);
 
         var id = await c.CreateEventSubscriptionAsync(topics, publicationUrl, writesEnabled: true);

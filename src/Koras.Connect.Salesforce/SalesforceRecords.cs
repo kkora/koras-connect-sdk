@@ -71,7 +71,7 @@ public sealed partial class SalesforceClient
         ValidateRecordId(id);
         var address = new Uri(_root, $"sobjects/{sObject}/{id}/");
         var headers = ifUnmodifiedSince is null ? null : new Dictionary<string, string> { ["If-Unmodified-Since"] = ifUnmodifiedSince };
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, headers, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, headers, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
@@ -91,7 +91,7 @@ public sealed partial class SalesforceClient
         ValidateSObject(sObject);
         ValidateRecordId(id);
         var address = new Uri(_root, $"sobjects/{sObject}/{id}/");
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 

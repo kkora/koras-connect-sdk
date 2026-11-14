@@ -51,7 +51,7 @@ public sealed partial class GraphClient
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException("A subscription id is required.", nameof(subscriptionId));
         var address = new Uri(_root, $"subscriptions/{Uri.EscapeDataString(subscriptionId)}");
         var payload = JsonSerializer.SerializeToElement(new { expirationDateTime = newExpirationDateTime });
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, payload, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, payload, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
@@ -63,7 +63,7 @@ public sealed partial class GraphClient
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the subscription-management privilege and business impact.");
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException("A subscription id is required.", nameof(subscriptionId));
         var address = new Uri(_root, $"subscriptions/{Uri.EscapeDataString(subscriptionId)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 

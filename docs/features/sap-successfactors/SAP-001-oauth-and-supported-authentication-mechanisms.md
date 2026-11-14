@@ -7,7 +7,7 @@ phase: "P5"
 status: "implemented"
 baseline_status: "Partially implemented"
 verification: "partial"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -64,3 +64,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|---|
 | 2026-11-12 | `partial` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-13 | `implemented` | Added `SapAuthenticationTests.cs`, closing the "expiry/skew", "invalid assertion/token", "rotation" and "canceled exchange" unit-test-requirement gaps. Cross-checked the `/oauth/token` request/response shape against the official API Reference Guide, section 2.2.3. Checked the unit/contract/integration and security/cancellation/resource-ownership completion gates; status moves from `partial` to `implemented`. `verification` moved from `unverified` to `partial`: live grant/credential evidence against an authorized tenant [S1] remains a standing external blocker. |
+| 2026-11-14 | `implemented` | A Phase 1 review sweep (triggered by the same bug class already found and fixed in `IntegrationTransport` and the shared `ClientCredentialsTokenSource`) found `SamlBearerTokenSource.GetTokenAsync` called `_http.SendAsync` with no `try/catch`, so a connection-level failure escaped raw instead of becoming `TransportException`. Fixed; added `AConnectionFailureDuringTheExchangeWrapsIntoTransportException` to `SapAuthenticationTests.cs`. No fixed session-expiration timeout existed on this call either (unlike `ClientCredentialsTokenSource`'s `acquisitionTimeout`) - noted as a remaining hardening gap, not fixed this pass since it would change this constructor's public signature. |

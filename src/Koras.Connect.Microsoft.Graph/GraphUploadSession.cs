@@ -138,7 +138,7 @@ public sealed partial class GraphClient
         ArgumentNullException.ThrowIfNull(session);
         var sessionLock = _uploadSessionLocks.GetOrAdd(session.UploadUrl, _ => new SemaphoreSlim(1, 1));
         await sessionLock.WaitAsync(cancellationToken);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, session.UploadUrl, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, session.UploadUrl, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
         finally
         {

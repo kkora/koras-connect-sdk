@@ -69,7 +69,7 @@ public sealed partial class GraphClient
         ValidateUserId(userId);
         if (string.IsNullOrWhiteSpace(eventId)) throw new ArgumentException("An event id is required.", nameof(eventId));
         var address = new Uri(_root, $"users/{Uri.EscapeDataString(userId)}/events/{Uri.EscapeDataString(eventId)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
@@ -81,7 +81,7 @@ public sealed partial class GraphClient
         ValidateUserId(userId);
         if (string.IsNullOrWhiteSpace(eventId)) throw new ArgumentException("An event id is required.", nameof(eventId));
         var address = new Uri(_root, $"users/{Uri.EscapeDataString(userId)}/events/{Uri.EscapeDataString(eventId)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 

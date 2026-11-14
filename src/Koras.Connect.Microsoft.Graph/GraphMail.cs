@@ -69,7 +69,7 @@ public sealed partial class GraphClient
             },
         });
         var address = new Uri(_root, "me/sendMail");
-        try { await _transport.SendResponseAsync(HttpMethod.Post, address, payload, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Post, address, payload, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 }

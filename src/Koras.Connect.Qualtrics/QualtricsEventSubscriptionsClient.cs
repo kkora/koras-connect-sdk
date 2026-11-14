@@ -52,6 +52,8 @@ public sealed partial class QualtricsClient
         ArgumentNullException.ThrowIfNull(topics);
         if (topics.Count == 0 || topics.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("At least one non-blank topic is required before any request is sent.", nameof(topics));
+        if (topics.Any(t => t.Contains(',')))
+            throw new ArgumentException("A topic must not itself contain a comma - topics are joined with ',' before being sent, and an embedded comma would silently split one topic into two.", nameof(topics));
         ArgumentNullException.ThrowIfNull(publicationUrl);
         if (!publicationUrl.IsAbsoluteUri || publicationUrl.Scheme != Uri.UriSchemeHttps)
             throw new ArgumentException("The publication URL must be an absolute https address.", nameof(publicationUrl));

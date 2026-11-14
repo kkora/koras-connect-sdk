@@ -7,7 +7,7 @@ phase: "P7"
 status: "partial"
 baseline_status: "Not started"
 verification: "unverified"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | 2026-11-12 | `not-started` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
 | 2026-11-12 | `not-started` | Reviewed during the same work session that advanced QLT-001/004/005/006/009/012/013/014/015/016. Deliberately left `not-started`/blocked: the event-subscription authentication/verification scheme for Qualtrics webhooks is unverified in this codebase (no prior sandbox evidence), and the task-level guidance explicitly directs against inventing a webhook/event contract without vendor-contract verification. No event DTO, subscription client or receiver code was added. Remaining blocker unchanged: [Q8] current full subscription contract/auth/event schemas and tenant eligibility must be verified against vendor documentation (or a live/sandboxed tenant) before any implementation is attempted. |
 | 2026-11-13 | `partial` | After an explicit go/no-go call, implemented subscription management only (create/list/delete) against the publicly documented Event Subscriptions API, explicitly excluding any receiver/signature-verification server. Checked the unit/contract/integration, security/cancellation/resource-ownership, and documentation/consumer-example completion gates; status moves from `not-started` to `partial` (not `implemented`): the [Q8] live-tenant schema/auth verification remains open, and the receiver-side unit-test requirements (forged/stale/duplicate envelope, retries, missing identity) are out of scope by design. |
+| 2026-11-14 | `partial` | A Phase 1 review sweep found `CreateEventSubscriptionAsync` joined caller-supplied topics with a raw comma (`string.Join(",", topics)`) without rejecting a topic that itself contains a comma - such a topic would silently be interpreted by Qualtrics as two separate topics instead of being rejected locally. Fixed by validating no topic contains `,` before joining; added a regression test to `QualtricsExpansionTests.cs`. |

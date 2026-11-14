@@ -52,7 +52,7 @@ public sealed partial class GraphClient
         ValidateDirectoryObjectId(groupId);
         ValidateDirectoryObjectId(memberId);
         var address = new Uri(_root, $"groups/{Uri.EscapeDataString(groupId)}/members/{Uri.EscapeDataString(memberId)}/$ref");
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 

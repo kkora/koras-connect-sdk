@@ -60,7 +60,7 @@ public sealed partial class GraphClient
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the directory-write privilege and business impact.");
         if (string.IsNullOrWhiteSpace(idOrUserPrincipalName)) throw new ArgumentException("A user id or userPrincipalName is required.", nameof(idOrUserPrincipalName));
         var address = new Uri(_root, $"users/{Uri.EscapeDataString(idOrUserPrincipalName)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
@@ -71,7 +71,7 @@ public sealed partial class GraphClient
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the directory-write privilege and business impact.");
         if (string.IsNullOrWhiteSpace(idOrUserPrincipalName)) throw new ArgumentException("A user id or userPrincipalName is required.", nameof(idOrUserPrincipalName));
         var address = new Uri(_root, $"users/{Uri.EscapeDataString(idOrUserPrincipalName)}");
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 }

@@ -56,7 +56,7 @@ public sealed partial class GraphClient
         ValidateListId(listId);
         if (string.IsNullOrWhiteSpace(itemId)) throw new ArgumentException("An item id is required.", nameof(itemId));
         var address = new Uri(_root, $"sites/{Uri.EscapeDataString(siteId)}/lists/{Uri.EscapeDataString(listId)}/items/{Uri.EscapeDataString(itemId)}/fields");
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, fields, cancellationToken: cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
