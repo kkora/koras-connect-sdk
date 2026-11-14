@@ -45,7 +45,7 @@ public sealed partial class DataverseClient
         ValidateNavigationProperty(column);
         var address = new Uri(_root, $"{entitySet}({id:D})/{column}");
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 }

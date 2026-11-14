@@ -128,17 +128,23 @@ public sealed partial class GraphClient
 
     /// <summary>Cancels an upload session via <c>DELETE {session.UploadUrl}</c>, expecting <c>204</c> (MGR-023).
     /// Disabled unless <paramref name="writesEnabled"/> is explicitly <c>true</c>, matching every other mutating
-    /// Graph call.</summary>
+    /// Graph call. Acquires the same per-session lock <see cref="UploadSessionFragmentAsync"/> does - review
+    /// pass 2 found this method originally raced a concurrent in-flight fragment upload for the same session,
+    /// since it tore down the tracking entries without any synchronization against the fragment path's own
+    /// check-then-update sequence.</summary>
     public async Task CancelUploadSessionAsync(GraphUploadSession session, bool writesEnabled = false, CancellationToken cancellationToken = default)
     {
         if (!writesEnabled) throw new InvalidOperationException("Enable writes only after verifying the drive-write privilege and business impact.");
         ArgumentNullException.ThrowIfNull(session);
+        var sessionLock = _uploadSessionLocks.GetOrAdd(session.UploadUrl, _ => new SemaphoreSlim(1, 1));
+        await sessionLock.WaitAsync(cancellationToken);
         try { await _transport.SendResponseAsync(HttpMethod.Delete, session.UploadUrl, cancellationToken: cancellationToken); }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
         finally
         {
             _nextExpectedUploadRangeStart.TryRemove(session.UploadUrl, out _);
             _uploadSessionLocks.TryRemove(session.UploadUrl, out _);
+            sessionLock.Release();
         }
     }
 }

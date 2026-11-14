@@ -21,9 +21,17 @@ public sealed partial class GraphClient
     public IAsyncEnumerable<GraphPermissionGrant> ListGrantsForCurrentAppAsync(CancellationToken cancellationToken = default)
         => EnumerateAsync<GraphPermissionGrant>("oauth2PermissionGrants", cancellationToken: cancellationToken);
 
-    /// <summary>Lists the signed-in user's own grants via <c>GET /me/oauth2PermissionGrants</c> (MGR-024/019).</summary>
+    /// <summary>Lists the signed-in user's own grants via <c>GET /me/oauth2PermissionGrants</c> (MGR-024/019) -
+    /// delegated-only, per this feature's own documented security considerations ("a signed-in user for the
+    /// per-user list"). Throws locally, before any HTTP call, unless <see cref="GraphOptions.IsDelegatedContext"/>
+    /// was explicitly set, matching every other <c>/me</c>-shortcut method in this connector - found missing by
+    /// Phase 2 review pass 2.</summary>
     public IAsyncEnumerable<GraphPermissionGrant> ListMyGrantsAsync(CancellationToken cancellationToken = default)
-        => EnumerateAsync<GraphPermissionGrant>("me/oauth2PermissionGrants", cancellationToken: cancellationToken);
+    {
+        if (!_options.IsDelegatedContext)
+            throw new InvalidOperationException("/me/oauth2PermissionGrants requires a delegated (signed-in-user) context; application permissions must use ListGrantsForCurrentAppAsync against /oauth2PermissionGrants instead.");
+        return EnumerateAsync<GraphPermissionGrant>("me/oauth2PermissionGrants", cancellationToken: cancellationToken);
+    }
 
     /// <summary>Builds the documented admin-consent redirect URL (MGR-024) - a pure, local URL composition, no
     /// HTTP call. <paramref name="tenant"/> must be a GUID, a verified domain, or the literal <c>organizations</c>;

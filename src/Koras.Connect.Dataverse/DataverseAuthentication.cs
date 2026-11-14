@@ -33,7 +33,8 @@ public sealed record DataverseClientCredentialsOptions(
         else
         {
             var tenantSegment = TenantTokenEndpoint.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            if (tenantSegment is "common" or "organizations" or "consumers")
+            if (tenantSegment is not null && (tenantSegment.Equals("common", StringComparison.OrdinalIgnoreCase)
+                || tenantSegment.Equals("organizations", StringComparison.OrdinalIgnoreCase) || tenantSegment.Equals("consumers", StringComparison.OrdinalIgnoreCase)))
                 failures.Add($"{nameof(TenantTokenEndpoint)}: '{tenantSegment}' is not a valid Entra tenant alias for a Dataverse app-only scenario - an explicit tenant GUID or verified domain is required.");
         }
         if (string.IsNullOrWhiteSpace(ClientId)) failures.Add($"{nameof(ClientId)}: is required.");

@@ -163,4 +163,39 @@ public sealed class GraphUploadSessionTests
         Assert.Equal(HttpMethod.Delete, request!.Method);
         Assert.Equal("https://up.example.com/session5", request.RequestUri!.AbsoluteUri);
     }
+
+    [Fact]
+    public async Task CancelUploadSessionWaitsForAnInFlightFragmentUploadRatherThanRacingIt()
+    {
+        // Found missing by Phase 2 review pass 2: CancelUploadSessionAsync originally tore down the session's
+        // tracking state with no synchronization against a concurrent, in-flight UploadSessionFragmentAsync call
+        // for the same session. Proven here by gating the fragment PUT mid-flight and asserting the DELETE never
+        // starts until the PUT completes - not just that both calls eventually happen.
+        var fragmentPutStarted = new TaskCompletionSource();
+        var releaseFragmentPut = new TaskCompletionSource();
+        var order = new List<string>();
+        var client = Client(async (r, ct) =>
+        {
+            if (r.Method == HttpMethod.Put)
+            {
+                lock (order) order.Add("PUT started");
+                fragmentPutStarted.TrySetResult();
+                await releaseFragmentPut.Task;
+                lock (order) order.Add("PUT finished");
+                return new HttpResponseMessage(HttpStatusCode.Accepted) { Content = new StringContent("{}") };
+            }
+            lock (order) order.Add("DELETE");
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        });
+        var session = new GraphUploadSession(new Uri("https://up.example.com/session-race"), null);
+        using var fragment = new MemoryStream(new byte[Multiple]);
+        var fragmentTask = client.UploadSessionFragmentAsync(session, fragment, 0, Multiple - 1, Multiple * 2, writesEnabled: true);
+        await fragmentPutStarted.Task;
+        var cancelTask = client.CancelUploadSessionAsync(session, writesEnabled: true);
+        await Task.Delay(50); // give Cancel every opportunity to race ahead if the lock weren't held
+        lock (order) Assert.DoesNotContain("DELETE", order); // Cancel must still be waiting on the fragment's lock
+        releaseFragmentPut.TrySetResult();
+        await Task.WhenAll(fragmentTask, cancelTask);
+        Assert.Equal(["PUT started", "PUT finished", "DELETE"], order);
+    }
 }

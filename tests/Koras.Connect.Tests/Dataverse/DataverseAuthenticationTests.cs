@@ -51,8 +51,13 @@ public sealed class DataverseAuthenticationTests
     [InlineData("common")]
     [InlineData("organizations")]
     [InlineData("consumers")]
+    [InlineData("Common")]
+    [InlineData("ORGANIZATIONS")]
+    [InlineData("Consumers")]
     public void TenantAliasesInvalidForAppOnlyAreRejected(string alias)
     {
+        // Review pass 2 found the original check was case-sensitive, so "Common"/"ORGANIZATIONS" etc. sailed
+        // through even though Entra's token endpoint itself treats the tenant path segment case-insensitively.
         Assert.Throws<OptionsValidationException>(() =>
             new DataverseClientCredentialsOptions(new Uri($"https://login.microsoftonline.com/{alias}/oauth2/v2.0/token"),
                 "client", "https://contoso.api.crm.dynamics.com/", ClientSecret: "secret").Validate());

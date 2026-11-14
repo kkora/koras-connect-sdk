@@ -183,6 +183,33 @@ public sealed class DataverseBatchTests
         Assert.Equal(1, results[1].Index);
     }
 
+    [Fact]
+    public async Task AChangesetResponseWithMoreNestedPartsThanMembersRollsBackRatherThanCorruptingLaterIndices()
+    {
+        // A changeset response carrying more parts than it has members is just as untrustworthy as one carrying
+        // fewer - accepting it as a clean per-member success list would append extra results and desynchronize
+        // every later changeset's Index from its originating request, not merely misreport this one changeset.
+        var boundary = "batchresponse_1";
+        var overCountInner = SinglePart("inner1", 204, null) + SinglePart("inner1", 204, null) + SinglePart("inner1", 204, null) + "--inner1--";
+        var exactInner = SinglePart("inner2", 204, null) + "--inner2--";
+        var body = $"--{boundary}\r\nContent-Type: multipart/mixed; boundary=inner1\r\n\r\n{overCountInner}\r\n\r\n"
+            + $"--{boundary}\r\nContent-Type: multipart/mixed; boundary=inner2\r\n\r\n{exactInner}\r\n\r\n"
+            + $"--{boundary}--";
+        var client = Client((_, _) => Task.FromResult(MultipartResponse(boundary, body)));
+        var overCountChangeset = new DataverseChangeset([
+            new DataverseBatchRequest(HttpMethod.Patch, "accounts(1)", Fields()),
+            new DataverseBatchRequest(HttpMethod.Patch, "accounts(2)", Fields()),
+        ]);
+        var exactChangeset = new DataverseChangeset([new DataverseBatchRequest(HttpMethod.Patch, "accounts(3)", Fields())]);
+        var results = await client.ExecuteBatchAsync(changesets: [overCountChangeset, exactChangeset], writesEnabled: true);
+        Assert.Equal(3, results.Count); // 2 members (rolled back) + 1 member, never 4
+        Assert.False(results[0].Succeeded);
+        Assert.False(results[1].Succeeded);
+        Assert.Equal(0, results[0].Index);
+        Assert.Equal(1, results[1].Index);
+        Assert.Equal(2, results[2].Index); // the second changeset's index is not shifted by the first's extra part
+    }
+
     [Theory]
     [InlineData("accounts(1)\r\nX-Injected: evil", null)]
     [InlineData("accounts", "1\r\nX-Injected: evil")]

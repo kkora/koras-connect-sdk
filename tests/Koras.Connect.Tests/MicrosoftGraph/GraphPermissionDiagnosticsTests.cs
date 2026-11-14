@@ -16,8 +16,8 @@ public sealed class GraphPermissionDiagnosticsTests
     { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct) => reply(r, ct); }
     private static HttpResponseMessage Json(string body, HttpStatusCode status = HttpStatusCode.OK) => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
-    private static GraphClient Client(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply)
-        => new(new IntegrationTransport(new HttpClient(new Handler(reply)), new StaticToken("token")));
+    private static GraphClient Client(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> reply, GraphOptions? options = null)
+        => new(new IntegrationTransport(new HttpClient(new Handler(reply)), new StaticToken("token")), options);
 
     [Fact]
     public async Task ListGrantsForCurrentAppHitsTheTenantWideResource()
@@ -32,10 +32,24 @@ public sealed class GraphPermissionDiagnosticsTests
     }
 
     [Fact]
-    public async Task ListMyGrantsHitsThePerUserResource()
+    public async Task ListMyGrantsThrowsLocallyWithoutADelegatedContext()
+    {
+        // Found missing by Phase 2 review pass 2 - every other /me-shortcut in this connector throws locally
+        // before any HTTP call unless IsDelegatedContext is explicitly set.
+        var calls = 0;
+        var client = Client((_, _) => { calls++; return Task.FromResult(Json("""{"value":[]}""")); });
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await foreach (var _ in client.ListMyGrantsAsync()) { }
+        });
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public async Task ListMyGrantsHitsThePerUserResourceWithADelegatedContext()
     {
         Uri? requested = null;
-        var client = Client((r, _) => { requested = r.RequestUri; return Task.FromResult(Json("""{"value":[]}""")); });
+        var client = Client((r, _) => { requested = r.RequestUri; return Task.FromResult(Json("""{"value":[]}""")); }, new GraphOptions(IsDelegatedContext: true));
         await foreach (var _ in client.ListMyGrantsAsync()) { }
         Assert.Equal("https://graph.microsoft.com/v1.0/me/oauth2PermissionGrants", requested!.AbsoluteUri);
     }

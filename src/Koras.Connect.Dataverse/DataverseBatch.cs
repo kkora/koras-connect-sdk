@@ -155,7 +155,11 @@ public sealed partial class DataverseClient
         if (blankIndex >= 0 && blankIndex + 1 < lines.Length)
         {
             var bodyText = string.Join("\r\n", lines.Skip(blankIndex + 1)).Trim();
-            if (!string.IsNullOrWhiteSpace(bodyText)) body = JsonDocument.Parse(bodyText).RootElement.Clone();
+            if (!string.IsNullOrWhiteSpace(bodyText))
+            {
+                using var document = JsonDocument.Parse(bodyText);
+                body = document.RootElement.Clone();
+            }
         }
         return (status, body);
     }
@@ -192,11 +196,24 @@ public sealed partial class DataverseClient
             }
             if (!isNestedMultipart || nestedParts.Count < changeset.Requests.Count)
             {
-                // Fewer responses than members means the changeset rolled back atomically - every member reports
-                // the same failure rather than a misleading partial success.
+                // Fewer responses than members means the changeset rolled back atomically - the single part (when
+                // present) is itself the documented error representation for the whole changeset, so it is safe
+                // to replicate as every member's failure.
                 var failure = isNestedMultipart && nestedParts.Count > 0
                     ? ToBatchItemResult(0, nestedParts[0].Content)
                     : !isNestedMultipart ? ToBatchItemResult(0, content) : new BatchItemResult<JsonElement>(0, false, default, "changeset_rolled_back");
+                foreach (var _ in changeset.Requests) results.Add(failure with { Index = index++ });
+                continue;
+            }
+            if (nestedParts.Count > changeset.Requests.Count)
+            {
+                // More parts than members is never a documented shape and, unlike the fewer-parts case, there is
+                // no single part that represents a meaningful error for the whole changeset - nestedParts[0] here
+                // is just an ordinary (likely successful) sub-response, not an error body. Accepting it as a
+                // clean per-member list would append extra results and desynchronize every later changeset's
+                // Index from its originating request, so this is reported as a generic contract mismatch instead
+                // of guessing at a shape the vendor documentation never described.
+                var failure = new BatchItemResult<JsonElement>(0, false, default, "changeset_part_count_mismatch");
                 foreach (var _ in changeset.Requests) results.Add(failure with { Index = index++ });
                 continue;
             }

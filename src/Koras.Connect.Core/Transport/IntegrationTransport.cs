@@ -118,7 +118,9 @@ public sealed class IntegrationTransport
             if (headers is not null) foreach (var h in headers)
                 if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
             if (payload is not null) request.Content = new StringContent(payload.Value.GetRawText(), System.Text.Encoding.UTF8, "application/json");
-            var response = await _http.SendAsync(request, ct);
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            catch (HttpRequestException ex) { throw new TransportException("Failed to connect.", new ErrorDetails("transport_connection_failed"), ex); }
             var safeHeaders = SafeHeaders(response);
             if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.Accepted)
                 return new IntegrationJsonResponse(JsonDocument.Parse("null"), safeHeaders, response.StatusCode);
@@ -189,10 +191,15 @@ public sealed class IntegrationTransport
                 { if (!request.Content.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers)); }
                 else if (!request.Headers.TryAddWithoutValidation(h.Key, h.Value)) throw new ArgumentException("Invalid request header.", nameof(headers));
             }
-            using var response = await _http.SendAsync(request, ct);
-            var text = await response.Content.ReadAsStringAsync(ct);
-            if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));
-            return new IntegrationRawResponse(text, SafeHeaders(response), response.StatusCode, response.Content.Headers.ContentType?.ToString());
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            catch (HttpRequestException ex) { throw new TransportException("Failed to connect.", new ErrorDetails("transport_connection_failed"), ex); }
+            using (response)
+            {
+                var text = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));
+                return new IntegrationRawResponse(text, SafeHeaders(response), response.StatusCode, response.Content.Headers.ContentType?.ToString());
+            }
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         { throw new DeadlineExceededException("The configured request timeout elapsed before the operation completed."); }
@@ -223,10 +230,15 @@ public sealed class IntegrationTransport
                 request.Content = new StringContent(body, System.Text.Encoding.UTF8);
                 if (contentType is not null) request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             }
-            using var response = await _http.SendAsync(request, ct);
-            var text = await response.Content.ReadAsStringAsync(ct);
-            if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));
-            return new IntegrationRawResponse(text, SafeHeaders(response), response.StatusCode, response.Content.Headers.ContentType?.ToString());
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            catch (HttpRequestException ex) { throw new TransportException("Failed to connect.", new ErrorDetails("transport_connection_failed"), ex); }
+            using (response)
+            {
+                var text = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode) throw new IntegrationRequestException(response.StatusCode, 1, SafeHeaders(response));
+                return new IntegrationRawResponse(text, SafeHeaders(response), response.StatusCode, response.Content.Headers.ContentType?.ToString());
+            }
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         { throw new DeadlineExceededException("The configured request timeout elapsed before the operation completed."); }

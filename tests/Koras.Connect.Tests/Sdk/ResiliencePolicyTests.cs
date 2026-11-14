@@ -64,6 +64,37 @@ public sealed class ResiliencePolicyTests
     }
 
     [Fact]
+    public async Task AConnectionFailureOnSendJsonAllowingAnyStatusWrapsIntoTransportException()
+    {
+        // Review pass 2 found the original connection-failure fix only covered ExecuteAsync's own call site -
+        // these three sibling methods bypass ExecuteAsync entirely and had no such catch at all.
+        using var h = new HttpClient(new Handler(_ => throw new HttpRequestException("simulated connection failure")));
+        var transport = new IntegrationTransport(h, new Token());
+        using var payload = JsonDocument.Parse("{}");
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(
+            () => transport.SendJsonAllowingAnyStatusAsync(HttpMethod.Patch, new("https://api.test"), payload.RootElement));
+    }
+
+    [Fact]
+    public async Task AConnectionFailureOnUploadAsyncWrapsIntoTransportException()
+    {
+        using var h = new HttpClient(new Handler(_ => throw new HttpRequestException("simulated connection failure")));
+        var transport = new IntegrationTransport(h, new Token());
+        using var content = new MemoryStream([1, 2, 3]);
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(
+            () => transport.UploadAsync(HttpMethod.Put, new("https://api.test"), content, "application/octet-stream"));
+    }
+
+    [Fact]
+    public async Task AConnectionFailureOnSendRawAsyncWrapsIntoTransportException()
+    {
+        using var h = new HttpClient(new Handler(_ => throw new HttpRequestException("simulated connection failure")));
+        var transport = new IntegrationTransport(h, new Token());
+        await Assert.ThrowsAsync<Koras.Connect.Exceptions.TransportException>(
+            () => transport.SendRawAsync(HttpMethod.Post, new("https://api.test"), "raw body", "text/plain"));
+    }
+
+    [Fact]
     public async Task PersistentTransientFailureExhaustsTheRetryBudgetAndThrowsWithTheFinalAttemptCount()
     {
         var calls = 0;

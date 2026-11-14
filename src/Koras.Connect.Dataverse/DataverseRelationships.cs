@@ -26,7 +26,7 @@ public sealed partial class DataverseClient
         var address = RowAddress(entitySet, id);
         ValidateRequestUri(address);
         var body = JsonSerializer.SerializeToElement(new Dictionary<string, string> { [$"{navigationProperty}@odata.bind"] = $"/{targetEntitySet}({targetId:D})" });
-        try { await _transport.SendResponseAsync(HttpMethod.Patch, address, body, RequiredHeaders, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Patch, address, body, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
@@ -38,7 +38,7 @@ public sealed partial class DataverseClient
         ValidateNavigationProperty(navigationProperty);
         var address = new Uri(_root, $"{entitySet}({id:D})/{navigationProperty}/$ref");
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
@@ -56,7 +56,7 @@ public sealed partial class DataverseClient
         var address = new Uri(_root, $"{entitySet}({id:D})/{collectionNavigationProperty}/$ref");
         ValidateRequestUri(address);
         var body = JsonSerializer.SerializeToElement(new Dictionary<string, string> { ["@odata.id"] = new Uri(_root, $"{targetEntitySet}({targetId:D})").AbsoluteUri });
-        try { await _transport.SendResponseAsync(HttpMethod.Post, address, body, RequiredHeaders, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Post, address, body, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 
@@ -70,7 +70,7 @@ public sealed partial class DataverseClient
         ValidateNavigationProperty(collectionNavigationProperty);
         var address = new Uri(_root, $"{entitySet}({id:D})/{collectionNavigationProperty}({targetId:D})/$ref");
         ValidateRequestUri(address);
-        try { await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken); }
+        try { using (await _transport.SendResponseAsync(HttpMethod.Delete, address, null, RequiredHeaders, cancellationToken)) { } }
         catch (IntegrationRequestException ex) { throw ClassifyWrite(ex); }
     }
 }
