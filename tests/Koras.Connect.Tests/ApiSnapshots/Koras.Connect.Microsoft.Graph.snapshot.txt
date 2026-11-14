@@ -45,6 +45,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Threading.Tasks.Task<System.String> CreateEventAsync(System.String userId, Koras.Connect.Microsoft.Graph.GraphEvent event, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateListItemAsync(System.String siteId, System.String listId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateServicePrincipalAsync(System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> CreateTodoTaskAsync(System.String listId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> CreateUserAsync(System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteEventAsync(System.String userId, System.String eventId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteUserAsync(System.String idOrUserPrincipalName, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
@@ -65,9 +66,13 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphListItem> EnumerateListItemsAsync(System.String siteId, System.String listId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateListsAsync(System.String siteId, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphMessage> EnumerateMyMessagesAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateMyPlansAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphPlannerTask> EnumeratePlanTasksAsync(System.String planId, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphServicePrincipal> EnumerateServicePrincipalsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateSiteDrivesAsync(System.String siteId, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphTeamSummary> EnumerateTeamsAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateTodoListsAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphTodoTask> EnumerateTodoTasksAsync(System.String listId, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphMessage> EnumerateUserMessagesAsync(System.String userId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphUser> EnumerateUsersAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphApplication> GetApplicationAsync(System.String id, System.Threading.CancellationToken cancellationToken = null)
@@ -87,6 +92,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Threading.Tasks.Task SendMailAsync(System.String subject, System.String bodyHtml, System.Collections.Generic.IReadOnlyList<System.String> toRecipients, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateEventAsync(System.String userId, System.String eventId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateListItemFieldsAsync(System.String siteId, System.String listId, System.String itemId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateTodoTaskAsync(System.String listId, System.String taskId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateUserAsync(System.String idOrUserPrincipalName, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UploadSmallFileAsync(System.String driveId, System.String parentPath, System.String fileName, System.IO.Stream content, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions
@@ -206,6 +212,11 @@ sealed class Koras.Connect.Microsoft.Graph.GraphPermissionRequirement
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Microsoft.Graph.GraphPlannerTask
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Id {get+set}
+  property System.String Title {get+set}
 sealed class Koras.Connect.Microsoft.Graph.GraphQuery
   ctor(System.String Select = null, System.String Filter = null, System.String OrderBy = null, System.String Expand = null, System.String Search = null, System.Nullable<System.Boolean> Count = null, System.Nullable<System.Int32> Top = null)
   property System.Nullable<System.Boolean> Count {get+init}
@@ -252,6 +263,11 @@ sealed class Koras.Connect.Microsoft.Graph.GraphTeamSummary
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Microsoft.Graph.GraphTodoTask
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Id {get+set}
+  property System.String Title {get+set}
 sealed class Koras.Connect.Microsoft.Graph.GraphUser
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}

@@ -4,10 +4,10 @@ title: "Microsoft To Do"
 category: "microsoft-graph"
 priority: "P2"
 phase: "P2-D7"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: EnumerateTodoListsAsync/EnumerateTodoTasksAsync/CreateTodoTaskAsync/UpdateTodoTaskAsync all address /me/todo/... with no delegated-only guard, correcting the common misconception that To Do shares Planner's delegated-only restriction. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public IAsyncEnumerable<GraphTodoTask> EnumerateTodoTasksAsync(string listId, Ca
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [ ] Acceptance criteria and Definition of Done satisfied (write-side application-permission confirmation is this feature's own explicit release blocker for `verified`).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Write-side application-permission symmetry with the read path is unconfirmed. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphTodo.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphTodoTests.cs`. Covers: list/task enumeration both work without a delegated context, confirming no artificial restriction is imposed; create/update both require the shared `writesEnabled` opt-in and compose the documented `/me/todo/lists/{listId}/tasks[/{taskId}]` paths. Full suite: 971 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Write-side application-permission symmetry with the read path remains unconfirmed per this feature's own spec - not locally enforced or distinguished, since the code path is identical regardless; an app-only caller should independently verify write access works. No live tenant available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `GraphTodo.cs` plus `GraphTodoTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; held at `partial` because write-side application-permission symmetry remains unconfirmed. |
