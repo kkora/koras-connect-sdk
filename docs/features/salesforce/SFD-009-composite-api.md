@@ -4,10 +4,10 @@ title: "Composite API"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: ExecuteCompositeAsync covers /composite only (the one variant with a proposed concrete C# contract), with the documented 25-subrequest cap enforced locally and mixed per-subrequest outcomes reported via BatchItemResult<T>. /composite/batch and /composite/graph are not implemented - their field names are snippet-only and no concrete contract was proposed for them. Unit-tested; field-name re-verification against a live page remains an explicit release blocker per this feature's own spec."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,18 +50,18 @@ public async Task<IReadOnlyList<BatchItemResult<JsonElement>>> ExecuteCompositeA
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (the `/composite` shape only - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (field-name re-verification is an explicit, unresolved release blocker per this feature's own spec).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Exact JSON field names for all three Composite variants are snippet-only, not independently read from the official page this pass - the single largest confidence gap in the Salesforce catalog's P0 feature set. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceComposite.cs` and `tests/Koras.Connect.Tests/Salesforce/SalesforceCompositeTests.cs`. Covers: >25 subrequests rejected locally; a write subrequest without `writesEnabled` throws before any HTTP call; a read-only composite needs no opt-in; the request payload carries `allOrNone` and the documented per-subrequest fields; mixed per-subrequest outcomes are reported individually via `BatchItemResult<T>`, never collapsed into one failure; unsafe `referenceId` values rejected locally; a malformed response surfaces `ContractException`. Full suite: 781 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | `/composite/batch` and `/composite/graph` are not implemented - their field names are snippet-only and this feature's own specification proposed a concrete typed C# contract only for `/composite`, so implementing the other two would mean guessing an unverified shape. All field names used (`compositeRequest`/`compositeResponse`/`httpStatusCode`/etc.) remain snippet-confidence pending a direct page re-fetch (Section 28), the stated release blocker for `verified`. No live org available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `ExecuteCompositeAsync`/`SalesforceCompositeSubrequest` for `/composite` plus `SalesforceCompositeTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented scope; held at `partial` because `/composite/batch`/`/composite/graph` remain unbuilt and the snippet-sourced field names are unverified. |

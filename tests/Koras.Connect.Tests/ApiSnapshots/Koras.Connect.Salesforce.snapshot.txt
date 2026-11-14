@@ -26,6 +26,7 @@ sealed class Koras.Connect.Salesforce.SalesforceClient
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceObjectDescriptor> DescribeObjectAsync(System.String sObject, System.Nullable<System.DateTimeOffset> ifModifiedSince = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<T> EnumerateQueryAsync(System.String soql, System.Boolean includeDeleted = False, System.Nullable<System.Int32> batchSize = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.BatchItemResult<System.Text.Json.JsonElement>>> ExecuteCompositeAsync(System.Collections.Generic.IReadOnlyList<Koras.Connect.Salesforce.SalesforceCompositeSubrequest> requests, System.Boolean allOrNone = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRecordAsync(System.String sObject, System.String id, System.Collections.Generic.IReadOnlyList<System.String> fields = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<System.String, System.String>> GetResourceMapAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceQueryResult<T>> QueryAsync(System.String soql, System.Boolean includeDeleted = False, System.Nullable<System.Int32> batchSize = null, System.Threading.CancellationToken cancellationToken = null)
@@ -44,6 +45,18 @@ sealed class Koras.Connect.Salesforce.SalesforceClientCredentialsOptions
   method System.Int32 GetHashCode()
   method System.String ToString()
   method System.Void Validate()
+sealed class Koras.Connect.Salesforce.SalesforceCompositeSubrequest
+  ctor(System.Net.Http.HttpMethod Method, System.String Url, System.String ReferenceId, System.Nullable<System.Text.Json.JsonElement> Body = null)
+  property System.Nullable<System.Text.Json.JsonElement> Body {get+init}
+  property System.Net.Http.HttpMethod Method {get+init}
+  property System.String ReferenceId {get+init}
+  property System.String Url {get+init}
+  method Koras.Connect.Salesforce.SalesforceCompositeSubrequest <Clone>$()
+  method System.Void Deconstruct(System.Net.Http.HttpMethod& Method, System.String& Url, System.String& ReferenceId, System.Nullable`1[[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Body)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceCompositeSubrequest other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Salesforce.SalesforceConnectionOptions
   ctor(System.Uri InstanceRoot, System.Uri TokenEndpoint, System.String ClientId, System.String ClientSecret = null, System.String JwtSubject = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.String ApiVersion = v68.0)
   property System.String ApiVersion {get+init}
@@ -139,6 +152,17 @@ sealed class Koras.Connect.Salesforce.SalesforceQueryResult<T>
   method System.String ToString()
 abstract class Koras.Connect.Salesforce.SalesforceServiceCollectionExtensions
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasSalesforce(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Salesforce.SalesforceConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
+sealed class Koras.Connect.Salesforce.SalesforceTypeOfClause
+  ctor(System.String Field, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Collections.Generic.IReadOnlyList<System.String>> WhenFields, System.Collections.Generic.IReadOnlyList<System.String> ElseFields = null)
+  property System.Collections.Generic.IReadOnlyList<System.String> ElseFields {get+init}
+  property System.String Field {get+init}
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Collections.Generic.IReadOnlyList<System.String>> WhenFields {get+init}
+  method Koras.Connect.Salesforce.SalesforceTypeOfClause <Clone>$()
+  method System.Void Deconstruct(System.String& Field, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& WhenFields, System.Collections.Generic.IReadOnlyList`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& ElseFields)
+  method System.Boolean Equals(Koras.Connect.Salesforce.SalesforceTypeOfClause other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
 sealed class Koras.Connect.Salesforce.SalesforceUpsertResult
   ctor(System.String RecordId, System.Boolean Created, System.Collections.Generic.IReadOnlyList<System.String> AmbiguousMatchIds)
   property System.Collections.Generic.IReadOnlyList<System.String> AmbiguousMatchIds {get+init}
