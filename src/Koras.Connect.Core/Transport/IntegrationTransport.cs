@@ -140,7 +140,7 @@ public sealed class IntegrationTransport
     private static Dictionary<string, string[]> SafeHeaders(HttpResponseMessage response)
     {
         var safeHeaders = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-        foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id", "odata-entityid" })
+        foreach (var name in new[] { "adp-msg-msgid", "request-id", "x-request-id", "odata-entityid", "sforce-locator" })
             if (response.Headers.TryGetValues(name, out var values)) safeHeaders[name] = values.Select(SanitizeCorrelationValue).ToArray();
         return safeHeaders;
     }

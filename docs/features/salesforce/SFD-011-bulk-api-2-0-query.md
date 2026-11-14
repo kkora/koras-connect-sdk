@@ -4,10 +4,10 @@ title: "Bulk API 2.0 query"
 category: "salesforce"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: CreateQueryJobAsync/GetQueryJobStateAsync/EnumerateQueryResultsAsync cover the full documented lifecycle, including Sforce-Locator literal-\"null\" termination and a cycle guard against a repeated cursor. Default maxRecords is intentionally left unasserted since the spec documents it as unconfirmed. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async IAsyncEnumerable<Stream> EnumerateQueryResultsAsync(SalesforceBulkJ
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Default `maxRecords` value is unconfirmed; do not hardcode an assumed default into tests or documentation as if verified. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Salesforce/SalesforceBulkQuery.cs` and `tests/Koras.Connect.Tests/Salesforce/SalesforceBulkQueryTests.cs`. Covers: job creation posts the documented `operation`/`query` body (`query` vs. `queryAll` via `includeDeleted`) and parses the returned job id; job-state reads parse the `state` field; results paging follows `Sforce-Locator` across multiple pages via `locator`/`maxRecords` query parameters; the literal response-header value `"null"` terminates paging correctly (not confused with an absent header); a genuinely absent `Sforce-Locator` header throws `ContractException` rather than being silently treated as end-of-results; a repeated locator value is treated as a cycle and throws rather than looping forever; `maxRecords` is passed through verbatim with no asserted or hardcoded default. Full suite: 802 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Default `maxRecords` value remains unconfirmed per this feature's own spec; not hardcoded into tests or documentation as if verified. No live org with a large result set available this pass to confirm the locator mechanics end-to-end. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `SalesforceBulkQuery.cs` (job lifecycle + locator-based results paging) plus `SalesforceBulkQueryTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: the default `maxRecords` value remains unconfirmed and no live org is available this pass. |
