@@ -31,6 +31,12 @@ sealed class Koras.Connect.Microsoft.Graph.GraphCertificateAssertionTokenSource
   method System.Void Dispose()
   method System.Threading.Tasks.ValueTask<System.String> GetTokenAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Void Invalidate()
+sealed class Koras.Connect.Microsoft.Graph.GraphChatMessage
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Body {get}
+  property Koras.Connect.Microsoft.Graph.GraphMessageBody BodyDetail {get+set}
+  property System.String Id {get+set}
 sealed class Koras.Connect.Microsoft.Graph.GraphClient
   ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Microsoft.Graph.GraphOptions options = null, System.TimeProvider timeProvider = null)
   property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
@@ -47,6 +53,9 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateAdministrativeUnitsAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphApplication> EnumerateApplicationsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<T> EnumerateAsync(System.String resourcePath, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphChatMessage> EnumerateChannelMessagesAsync(System.String teamId, System.String channelId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateChannelsAsync(System.String teamId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphChatMessage> EnumerateChatMessagesAsync(System.String chatId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphDirectoryRole> EnumerateDirectoryRolesAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphDriveItem> EnumerateDriveItemsAsync(System.String driveId, System.String itemId = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateDrivesAsync(System.Threading.CancellationToken cancellationToken = null)
@@ -58,6 +67,7 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphMessage> EnumerateMyMessagesAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphServicePrincipal> EnumerateServicePrincipalsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateSiteDrivesAsync(System.String siteId, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphTeamSummary> EnumerateTeamsAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphMessage> EnumerateUserMessagesAsync(System.String userId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphUser> EnumerateUsersAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphApplication> GetApplicationAsync(System.String id, System.Threading.CancellationToken cancellationToken = null)
@@ -68,9 +78,12 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphSite> GetRootSiteAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphServicePrincipal> GetServicePrincipalAsync(System.String id, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphSite> GetSiteByPathAsync(System.String hostname, System.String serverRelativePath = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetTeamAsync(System.String teamId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphUser> GetUserAsync(System.String idOrUserPrincipalName, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetUserDriveAsync(System.String userId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task RemoveGroupMemberAsync(System.String groupId, System.String memberId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> SendChannelMessageAsync(System.String teamId, System.String channelId, System.String body, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.String> SendChatMessageAsync(System.String chatId, System.String body, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task SendMailAsync(System.String subject, System.String bodyHtml, System.Collections.Generic.IReadOnlyList<System.String> toRecipients, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateEventAsync(System.String userId, System.String eventId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateListItemFieldsAsync(System.String siteId, System.String listId, System.String itemId, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
@@ -224,6 +237,18 @@ sealed class Koras.Connect.Microsoft.Graph.GraphSite
   method Koras.Connect.Microsoft.Graph.GraphSite <Clone>$()
   method System.Void Deconstruct(System.String& Id, System.String& DisplayName, System.String& WebUrl)
   method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphSite other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Microsoft.Graph.GraphTeamSummary
+  ctor(System.String Id, System.String DisplayName, System.String Description, System.String Visibility)
+  property System.String Description {get+init}
+  property System.String DisplayName {get+init}
+  property System.String Id {get+init}
+  property System.String Visibility {get+init}
+  method Koras.Connect.Microsoft.Graph.GraphTeamSummary <Clone>$()
+  method System.Void Deconstruct(System.String& Id, System.String& DisplayName, System.String& Description, System.String& Visibility)
+  method System.Boolean Equals(Koras.Connect.Microsoft.Graph.GraphTeamSummary other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()

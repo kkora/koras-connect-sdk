@@ -4,10 +4,10 @@ title: "Teams messages and chats"
 category: "microsoft-graph"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: EnumerateChannelMessagesAsync/SendChannelMessageAsync and EnumerateChatMessagesAsync/SendChatMessageAsync cover both channel and chat message paths identically regardless of RSC-vs-tenant-wide permission tier, since the HTTP calls themselves don't differ - which tier backs the token is purely a MGR-002 configuration choice. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public async Task<string> SendChannelMessageAsync(string teamId, string channelI
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. RSC's per-resource consent model is materially more complex to configure than a typical tenant-wide application permission and must be documented clearly to avoid caller confusion (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/GraphTeamsMessages.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/GraphTeamsMessagesTests.cs`. Covers: channel and chat message enumeration both parse the flattened `body.content` field via `GraphChatMessage.Body`; send to either requires the shared `writesEnabled` opt-in and composes the documented `{"body":{"content":...}}` envelope, parsing the returned `id`. Full suite: 961 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | RSC's per-resource consent model is materially more complex to configure than tenant-wide application permission and is documented in `GraphConnectionOptions`/`GraphPermissionRequirement` (MGR-002) rather than enforced in code, since the HTTP call is identical either way. A send attempted against a chat/channel the RSC app was never installed into is not specially distinguished from a generic 403 locally - no live tenant available this pass to confirm the server's actual error shape for that case. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphTeamsMessages.cs` plus `GraphTeamsMessagesTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |

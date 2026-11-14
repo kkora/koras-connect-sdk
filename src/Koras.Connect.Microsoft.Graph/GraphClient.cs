@@ -40,7 +40,9 @@ public sealed partial class GraphClient : IConnector
             "GetRootSite", "GetSiteByPath", "EnumerateSiteDrives",
             "EnumerateLists", "EnumerateListItems", "CreateListItem", "UpdateListItemFields",
             "EnumerateMyMessages", "EnumerateUserMessages", "SendMail",
-            "EnumerateEvents", "CreateEvent", "UpdateEvent", "DeleteEvent"],
+            "EnumerateEvents", "CreateEvent", "UpdateEvent", "DeleteEvent",
+            "EnumerateTeams", "GetTeam", "EnumerateChannels",
+            "EnumerateChannelMessages", "SendChannelMessage", "EnumerateChatMessages", "SendChatMessage"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). The Authentication/Connectivity stages
