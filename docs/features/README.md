@@ -30,5 +30,8 @@ Each feature has one Markdown file. Open the file to review its requirements, cu
 | ADP | 22 | [adp/](adp/README.md) |
 | SAP SuccessFactors | 16 | [sap-successfactors/](sap-successfactors/README.md) |
 | Qualtrics | 16 | [qualtrics/](qualtrics/README.md) |
+| Dataverse | 22 | [dataverse/](dataverse/README.md) |
+| Salesforce | 22 | [salesforce/](salesforce/README.md) |
+| Microsoft Graph | 26 | [microsoft-graph/](microsoft-graph/README.md) |
 
-Total: **74 features** (20 SDK, 22 ADP, 16 SAP, 16 Qualtrics). No application source, package or workflow changes are part of this reorganization.
+Total: **144 features** (20 SDK, 22 ADP, 16 SAP, 16 Qualtrics - Phase 1; 22 Dataverse, 22 Salesforce, 26 Microsoft Graph - Phase 2). The Phase 2 categories were split out of the single-file [Phase 2 master specification](KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md) into one tracker file per feature, matching the Phase 1 convention; that master document remains authoritative for shared Phase 2 architecture, cross-connector sections, and official API research. No application source, package or workflow changes are part of this reorganization.

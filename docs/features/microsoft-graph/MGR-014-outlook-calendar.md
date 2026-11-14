@@ -1,0 +1,70 @@
+---
+id: "MGR-014"
+title: "Outlook calendar"
+category: "microsoft-graph"
+priority: "P1"
+phase: "P2-D5"
+status: "not-started"
+baseline_status: "Not started"
+verification: "unverified"
+last_updated: "2026-11-13"
+implementation_commit: null
+---
+
+# MGR-014 - Outlook calendar
+
+[Feature tracker](../README.md) | [Category](README.md) | [Phase 2 master architecture and scope](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md)
+
+## Specification
+
+Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in the [Phase 2 master specification](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md), which remains the authoritative source for shared architecture, cross-connector sections 15-30, and official API research. This file is the single, authoritative per-feature tracker for MGR-014 going forward; no Phase 2 implementation exists yet.
+
+1. **Feature ID:** MGR-014.
+2. **Feature name:** Outlook calendar.
+3. **Description:** Read and manage Outlook calendar events.
+4. **Business value:** Read and manage Outlook calendar events.
+5. **Owning package:** `Koras.Connect.Microsoft.Graph`.
+6. **Priority:** P1.
+7. **Planned development phase:** P2-D5; see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
+8. **Current implementation status:** The `status` metadata at the top of this file is authoritative. No Phase 2 connector code exists in the repository as of the Phase 2 master specification commit `eb063ba`; this feature is `not-started`.
+9. **Existing implementation evidence:** None.
+10. **Functional requirements:** `GET /me/events`, `GET /users/{id}/events`, `POST .../events`, `PATCH`/`DELETE .../events/{id}` [confirmed]. **Notable, independently confirmed contrast with Teams/Planner (MGR-015 through MGR-017)**: calendar application permissions are **fully supported and symmetric** with delegated permissions - `Calendars.ReadBasic`/`Calendars.Read`/`Calendars.ReadWrite` are identical in capability across both delegated and application permission types, unlike Teams (RSC-gated) or Planner (app-only unsupported entirely).
+11. **Nonfunctional requirements:** Explicit write opt-in gate on create/update/delete.
+12. **Public API contracts or proposed contracts:** Official API: `/events` CRUD and the full app-only/delegated symmetry claim, confirmed. Proposed C# contracts:
+
+```csharp
+public sealed class GraphEvent { public string? Id { get; set; } public string? Subject { get; set; } public DateTimeOffset? Start { get; set; } public DateTimeOffset? End { get; set; } public Dictionary<string, JsonElement>? AdditionalData { get; set; } }
+public async Task<string> CreateEventAsync(string userId, GraphEvent @event, bool writesEnabled = false, CancellationToken ct = default);
+```
+13. **Dependencies:** MGR-001, MGR-003, MGR-004.
+14. **Security considerations:** Authentication and authorization: `Calendars.ReadBasic`/`Calendars.Read`/`Calendars.ReadWrite`, application or delegated, with identical capability. Required permissions/scopes/licenses: As above. Data privacy and security: Calendar data can reveal sensitive scheduling/business information; not specially redacted beyond the SDK's general policy.
+15. **Error and edge-case handling:** Pagination, throttling and retry behavior: Reuses MGR-019. Error handling and concurrency: Standard classification.
+16. **Unit-test requirements:** Event CRUD composition; app-only vs. delegated symmetry is reflected correctly (no artificial restriction imposed where the vendor imposes none).
+17. **Integration-test requirements:** Contract-test scenarios: Synthetic fixture for an event list and a created event. Integration-test requirements: Authorized tenant with Exchange Online calendars; not available this pass.
+18. **Acceptance criteria:** Calendar CRUD works identically under app-only and delegated tokens, matching the documented symmetry.
+19. **Definition of Done:** Standard template.
+20. **External API entitlement or documentation blockers:** None beyond the standing no-live-tenant caveat.
+
+## Completion evidence
+
+The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
+
+- [ ] Functional requirements and public API contract satisfied.
+- [ ] Acceptance criteria and Definition of Done satisfied.
+- [ ] Required unit, contract and integration checks pass at the recorded revision.
+- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
+- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+
+| Evidence | Record |
+|---|---|
+| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
+| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
+| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
+
+## Status history
+
+| Date | Status | Evidence / reason |
+|---|---|---|
+| 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
