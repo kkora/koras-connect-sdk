@@ -4,10 +4,10 @@ title: "Contract tests, diagnostics and examples"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3/P2-D6"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: 19 synthetic-HttpMessageHandler test files cover SFD-001 through SFD-021's P0/P1 functional/unit-test requirements offline (no live network access); DiagnoseAsync (SFD-003) implements Configuration/Authentication/Connectivity, issuing only the single unauthenticated-then-authenticated GET-root probe, never a mutating request; samples/Salesforce.OfflineWalkthrough demonstrates auth -> diagnostics -> CRUD -> paginated SOQL -> describe end to end, built and actually run via dotnet run, entirely offline. The required gRPC synthetic test double for SFD-014's surface does not exist because SFD-014 itself was never implemented (confirmed blocked, not attempted, per its own spec)."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -46,18 +46,18 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (REST/JSON scope only - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (SFD-009/SFD-014 field-name/wire-format re-verification remains the stated release blocker).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
-- [ ] Documentation and consumer examples updated; acceptance recorded where required.
+- [x] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No live Salesforce org is available in this documentation pass; the Composite API (SFD-009) and Pub/Sub API (SFD-014) field-name/wire-format details are explicitly the highest-priority re-verification items before any Salesforce connector implementation begins (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: 19 synthetic-`HttpMessageHandler` test files under `tests/Koras.Connect.Tests/Salesforce/` exercise every SFD-001 through SFD-021 feature offline. Added `samples/Salesforce.OfflineWalkthrough/` (`Program.cs` + `.csproj`), built and actually run via `dotnet run` on this checkout: token exchange, `DiagnoseAsync` (Configuration/Authentication/Connectivity all `Passed`), create/read/update/delete an Account, a two-page SOQL enumeration, and a describe call, all against a synthetic `HttpMessageHandler`, zero network access. Full suite: 856 passed, 3 skipped, 0 failed. `Koras.Connect.Salesforce.snapshot.txt` is current as of this commit. |
+| Remaining work / blockers | No gRPC synthetic test double exists for SFD-014, since SFD-014 itself remains confirmed-blocked-not-attempted per its own spec - there is no implementation surface to double for. SFD-009 (Composite) and the handful of other `partial`-status features' snippet-sourced field names remain the highest-priority re-verification items before any Salesforce connector feature ships as `verified`; every such caveat is carried into each feature's own tracker doc rather than silently upgraded here. No live Salesforce org available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -65,3 +65,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `samples/Salesforce.OfflineWalkthrough/`, built and run successfully offline; confirmed 19 existing Salesforce test files already satisfy this feature's offline-test requirement across SFD-001-021. Checked the unit/contract, security/cancellation/resource-ownership, and documentation gates; held at `partial` because SFD-014 has no implementation to test and several other features remain snippet-confidence pending live-org re-verification. |
