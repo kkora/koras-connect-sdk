@@ -62,8 +62,9 @@ public sealed partial class SalesforceClient
                 var status = item.TryGetProperty("httpStatusCode", out var statusElement) && statusElement.TryGetInt32(out var code) ? code : 0;
                 var succeeded = status is >= 200 and < 300;
                 var body = item.TryGetProperty("body", out var bodyElement) ? bodyElement : (JsonElement?)null;
+                var errorCode = succeeded ? null : (body is not null ? SalesforceApiException.TryExtractErrorCode(body.Value) : null) ?? $"http_{status}";
                 results.Add(new BatchItemResult<JsonElement>(index++, succeeded, succeeded && body is not null ? body.Value.Clone() : default,
-                    succeeded ? null : $"http_{status}"));
+                    succeeded ? null : errorCode));
             }
             return results;
         }

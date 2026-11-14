@@ -86,7 +86,19 @@ public sealed class SalesforceCompositeTests
         var results = await client.ExecuteCompositeAsync(requests, writesEnabled: true);
         Assert.True(results[0].Succeeded);
         Assert.False(results[1].Succeeded);
-        Assert.Equal("http_404", results[1].ErrorCode);
+        Assert.Equal("NOT_FOUND", results[1].ErrorCode);
+    }
+
+    [Fact]
+    public async Task AFailedSubrequestWithoutAnExtractableErrorCodeFallsBackToTheHttpStatusCode()
+    {
+        var client = Client((_, _) => Task.FromResult(Json("""
+            {"compositeResponse":[{"body":{"unexpected":"shape"},"httpStatusCode":500,"referenceId":"refGet"}]}
+            """)));
+        var requests = new[] { new SalesforceCompositeSubrequest(HttpMethod.Get, "/sobjects/Account/999", "refGet") };
+        var results = await client.ExecuteCompositeAsync(requests);
+        Assert.False(results[0].Succeeded);
+        Assert.Equal("http_500", results[0].ErrorCode);
     }
 
     [Fact]

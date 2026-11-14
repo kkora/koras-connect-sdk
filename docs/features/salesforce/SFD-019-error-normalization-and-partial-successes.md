@@ -4,10 +4,10 @@ title: "Error normalization and partial successes"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: SalesforceApiException.ClassifyErrorCode maps documented errorCode values (INVALID_SESSION_ID/INSUFFICIENT_ACCESS/REQUEST_LIMIT_EXCEEDED plus a ContractException default) into the typed hierarchy; ExecuteCompositeAsync (SFD-009) now extracts the real per-subrequest errorCode via the existing TryExtractErrorCode helper instead of a generic http_{status} code, falling back to it when extraction fails. The proposed contract's signature was adapted to accept an explicit HttpStatusCode, since the type structurally requires one. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -52,18 +52,18 @@ public sealed class SalesforceApiException : IntegrationException
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (adapted signature - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (raw body shape not independently re-verified).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No verbatim raw JSON error sample was independently retrieved; re-verify exact body shape (array vs. object wrapper, field casing) before release. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `SalesforceApiException.ClassifyErrorCode` (`src/Koras.Connect.Salesforce/SalesforceOptions.cs`) and wired it into `ExecuteCompositeAsync`'s per-subrequest result (`src/Koras.Connect.Salesforce/SalesforceComposite.cs`), plus `tests/Koras.Connect.Tests/Salesforce/SalesforceErrorNormalizationTests.cs`. Covers: `INVALID_SESSION_ID`→`AuthenticationException`, `INSUFFICIENT_ACCESS`→`AuthorizationException`, `REQUEST_LIMIT_EXCEEDED`→`ThrottleException` with no assumed `RetryAfter`; every other documented code (`REQUIRED_FIELD_MISSING`/`INVALID_FIELD`/`MALFORMED_ID`/`DUPLICATE_VALUE`/`FIELD_INTEGRITY_EXCEPTION`/`RECORD_NOT_FOUND`/`ENTITY_IS_DELETED`/`ENTITY_IS_LOCKED`/`STORAGE_LIMIT_EXCEEDED`/`INVALID_CROSS_REFERENCE_KEY`) and an unrecognized code both classify as `ContractException`; the raw `message` is never attached to the thrown exception. `SalesforceCompositeTests.cs` updated: a failed subrequest with an extractable body now reports the real `errorCode` (e.g. `NOT_FOUND`) via `BatchItemResult<T>.ErrorCode` instead of a generic `http_{status}`, with a new test confirming the `http_{status}` fallback when the body shape doesn't match. Full suite: 845 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The proposed `Classify(string errorCode, string message, IReadOnlyList<string>? fields)` contract was adapted to `ClassifyErrorCode(HttpStatusCode, string errorCode, ...)` - the type structurally requires a status code, and this SDK's standard single-record write/read paths never expose a failed response's body in the first place (by design, to avoid logging business data), so this classifier is reachable today only from `/composite` subrequests, which do carry both. No verbatim raw JSON error sample was independently retrieved; body shape (array vs. object wrapper, field casing) remains unverified. No live org available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -71,3 +71,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `SalesforceApiException.ClassifyErrorCode` and wired it into `ExecuteCompositeAsync`, plus `SalesforceErrorNormalizationTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented scope; held at `partial` because the raw body shape remains unverified and the classifier is reachable only from the composite path today. |

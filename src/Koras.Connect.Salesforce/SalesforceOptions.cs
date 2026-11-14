@@ -44,6 +44,31 @@ public sealed class SalesforceApiException : IntegrationException
         return new SalesforceApiException(classified.Message, classified.Details, statusCode, retryAfter, classified);
     }
 
+    /// <summary>Classifies a documented Salesforce <c>errorCode</c> (SFD-019) into the SDK's typed exception
+    /// hierarchy, for callers that have a parsed error body in hand (for example a <c>/composite</c> subrequest's
+    /// own result, which always carries both an <c>httpStatusCode</c> and an error body - unlike this SDK's
+    /// standard single-record write/read paths, which never expose a failed response's body to avoid risking a
+    /// business-data leak into logs). <paramref name="statusCode"/> is required structurally by this type even
+    /// though the feature's own proposed contract omitted it - a documented, deliberate adaptation, the same kind
+    /// already applied to <c>BatchItemResult&lt;T&gt;</c>'s nullability fix. Every documented <c>errorCode</c> not
+    /// explicitly listed below falls back to <see cref="ContractException"/>, matching every other connector's
+    /// classifier-default discipline. The raw <paramref name="message"/> is never attached to the thrown
+    /// exception - only the sanitized <paramref name="errorCode"/> - matching this feature's own redaction
+    /// precedent for potentially sensitive echoed field values.</summary>
+    public static SalesforceApiException ClassifyErrorCode(System.Net.HttpStatusCode statusCode, string errorCode, string? message = null,
+        IReadOnlyList<string>? fields = null, string? correlationId = null, TimeSpan? retryAfter = null)
+    {
+        var details = new ErrorDetails(errorCode, correlationId);
+        Koras.Connect.Exceptions.IntegrationException classified = errorCode switch
+        {
+            "INVALID_SESSION_ID" => new AuthenticationException($"Request was not authenticated ({errorCode}).", details),
+            "INSUFFICIENT_ACCESS" => new AuthorizationException($"Request was denied ({errorCode}).", details),
+            "REQUEST_LIMIT_EXCEEDED" => new ThrottleException($"Request was throttled ({errorCode}).", details, retryAfter),
+            _ => new ContractException($"Request failed ({errorCode}).", details),
+        };
+        return new SalesforceApiException(classified.Message, classified.Details, statusCode, retryAfter, classified);
+    }
+
     public static SalesforceApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, string? correlationId = null, TimeSpan? retryAfter = null)
     {
         ArgumentNullException.ThrowIfNull(failure);

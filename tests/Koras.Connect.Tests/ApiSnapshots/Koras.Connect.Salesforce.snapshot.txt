@@ -2,6 +2,7 @@ sealed class Koras.Connect.Salesforce.SalesforceApiException
   property System.Nullable<System.TimeSpan> RetryAfter {get}
   property System.Net.HttpStatusCode StatusCode {get}
   method Koras.Connect.Salesforce.SalesforceApiException Classify(System.Net.HttpStatusCode statusCode, System.Int32 attempts, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
+  method Koras.Connect.Salesforce.SalesforceApiException ClassifyErrorCode(System.Net.HttpStatusCode statusCode, System.String errorCode, System.String message = null, System.Collections.Generic.IReadOnlyList<System.String> fields = null, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
   method Koras.Connect.Salesforce.SalesforceApiException FromTransportFailure(Koras.Connect.Transport.IntegrationRequestException failure, System.String correlationId = null, System.Nullable<System.TimeSpan> retryAfter = null)
   method System.String TryExtractErrorCode(System.Text.Json.JsonElement body)
 sealed class Koras.Connect.Salesforce.SalesforceApiVersion
@@ -77,7 +78,7 @@ sealed class Koras.Connect.Salesforce.SalesforceClient
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceQueryResult<T>> QueryAsync(System.String soql, System.Boolean includeDeleted = False, System.Nullable<System.Int32> batchSize = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Salesforce.SalesforceChangeEvent> SubscribeToChangeEventsAsync(System.String channel, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> SubscribeToPlatformEventAsync(System.String eventApiName, System.Threading.CancellationToken cancellationToken = null)
-  method System.Threading.Tasks.Task UpdateRecordAsync(System.String sObject, System.String id, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateRecordAsync(System.String sObject, System.String id, System.Text.Json.JsonElement fields, System.String ifUnmodifiedSince = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.String> UploadContentVersionAsync(System.String title, System.String pathOnClient, System.IO.Stream content, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UploadIngestBatchAsync(Koras.Connect.Salesforce.SalesforceBulkJobHandle job, System.IO.Stream csv, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Salesforce.SalesforceUpsertResult> UpsertByExternalIdAsync(System.String sObject, System.String externalIdField, System.String externalIdValue, System.Text.Json.JsonElement fields, System.Boolean updateOnly = False, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
@@ -106,6 +107,8 @@ sealed class Koras.Connect.Salesforce.SalesforceCompositeSubrequest
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
+sealed class Koras.Connect.Salesforce.SalesforceConcurrencyException
+  ctor(System.String message, Koras.Connect.Exceptions.ErrorDetails details)
 sealed class Koras.Connect.Salesforce.SalesforceConnectionOptions
   ctor(System.Uri InstanceRoot, System.Uri TokenEndpoint, System.String ClientId, System.String ClientSecret = null, System.String JwtSubject = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null, System.String ApiVersion = v68.0)
   property System.String ApiVersion {get+init}

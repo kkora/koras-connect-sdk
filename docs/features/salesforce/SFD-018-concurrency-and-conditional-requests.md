@@ -4,10 +4,10 @@ title: "Concurrency and conditional requests"
 category: "salesforce"
 priority: "P0"
 phase: "P2-D3"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "partial"
+baseline_status: "Implemented: UpdateRecordAsync gained an ifUnmodifiedSince parameter sending the documented If-Unmodified-Since header; a 412 response classifies as the new SalesforceConcurrencyException (mirroring DVT-013). Strong validation (ETag/If-Match) is not exposed - its scope was flagged as possibly Account-only and unconfirmed. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -50,18 +50,18 @@ public async Task UpdateRecordAsync(string sObject, string id, JsonElement field
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied (weak-validation path only - see below).
+- [ ] Acceptance criteria and Definition of Done satisfied (ETag-scope re-verification remains this feature's own explicit release blocker).
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The "Account records only" ETag-scoping claim is the highest-priority re-verification item in this feature. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: extended `UpdateRecordAsync` (`src/Koras.Connect.Salesforce/SalesforceRecords.cs`) with an `ifUnmodifiedSince` parameter and added `SalesforceConcurrencyException` plus `tests/Koras.Connect.Tests/Salesforce/SalesforceConcurrencyTests.cs`. Covers: the `If-Unmodified-Since` header is sent when supplied and omitted when not; a `412` response classifies as `SalesforceConcurrencyException` distinct from every other failure, which still goes through the standard classifier. Full suite: 845 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | Strong validation (`ETag`/`If-Match`) is not exposed - one source scoped it to Account records only, an unusually narrow and unconfirmed claim that remains this feature's highest-priority re-verification item. `If-None-Match` (304) and malformed-header (400) classification are not separately exercised since this SDK's current read paths do not accept conditional headers; `If-Range`/DELETE conditional semantics are correctly not implemented, matching the documented "explicitly unsupported" guidance. No live org available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `partial` | Added `ifUnmodifiedSince` to `UpdateRecordAsync` plus `SalesforceConcurrencyException` and `SalesforceConcurrencyTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the weak-validation scope; held at `partial` because strong validation's scope remains unconfirmed. |
