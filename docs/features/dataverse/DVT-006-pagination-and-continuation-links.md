@@ -4,9 +4,9 @@ title: "Pagination and continuation links"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: DataverseClient.EnumerateAsync/EnumeratePageAsync honor Prefer: odata.maxpagesize, forward @odata.nextLink's opaque $skiptoken unmodified via EndpointSafety.Continuation, and reject simultaneous $top+maxpagesize locally. Unit-tested; no live large table available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -49,18 +49,18 @@ public Task<Page<T>> EnumeratePageAsync<T>(string entitySet, DataverseQuery? que
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Exact per-tenant/per-table row-count thresholds that trigger multi-page results are not independently verifiable without a live large table. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `EnumerateAsync`/`EnumeratePageAsync` to `DataverseRows.cs`, tested by `tests/Koras.Connect.Tests/Dataverse/DataversePaginationTests.cs`. Covers: `Prefer: odata.maxpagesize=N` sent correctly; values above 5,000 are not client-rejected (server-side capping is documented, not an SDK concern); simultaneous `$top`+`maxPageSize` rejected locally before any HTTP call; `@odata.nextLink` followed transparently including an empty page carrying a non-null link; off-origin `@odata.nextLink` rejected via `EndpointSafety.Continuation`; a repeated/cyclic link and a runaway page count both throw `InvalidDataException`. Full suite: 627 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No authorized sandbox table with more than 5,000 rows available this pass to observe real multi-page pagination; exact per-tenant/per-table thresholds remain unverified against a live tenant. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `EnumerateAsync`/`EnumeratePageAsync` plus `DataversePaginationTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live large table available this pass. |

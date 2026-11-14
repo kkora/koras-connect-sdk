@@ -8,7 +8,7 @@ namespace Koras.Connect.Dataverse;
 /// environment's own API host (for example <c>https://contoso.api.crm.dynamics.com/</c>), not the Web API path
 /// itself - <see cref="DataverseClient"/> composes the fixed <see cref="DataverseClient.ApiVersion"/> Web API path
 /// onto it (DVT-003).</summary>
-public sealed record DataverseOptions(Uri EnvironmentRoot, int MaxPageSize = 5000) : IValidatableOptions
+public sealed record DataverseOptions(Uri EnvironmentRoot, int MaxPageSize = 5000, int MaxPages = 10000) : IValidatableOptions
 {
     public void Validate()
     {
@@ -16,6 +16,7 @@ public sealed record DataverseOptions(Uri EnvironmentRoot, int MaxPageSize = 500
         if (EnvironmentRoot is null || !EnvironmentRoot.IsAbsoluteUri || EnvironmentRoot.Scheme != Uri.UriSchemeHttps || EnvironmentRoot.UserInfo.Length != 0)
             failures.Add($"{nameof(EnvironmentRoot)}: must be an absolute HTTPS URI without user information.");
         if (MaxPageSize is < 1 or > 5000) failures.Add($"{nameof(MaxPageSize)}: must be between 1 and 5000.");
+        if (MaxPages is < 1 or > 100000) failures.Add($"{nameof(MaxPages)}: must be between 1 and 100000.");
         if (failures.Count > 0) throw new OptionsValidationException(nameof(DataverseOptions), failures);
     }
 }

@@ -15,7 +15,13 @@ sealed class Koras.Connect.Dataverse.DataverseCertificateAssertionTokenSource
 sealed class Koras.Connect.Dataverse.DataverseClient
   ctor(Koras.Connect.Transport.IntegrationTransport transport, Koras.Connect.Dataverse.DataverseOptions options, System.TimeProvider timeProvider = null)
   property Koras.Connect.Abstractions.ConnectorDescriptor Descriptor {get}
+  method System.Threading.Tasks.Task<System.Guid> CreateRowAsync(System.String entitySet, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DeleteRowAsync(System.String entitySet, System.Guid id, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<Koras.Connect.Abstractions.Page<System.Text.Json.JsonElement>> EnumeratePageAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Nullable<System.Int32> maxPageSize = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRowAsync(System.String entitySet, System.Guid id, Koras.Connect.Dataverse.DataverseQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UpdateRowAsync(System.String entitySet, System.Guid id, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Void ValidateOptions(Koras.Connect.Dataverse.DataverseOptions options)
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.WhoAmIResult> WhoAmIAsync(System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Dataverse.DataverseClientCredentialsOptions
@@ -66,16 +72,45 @@ sealed class Koras.Connect.Dataverse.DataverseInstance
   method System.Int32 GetHashCode()
   method System.String ToString()
 sealed class Koras.Connect.Dataverse.DataverseOptions
-  ctor(System.Uri EnvironmentRoot, System.Int32 MaxPageSize = 5000)
+  ctor(System.Uri EnvironmentRoot, System.Int32 MaxPageSize = 5000, System.Int32 MaxPages = 10000)
   property System.Uri EnvironmentRoot {get+init}
   property System.Int32 MaxPageSize {get+init}
+  property System.Int32 MaxPages {get+init}
   method Koras.Connect.Dataverse.DataverseOptions <Clone>$()
-  method System.Void Deconstruct(System.Uri& EnvironmentRoot, System.Int32& MaxPageSize)
+  method System.Void Deconstruct(System.Uri& EnvironmentRoot, System.Int32& MaxPageSize, System.Int32& MaxPages)
   method System.Boolean Equals(Koras.Connect.Dataverse.DataverseOptions other)
   method System.Boolean Equals(System.Object obj)
   method System.Int32 GetHashCode()
   method System.String ToString()
   method System.Void Validate()
+sealed class Koras.Connect.Dataverse.DataverseQuery
+  ctor(System.String Select = null, System.String Filter = null, System.String OrderBy = null, System.String Expand = null, System.String Apply = null, System.Nullable<System.Int32> Top = null, System.Boolean Count = False)
+  property System.String Apply {get+init}
+  property System.Boolean Count {get+init}
+  property System.String Expand {get+init}
+  property System.String Filter {get+init}
+  property System.String OrderBy {get+init}
+  property System.String Select {get+init}
+  property System.Nullable<System.Int32> Top {get+init}
+  method Koras.Connect.Dataverse.DataverseQuery <Clone>$()
+  method System.Void Deconstruct(System.String& Select, System.String& Filter, System.String& OrderBy, System.String& Expand, System.String& Apply, System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]& Top, System.Boolean& Count)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseQuery other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseRecordProjection
+  ctor(System.Guid Id, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Fields)
+  property System.Collections.Generic.IReadOnlyDictionary<System.String, System.Text.Json.JsonElement> Fields {get+init}
+  property System.Guid Id {get+init}
+  method Koras.Connect.Dataverse.DataverseRecordProjection <Clone>$()
+  method System.Void Deconstruct(System.Guid& Id, System.Collections.Generic.IReadOnlyDictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Text.Json.JsonElement, System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]]& Fields)
+  method System.Boolean Equals(Koras.Connect.Dataverse.DataverseRecordProjection other)
+  method System.Boolean Equals(System.Object obj)
+  method System.Int32 GetHashCode()
+  method System.String ToString()
+sealed class Koras.Connect.Dataverse.DataverseRowMapper<TTarget>
+  ctor(System.String idField, System.Func<Koras.Connect.Dataverse.DataverseRecordProjection, Koras.Connect.Abstractions.MappingResult<TTarget>> project)
+  method Koras.Connect.Abstractions.MappingResult<TTarget> Map(System.Text.Json.JsonElement source)
 abstract class Koras.Connect.Dataverse.DataverseServiceCollectionExtensions
   method Microsoft.Extensions.DependencyInjection.IServiceCollection AddKorasDataverse(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Koras.Connect.Dataverse.DataverseConnectionOptions options, Koras.Connect.Transport.TransportOptions transport = null)
 interface Koras.Connect.Dataverse.IDataverseDiscoveryClient
