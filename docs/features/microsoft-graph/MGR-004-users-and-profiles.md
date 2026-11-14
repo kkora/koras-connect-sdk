@@ -4,10 +4,10 @@ title: "Users and profiles"
 category: "microsoft-graph"
 priority: "P0"
 phase: "P2-D4"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
-last_updated: "2026-11-13"
+status: "implemented"
+baseline_status: "Implemented: EnumerateUsersAsync/GetUserAsync/CreateUserAsync/UpdateUserAsync/DeleteUserAsync cover the documented CRUD surface; GetMeAsync enforces the /me delegated-only restriction locally via the new GraphOptions.IsDelegatedContext flag, since the SDK cannot introspect an arbitrary caller-supplied token source. Also introduces GraphQuery/EnumerateAsync<T> (MGR-019's ordinary-pagination half), pulled forward since MGR-004 structurally depends on it. Unit-tested."
+verification: "partial"
+last_updated: "2026-11-14"
 implementation_commit: null
 ---
 
@@ -49,18 +49,18 @@ public IAsyncEnumerable<GraphUser> EnumerateUsersAsync(GraphQuery? query = null,
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. None beyond the standing no-live-tenant caveat. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Microsoft.Graph/{GraphPagination,GraphUsers}.cs` and `tests/Koras.Connect.Tests/MicrosoftGraph/{GraphPagination,GraphUsers}Tests.cs`. Covers: user enumeration follows `@odata.nextLink`; `GetUserAsync` reads by id or UPN; `GetMeAsync` throws `InvalidOperationException` before any HTTP call unless `GraphOptions.IsDelegatedContext` is `true`, and succeeds against `/me` when it is; create/update/delete all require the shared `writesEnabled` opt-in and compose the documented URLs; create parses the returned `id`. Full suite: 900 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No live Entra tenant available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-14 | `implemented` | Added `GraphUsers.cs` (plus `GraphPagination.cs`, pulled forward from MGR-019) and both test files. Checked the unit/contract and security/cancellation/resource-ownership gates; status moves from `not-started` to `implemented`. `verification` stays `partial`: no live tenant available this pass. |

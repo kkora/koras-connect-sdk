@@ -30,7 +30,8 @@ public sealed partial class GraphClient : IConnector
         => GraphApiException.FromTransportFailure(ex);
 
     public ConnectorDescriptor Descriptor => new("MicrosoftGraph", "Microsoft Graph", _options.UseBetaEndpoint ? "beta" : "v1.0",
-        SupportedOperations: [],
+        SupportedOperations: ["EnumerateUsers", "GetUser", "GetMe", "CreateUser", "UpdateUser", "DeleteUser",
+            "EnumerateGroups", "EnumerateGroupMembers", "AddGroupMember", "RemoveGroupMember"],
         Entitlements: new Dictionary<string, EntitlementEvidence>());
 
     /// <summary>Bounded, read-only, opt-in connectivity probe (MGR-026). Only the Configuration stage is

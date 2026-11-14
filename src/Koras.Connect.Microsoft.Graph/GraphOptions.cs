@@ -9,8 +9,11 @@ namespace Koras.Connect.Microsoft.Graph;
 /// <summary>Version-root selection for every Graph request (MGR-003). <see cref="UseBetaEndpoint"/> defaults to
 /// <c>false</c> (GA <c>v1.0</c>) - the beta endpoint is explicit opt-in only, since Microsoft documents beta as
 /// not supported in production (carried forward honestly in MGR-026's sample/test documentation, not silently
-/// treated as production-safe).</summary>
-public sealed record GraphOptions(bool UseBetaEndpoint = false) : IValidatableOptions
+/// treated as production-safe). <see cref="IsDelegatedContext"/> declares whether the configured token source
+/// represents a signed-in user (delegated) rather than an unattended daemon (app-only, the default) - the SDK
+/// cannot introspect an arbitrary caller-supplied <c>IAccessTokenSource</c> to tell the two apart itself, so a
+/// delegated caller must opt in explicitly (MGR-004's <c>/me</c> guard reads this flag).</summary>
+public sealed record GraphOptions(bool UseBetaEndpoint = false, bool IsDelegatedContext = false) : IValidatableOptions
 {
     public void Validate() { }
 }
