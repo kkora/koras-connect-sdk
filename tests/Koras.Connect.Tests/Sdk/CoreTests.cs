@@ -94,6 +94,18 @@ public sealed class CoreTests
         Assert.Equal(1, calls); Assert.DoesNotContain("private", ex.ToString());
         await Assert.ThrowsAsync<ArgumentException>(() => t.SendRawAsync(HttpMethod.Post, new("https://api.test"), "body", "text/plain", new Dictionary<string, string> { ["Host"] = "x" }));
     }
+    [Fact] public async Task UploadAsyncStreamsTheBodyAndRejectsReservedHeaders()
+    {
+        string? contentType = null; byte[]? sentBytes = null;
+        using var h = new HttpClient(new Handler(r => { contentType = r.Content?.Headers.ContentType?.MediaType; sentBytes = r.Content!.ReadAsByteArrayAsync().GetAwaiter().GetResult(); return Reply("{}"); }));
+        var t = new IntegrationTransport(h, new Token());
+        using var content = new MemoryStream([1, 2, 3]);
+        var response = await t.UploadAsync(HttpMethod.Patch, new("https://api.test"), content, "application/octet-stream");
+        Assert.Equal("application/octet-stream", contentType);
+        Assert.Equal(new byte[] { 1, 2, 3 }, sentBytes);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await Assert.ThrowsAsync<ArgumentException>(() => t.UploadAsync(HttpMethod.Patch, new("https://api.test"), content, "application/octet-stream", new Dictionary<string, string> { ["Authorization"] = "x" }));
+    }
     [Fact] public async Task IndividualWorkerPreservesUnknownFieldsAndEscapesFilters()
     {
         using var h = new HttpClient(new Handler(r => { Assert.Contains("/hr/v2/workers/", r.RequestUri!.AbsolutePath); return Reply("""{"workers":[{"associateOID":"synthetic","person":{"legalName":{"givenName":"Example"}},"future":{"a":1},"workAssignments":[{"jobTitle":"Tester"}]}]}"""); }));

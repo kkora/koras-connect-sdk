@@ -1,3 +1,10 @@
+sealed class Koras.Connect.Dataverse.DataverseAnnotation
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String DocumentBodyBase64 {get+set}
+  property System.String FileName {get+set}
+  property System.Nullable<System.Boolean> IsDocument {get+set}
+  property System.String MimeType {get+set}
 sealed class Koras.Connect.Dataverse.DataverseApiException
   property System.Nullable<System.TimeSpan> RetryAfter {get}
   property System.Net.HttpStatusCode StatusCode {get}
@@ -40,9 +47,11 @@ sealed class Koras.Connect.Dataverse.DataverseClient
   method System.Threading.Tasks.Task BindLookupAsync(System.String entitySet, System.Guid id, System.String navigationProperty, System.String targetEntitySet, System.Guid targetId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task ClearLookupAsync(System.String entitySet, System.Guid id, System.String navigationProperty, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Guid> CreateRowAsync(System.String entitySet, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DeleteFileColumnAsync(System.String entitySet, System.Guid id, System.String column, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteRowAsync(System.String entitySet, System.Guid id, System.String ifMatchETag = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DisassociateAsync(System.String entitySet, System.Guid id, System.String collectionNavigationProperty, System.Guid targetId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DownloadFileColumnAsync(System.String entitySet, System.Guid id, System.String column, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateAsync(System.String entitySet, Koras.Connect.Dataverse.DataverseQuery query = null, System.Nullable<System.Int32> maxPageSize = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateEntityDefinitionsAsync(Koras.Connect.Dataverse.DataverseQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonElement> EnumerateGlobalOptionSetsAsync(System.String filterByName = null, System.Threading.CancellationToken cancellationToken = null)
@@ -51,10 +60,14 @@ sealed class Koras.Connect.Dataverse.DataverseClient
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.DataverseDeltaPage<System.Text.Json.JsonElement>> GetChangesAsync(System.String entitySet, System.String select = null, Koras.Connect.Abstractions.ContinuationToken resumeFrom = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> GetMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetRowAsync(System.String entitySet, System.Guid id, Koras.Connect.Dataverse.DataverseQuery query = null, System.Boolean includeFormattedValues = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> InvokeBoundActionAsync(System.String entitySet, System.Guid id, System.String actionName, System.Text.Json.JsonElement parameters, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> InvokeFunctionAsync(System.String functionName, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> parameters = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> InvokeUnboundActionAsync(System.String actionName, System.Text.Json.JsonElement parameters, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IReadOnlyList<Koras.Connect.Dataverse.DataverseEntityDescriptor> ParseEntityDescriptors(System.Xml.Linq.XDocument metadata)
   method System.Threading.Tasks.Task<System.Xml.Linq.XDocument> RefreshMetadataAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.String TryGetFormattedValue(System.Text.Json.JsonElement row, System.String property)
   method System.Threading.Tasks.Task UpdateRowAsync(System.String entitySet, System.Guid id, System.Text.Json.JsonElement fields, System.String ifMatchETag = null, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UploadFileColumnAsync(System.String entitySet, System.Guid id, System.String column, System.IO.Stream content, System.String fileName, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.DataverseUpsertResult> UpsertByAlternateKeyAsync(System.String entitySet, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> alternateKey, System.Text.Json.JsonElement fields, Koras.Connect.Dataverse.DataverseUpsertMode mode = CreateOrUpdate, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Void ValidateOptions(Koras.Connect.Dataverse.DataverseOptions options)
   method System.Threading.Tasks.Task<Koras.Connect.Dataverse.WhoAmIResult> WhoAmIAsync(System.Threading.CancellationToken cancellationToken = null)

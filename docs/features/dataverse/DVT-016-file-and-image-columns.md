@@ -4,9 +4,9 @@ title: "File and image columns"
 category: "dataverse"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "partial"
+baseline_status: "Implemented: UploadFileColumnAsync/DownloadFileColumnAsync/DeleteFileColumnAsync cover the single-request transfer shape (under 128 MB) via a new Core IntegrationTransport.UploadAsync plus the existing CopyToAsync. Chunked upload/download (large files, IsChunkingSupported checks) is explicitly not implemented this pass - held at partial, not implemented, per the spec's own scope."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -50,18 +50,18 @@ public async Task DeleteFileColumnAsync(string entitySet, Guid id, string column
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied (single-request transfer only; chunked transfer not satisfied - see below).
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. No live tenant with a file column available this pass; exact behavior when `IsChunkingSupported=false` is encountered mid-transfer (vs. known in advance) was not independently tested. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseFileColumns.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseFileColumnsTests.cs`, plus a new `IntegrationTransport.UploadAsync` (`Koras.Connect.Core`, streamed request body - `CopyToAsync` already covered the download-streaming primitive per the spec's own "existing implementation evidence"). Covers: upload sends `Content-Type: application/octet-stream` + `x-ms-file-name` and streams the exact bytes; download copies the response body to the destination stream via `.../{column}/$value`; delete sends `DELETE` to the column URL; every write requires `writesEnabled` before any HTTP call; an invalid (multi-line) file name is rejected locally. A dedicated `CoreTests.UploadAsyncStreamsTheBodyAndRejectsReservedHeaders` test covers the new transport primitive directly. Full suite: 705 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | **Chunked upload/download is not implemented** (session initiation, `Content-Range` sequencing, `206`/`204` handling, `IsChunkingSupported` checks) - this is a genuine functional gap, not a missing test, acknowledged explicitly rather than silently narrowing scope. `FileAttributeMetadata.MaxSizeInKB` is not checked locally before upload (requires a live/cached metadata lookup not wired up here). No live tenant with a file column, large enough to require chunking, available this pass. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `partial` | Added single-request `UploadFileColumnAsync`/`DownloadFileColumnAsync`/`DeleteFileColumnAsync` plus `IntegrationTransport.UploadAsync` and tests. Checked the unit/contract and security/cancellation/resource-ownership gates for the implemented scope; held at `partial` rather than `implemented` because chunked transfer - an explicit functional requirement - remains unbuilt. |

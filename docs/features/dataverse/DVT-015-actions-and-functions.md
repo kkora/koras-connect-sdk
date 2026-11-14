@@ -4,9 +4,9 @@ title: "Actions and functions"
 category: "dataverse"
 priority: "P1"
 phase: "P2-D5"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: InvokeUnboundActionAsync/InvokeBoundActionAsync/InvokeFunctionAsync compose all three documented invocation shapes; no named action/function beyond the generic invocation API is implemented as a typed wrapper, matching ADP-021's no-invented-operation discipline. Unit-tested; no live custom action available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -50,18 +50,18 @@ public async Task<JsonDocument> InvokeFunctionAsync(string functionName, IReadOn
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. The functions-specific official page was not independently re-fetched this session; which custom actions exist on any given tenant is entirely tenant-specific and cannot be enumerated from generic documentation. |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseActions.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseActionsTests.cs`. Covers: unbound action posts directly to the action name; bound action uses the fully-qualified `Microsoft.Dynamics.CRM.{ActionName}` form; function composes the documented `Fn(Param=@p1)?@p1=...` alias syntax (including the zero-parameter `Fn()` form); unsafe action/function names rejected locally; invocation without `writesEnabled` throws before any HTTP call. Function parameter values are forwarded exactly as supplied (the caller provides the already-quoted OData literal) rather than the SDK guessing type-specific quoting - documented, not silently wrong. Full suite: 705 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | The functions-specific official page was not independently re-fetched this session. No named action/function beyond the generic three-shape invocation API is exposed as a typed wrapper - which custom actions exist on any tenant is entirely tenant-specific and cannot be enumerated from generic documentation, matching ADP-021's precedent exactly. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -69,3 +69,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `InvokeUnboundActionAsync`/`InvokeBoundActionAsync`/`InvokeFunctionAsync` plus `DataverseActionsTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live custom action/function available this pass. |
