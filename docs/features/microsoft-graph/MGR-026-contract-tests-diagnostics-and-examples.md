@@ -3,7 +3,7 @@ id: "MGR-026"
 title: "Contract tests, diagnostics and examples"
 category: "microsoft-graph"
 priority: "P0"
-phase: "P2-D2"
+phase: "P2-D4/P2-D6"
 status: "not-started"
 baseline_status: "Not started"
 verification: "unverified"
@@ -24,9 +24,8 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 3. **Description:** Prove the Graph connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every other connector's established testing/sample discipline.
 4. **Business value:** Prove the Graph connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every other connector's established testing/sample discipline.
 5. **Owning package:** `Koras.Connect.Microsoft.Graph`.
-**Priority.** P0. **Milestone.** P2-D4 (unit/contract tests) / P2-D6 (sample, package validation).
 6. **Priority:** P0.
-7. **Planned development phase:** P2-D2; see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
+7. **Planned development phase:** P2-D4 (unit/contract tests) / P2-D6 (sample, package validation); see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
 8. **Current implementation status:** The `status` metadata at the top of this file is authoritative. No Phase 2 connector code exists in the repository as of the Phase 2 master specification commit `eb063ba`; this feature is `not-started`.
 9. **Existing implementation evidence:** Directly parallels `tests/Koras.Connect.Tests/{Sap,Qualtrics,Adp}/*.cs`'s synthetic-`HttpMessageHandler` test style and `samples/{SuccessFactors.*,Qualtrics.*,ADP.*}`'s offline sample convention; requires a new `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Microsoft.Graph.snapshot.txt` entry (SDK-017).
 10. **Functional requirements:** Offline unit/contract tests for every MGR-001 through MGR-025 P0/P1 feature, using a synthetic `HttpMessageHandler`, no live network access, running on both Linux and Windows; at least one standalone `samples/MicrosoftGraph.*` console project demonstrating authentication → users/groups → OneDrive → pagination/delta, entirely offline; a `IConnector.DiagnoseAsync` implementation covering Configuration/Authentication/Connectivity/Permissions (the last stage specific to Graph, built on MGR-024's diagnostic surface), never issuing a mutating request. v1.0-vs-beta usage must be exercised in at least one test to confirm the version-selection mechanism (MGR-003) works correctly, with beta usage clearly labeled non-production per [G10]'s "beta is not supported in production" guidance - carried into the sample's own comments, not just this document.

@@ -3,7 +3,7 @@ id: "DVT-022"
 title: "Contract tests, diagnostics and examples"
 category: "dataverse"
 priority: "P0"
-phase: "P2-D2"
+phase: "P2-D2/P2-D6"
 status: "not-started"
 baseline_status: "Not started"
 verification: "unverified"
@@ -24,9 +24,8 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 3. **Description:** Prove the Dataverse connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every Phase 1 connector's established testing/sample discipline exactly.
 4. **Business value:** Prove the Dataverse connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every Phase 1 connector's established testing/sample discipline exactly.
 5. **Owning package:** `Koras.Connect.Dataverse`.
-**Priority.** P0. **Milestone.** P2-D2 (unit/contract tests) / P2-D6 (sample, package validation).
 6. **Priority:** P0.
-7. **Planned development phase:** P2-D2; see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
+7. **Planned development phase:** P2-D2 (unit/contract tests) / P2-D6 (sample, package validation); see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
 8. **Current implementation status:** The `status` metadata at the top of this file is authoritative. No Phase 2 connector code exists in the repository as of the Phase 2 master specification commit `eb063ba`; this feature is `not-started`.
 9. **Existing implementation evidence:** Directly parallels `tests/Koras.Connect.Tests/{Sap,Qualtrics,Adp}/*.cs`'s synthetic-`HttpMessageHandler` test style and `samples/{SuccessFactors.*,Qualtrics.*,ADP.*}`'s offline, credential-free console-sample convention exactly; also requires a new `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Dataverse.snapshot.txt` entry wired into the existing `ApiSnapshotTests.cs` reflection-based baseline (SDK-017).
 10. **Functional requirements:** Offline unit/contract tests for every DVT-001 through DVT-021 P0/P1 feature, using a synthetic `HttpMessageHandler`, no live network access, running on both Linux and Windows via the existing CI matrix; at least one standalone `samples/Dataverse.*` console project demonstrating authentication → CRUD → query → pagination → metadata, entirely offline, matching `samples/SuccessFactors.PersonAndEmploymentSync`'s structure; a `IConnector.DiagnoseAsync` implementation covering Configuration/Authentication/Connectivity stages with explicit Unknown/Skipped/Failed/Passed outcomes, never issuing a mutating request, matching every existing connector's diagnostic precedent exactly.

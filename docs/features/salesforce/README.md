@@ -27,4 +27,4 @@ Current status is maintained in each feature file; this index deliberately avoid
 | [SFD-019](SFD-019-error-normalization-and-partial-successes.md) | Error normalization and partial successes | P0 | P2-D3 |
 | [SFD-020](SFD-020-typed-crm-custom-object-models.md) | Typed CRM/custom object models | P0 | P2-D3 |
 | [SFD-021](SFD-021-incremental-extraction-and-checkpoints.md) | Incremental extraction and checkpoints | P1 | P2-D5 |
-| [SFD-022](SFD-022-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D2 |
+| [SFD-022](SFD-022-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D3/P2-D6 |

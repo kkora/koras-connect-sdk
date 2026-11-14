@@ -3,7 +3,7 @@ id: "SFD-022"
 title: "Contract tests, diagnostics and examples"
 category: "salesforce"
 priority: "P0"
-phase: "P2-D2"
+phase: "P2-D3/P2-D6"
 status: "not-started"
 baseline_status: "Not started"
 verification: "unverified"
@@ -24,9 +24,8 @@ Evidence aliases and official source citations [D1], [S*], [G1] etc. resolve in 
 3. **Description:** Prove the Salesforce connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every other connector's established testing/sample discipline.
 4. **Business value:** Prove the Salesforce connector's protocol-level behavior offline, and give adopters a runnable, credential-free starting point, matching every other connector's established testing/sample discipline.
 5. **Owning package:** `Koras.Connect.Salesforce`.
-**Priority.** P0. **Milestone.** P2-D3 (unit/contract tests) / P2-D6 (sample, package validation).
 6. **Priority:** P0.
-7. **Planned development phase:** P2-D2; see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
+7. **Planned development phase:** P2-D3 (unit/contract tests) / P2-D6 (sample, package validation); see the [implementation roadmap](../KORAS-CONNECT-SDK-PHASE-2-MASTER-FEATURES.md#24-implementation-roadmap).
 8. **Current implementation status:** The `status` metadata at the top of this file is authoritative. No Phase 2 connector code exists in the repository as of the Phase 2 master specification commit `eb063ba`; this feature is `not-started`.
 9. **Existing implementation evidence:** Directly parallels `tests/Koras.Connect.Tests/{Sap,Qualtrics,Adp}/*.cs`'s synthetic-`HttpMessageHandler` test style and `samples/{SuccessFactors.*,Qualtrics.*,ADP.*}`'s offline sample convention; requires a new `tests/Koras.Connect.Tests/ApiSnapshots/Koras.Connect.Salesforce.snapshot.txt` entry (SDK-017).
 10. **Functional requirements:** Offline unit/contract tests for every SFD-001 through SFD-021 P0/P1 feature, using a synthetic `HttpMessageHandler` (and, for SFD-014's gRPC surface, a synthetic gRPC test double), no live network access, running on both Linux and Windows; at least one standalone `samples/Salesforce.*` console project demonstrating authentication → CRUD → SOQL → pagination → describe, entirely offline; a `IConnector.DiagnoseAsync` implementation covering Configuration/Authentication/Connectivity, never issuing a mutating request. **This feature carries a distinct, explicit documentation obligation beyond every other connector's SFD-022/DVT-022/MGR-026 equivalent**: every per-feature specification above that is marked snippet-only or flagged with an explicit "not independently re-verified" caveat must have that caveat carried into the sample/test documentation verbatim, not silently upgraded to "confirmed" - per-edition numeric limits (SFD-022's own research findings) are the most consequential category of this, since they vary by org edition and were the least-corroborated figures in the whole Salesforce research pass.

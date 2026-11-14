@@ -27,4 +27,4 @@ Current status is maintained in each feature file; this index deliberately avoid
 | [DVT-019](DVT-019-solution-and-customization-metadata.md) | Solution and customization metadata | P2 | P2-D7 |
 | [DVT-020](DVT-020-virtual-table-capability-discovery.md) | Virtual table capability discovery | P2 | P2-D7 |
 | [DVT-021](DVT-021-typed-models-and-mappings.md) | Typed models and mappings | P0 | P2-D2 |
-| [DVT-022](DVT-022-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D2 |
+| [DVT-022](DVT-022-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D2/P2-D6 |

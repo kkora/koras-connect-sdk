@@ -31,4 +31,4 @@ Current status is maintained in each feature file; this index deliberately avoid
 | [MGR-023](MGR-023-large-file-transfer-and-resumability.md) | Large file transfer and resumability | P1 | P2-D5 |
 | [MGR-024](MGR-024-permission-and-consent-diagnostics.md) | Permission and consent diagnostics | P0 | P2-D4 |
 | [MGR-025](MGR-025-typed-models-and-extensibility.md) | Typed models and extensibility | P0 | P2-D4 |
-| [MGR-026](MGR-026-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D2 |
+| [MGR-026](MGR-026-contract-tests-diagnostics-and-examples.md) | Contract tests, diagnostics and examples | P0 | P2-D4/P2-D6 |
