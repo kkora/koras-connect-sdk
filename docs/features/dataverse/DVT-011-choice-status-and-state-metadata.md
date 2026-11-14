@@ -4,9 +4,9 @@ title: "Choice, status and state metadata"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "partial"
+baseline_status: "Implemented: GetRowAsync/EnumeratePageAsync/EnumerateAsync accept includeFormattedValues to request the OData.Community.Display.V1.FormattedValue annotation; TryGetFormattedValue reads it back; EnumerateGlobalOptionSetsAsync enumerates GlobalOptionSetDefinitions. Unit-tested, but the GlobalOptionSetDefinitions entity-set name remains an unverified vendor-research gap per the feature spec - status intentionally held at partial, not implemented, until that is re-confirmed."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -49,18 +49,18 @@ public IAsyncEnumerable<JsonDocument> EnumerateGlobalOptionSetsAsync(string? fil
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
+- [x] Functional requirements and public API contract satisfied.
 - [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. `GlobalOptionSetDefinitions` entity-set name needs one more independent confirmation before release (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseChoiceMetadata.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseChoiceMetadataTests.cs`. Covers: `includeFormattedValues: true` sends the documented `Prefer: odata.include-annotations="OData.Community.Display.V1.FormattedValue"` header and the formatted label is read back correctly; the annotation is absent (not an error) when not requested; `TryGetFormattedValue` never throws on a non-object or missing property; `EnumerateGlobalOptionSetsAsync` composes the documented `$filter` by name and also supports an unfiltered enumeration. Full suite: 675 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | **Release blocker, not just a nice-to-have**: the `GlobalOptionSetDefinitions` entity-set name is corroborated by vendor-research search only, not independently re-fetched from a live tenant or a freshly re-fetched official page - per the feature spec's own acceptance criteria, this keeps the feature at `partial` rather than `implemented` until that confirmation happens. The formatted-value annotation mechanism itself has no such gap. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -68,3 +68,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `partial` | Added `includeFormattedValues`/`TryGetFormattedValue`/`EnumerateGlobalOptionSetsAsync` plus `DataverseChoiceMetadataTests.cs`. Checked the unit/contract and security/cancellation/resource-ownership gates for the formatted-value mechanism, which is fully implemented; held at `partial` rather than `implemented` because the `GlobalOptionSetDefinitions` entity-set name re-verification the spec requires before release has not happened this pass. |

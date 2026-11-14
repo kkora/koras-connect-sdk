@@ -47,12 +47,15 @@ public sealed partial class DataverseClient
     /// <see cref="DataverseQuery.Expand"/> - the other options apply only to a collection read (DVT-005) and are
     /// rejected locally rather than silently ignored. When <see cref="DataverseQuery.Expand"/> is set, sends
     /// <c>If-None-Match: null</c> to defeat Dataverse's documented caching of expanded collection-valued
-    /// navigation properties (DVT-013) - a Dataverse-specific quirk, not a generic OData convention.</summary>
-    public async Task<JsonDocument> GetRowAsync(string entitySet, Guid id, DataverseQuery? query = null, CancellationToken cancellationToken = default)
+    /// navigation properties (DVT-013) - a Dataverse-specific quirk, not a generic OData convention.
+    /// <paramref name="includeFormattedValues"/>, when <c>true</c>, requests the <c>OData.Community.Display.V1.FormattedValue</c>
+    /// annotation (DVT-011) so choice/status/state columns carry a readable label sibling property - read it back
+    /// with <see cref="TryGetFormattedValue"/>.</summary>
+    public async Task<JsonDocument> GetRowAsync(string entitySet, Guid id, DataverseQuery? query = null, bool includeFormattedValues = false, CancellationToken cancellationToken = default)
     {
         var address = BuildRowAddress(entitySet, id, query);
         ValidateRequestUri(address);
-        try { return await _transport.ReadJsonAsync(address, WithExpandCacheBusting(query), cancellationToken); }
+        try { return await _transport.ReadJsonAsync(address, BuildReadHeaders(query, includeFormattedValues: includeFormattedValues), cancellationToken); }
         catch (IntegrationRequestException ex) { throw Classify(ex); }
     }
 
@@ -84,14 +87,14 @@ public sealed partial class DataverseClient
     /// opaque <c>$skiptoken</c> it carries is never decoded or reconstructed, only forwarded via
     /// <see cref="EndpointSafety.Continuation"/>.</summary>
     public async IAsyncEnumerable<JsonElement> EnumerateAsync(string entitySet, DataverseQuery? query = null,
-        int? maxPageSize = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        int? maxPageSize = null, bool includeFormattedValues = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ContinuationToken? next = null;
         var visited = new HashSet<string>(StringComparer.Ordinal);
         for (var page = 0; ; page++)
         {
             if (page >= _options.MaxPages) throw new InvalidDataException("Dataverse pagination limit exceeded.");
-            var result = await EnumeratePageAsync(entitySet, query, next, maxPageSize, cancellationToken);
+            var result = await EnumeratePageAsync(entitySet, query, next, maxPageSize, includeFormattedValues, cancellationToken);
             foreach (var item in result.Items) { cancellationToken.ThrowIfCancellationRequested(); yield return item; }
             if (result.Next is null) yield break;
             if (!visited.Add(result.Next.OpaqueValue)) throw new InvalidDataException("Dataverse pagination cycle detected.");
@@ -102,9 +105,10 @@ public sealed partial class DataverseClient
     /// <summary>Reads a single page, either the first page of a query (<paramref name="resumeFrom"/> null) or a
     /// continuation of a prior page. <paramref name="maxPageSize"/> and <see cref="DataverseQuery.Top"/> are
     /// mutually exclusive per Dataverse's own documented precedence - rejected locally rather than silently
-    /// deferring to whichever the server happens to honor.</summary>
+    /// deferring to whichever the server happens to honor. <paramref name="includeFormattedValues"/> requests the
+    /// formatted-value annotation for every choice/status/state column (DVT-011).</summary>
     public async Task<Page<JsonElement>> EnumeratePageAsync(string entitySet, DataverseQuery? query = null,
-        ContinuationToken? resumeFrom = null, int? maxPageSize = null, CancellationToken cancellationToken = default)
+        ContinuationToken? resumeFrom = null, int? maxPageSize = null, bool includeFormattedValues = false, CancellationToken cancellationToken = default)
     {
         ValidateEntitySet(entitySet);
         var effectiveQuery = query ?? new DataverseQuery();
@@ -113,8 +117,7 @@ public sealed partial class DataverseClient
         if (effectiveQuery.Top is <= 0) throw new ArgumentException("$top must be positive.", nameof(query));
         if (maxPageSize is <= 0) throw new ArgumentOutOfRangeException(nameof(maxPageSize), "odata.maxpagesize must be positive.");
 
-        var headers = new Dictionary<string, string>(WithExpandCacheBusting(effectiveQuery));
-        if (maxPageSize is not null) headers["Prefer"] = $"odata.maxpagesize={maxPageSize}";
+        var headers = BuildReadHeaders(effectiveQuery, maxPageSize, includeFormattedValues);
 
         var address = resumeFrom is not null ? EndpointSafety.Continuation(_root, resumeFrom.OpaqueValue) : BuildListAddress(entitySet, effectiveQuery);
         ValidateRequestUri(address);
@@ -184,10 +187,22 @@ public sealed partial class DataverseClient
     private static IReadOnlyDictionary<string, string> WithIfMatch(string? ifMatchETag)
         => ifMatchETag is null ? RequiredHeaders : new Dictionary<string, string>(RequiredHeaders) { ["If-Match"] = ifMatchETag };
 
-    /// <summary>Adds <c>If-None-Match: null</c> when the query expands a navigation property, defeating
-    /// Dataverse's documented caching quirk for expanded collection-valued properties (DVT-013).</summary>
-    private static IReadOnlyDictionary<string, string> WithExpandCacheBusting(DataverseQuery? query)
-        => string.IsNullOrWhiteSpace(query?.Expand) ? RequiredHeaders : new Dictionary<string, string>(RequiredHeaders) { ["If-None-Match"] = "null" };
+    /// <summary>Composes the read-request headers: <c>If-None-Match: null</c> when the query expands a navigation
+    /// property (defeating Dataverse's documented caching quirk for expanded collection-valued properties,
+    /// DVT-013), and a combined <c>Prefer</c> value for <paramref name="maxPageSize"/> (DVT-006) and/or the
+    /// formatted-value annotation (DVT-011) when requested.</summary>
+    private static IReadOnlyDictionary<string, string> BuildReadHeaders(DataverseQuery? query, int? maxPageSize = null, bool includeFormattedValues = false)
+    {
+        var preferences = new List<string>();
+        if (maxPageSize is not null) preferences.Add($"odata.maxpagesize={maxPageSize}");
+        if (includeFormattedValues) preferences.Add($"odata.include-annotations=\"{FormattedValueAnnotation}\"");
+        var hasExpand = !string.IsNullOrWhiteSpace(query?.Expand);
+        if (preferences.Count == 0 && !hasExpand) return RequiredHeaders;
+        var headers = new Dictionary<string, string>(RequiredHeaders);
+        if (preferences.Count > 0) headers["Prefer"] = string.Join(",", preferences);
+        if (hasExpand) headers["If-None-Match"] = "null";
+        return headers;
+    }
 
     /// <summary>Classifies a write failure, distinguishing a <c>412</c> optimistic-concurrency conflict
     /// (<see cref="DataverseConcurrencyException"/>) from every other failure, which still goes through the

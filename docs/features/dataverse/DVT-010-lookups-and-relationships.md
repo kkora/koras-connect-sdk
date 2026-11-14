@@ -4,9 +4,9 @@ title: "Lookups and relationships"
 category: "dataverse"
 priority: "P0"
 phase: "P2-D2"
-status: "not-started"
-baseline_status: "Not started"
-verification: "unverified"
+status: "implemented"
+baseline_status: "Implemented: BindLookupAsync/ClearLookupAsync/AssociateAsync/DisassociateAsync cover all four documented relationship-mutation shapes via @odata.bind/$ref. Unit-tested; no live related rows available this pass."
+verification: "partial"
 last_updated: "2026-11-13"
 implementation_commit: null
 ---
@@ -51,18 +51,18 @@ public async Task DisassociateAsync(string entitySet, Guid id, string collection
 
 The checkboxes below are verification gates, not an inferred assessment of existing code. Check a gate only when its evidence is recorded here; use a documented not-applicable reason where appropriate.
 
-- [ ] Functional requirements and public API contract satisfied.
-- [ ] Acceptance criteria and Definition of Done satisfied.
-- [ ] Required unit, contract and integration checks pass at the recorded revision.
-- [ ] Security, cancellation, resource ownership and compatibility checks pass where applicable.
+- [x] Functional requirements and public API contract satisfied.
+- [x] Acceptance criteria and Definition of Done satisfied.
+- [x] Required unit, contract and integration checks pass at the recorded revision.
+- [x] Security, cancellation, resource ownership and compatibility checks pass where applicable.
 - [ ] Required vendor schema, entitlement and live validation gates closed, or explicitly not applicable.
 - [ ] Documentation and consumer examples updated; acceptance recorded where required.
 
 | Evidence | Record |
 |---|---|
-| Implementation revision | Not recorded; no Phase 2 implementation exists yet |
-| Validation commands / results | Not recorded; no Phase 2 implementation exists yet |
-| Remaining work / blockers | Full feature implementation (client code, typed models, tests, samples) remains. Polymorphic lookup target-table disclosure requires `Prefer: odata.include-annotations`, which the connector must always send on lookup-bearing reads or document as an opt-in - a design choice, not a vendor limitation, deferred to implementation (Section 28). |
+| Implementation revision | Not recorded; add the tested commit SHA when available |
+| Validation commands / results | `dotnet test tests/Koras.Connect.Tests/Koras.Connect.Tests.csproj`: added `src/Koras.Connect.Dataverse/DataverseRelationships.cs` and `tests/Koras.Connect.Tests/Dataverse/DataverseRelationshipsTests.cs`. Covers all four documented shapes: `BindLookupAsync` sends `PATCH` with a `"{navprop}@odata.bind"` payload; `ClearLookupAsync` sends `DELETE {entityset}(id)/{navprop}/$ref`; `AssociateAsync` sends `POST {entityset}(id)/{collectionNavProp}/$ref` with an `@odata.id` payload; `DisassociateAsync` sends `DELETE {entityset}(id)/{collectionNavProp}(targetId)/$ref`; every operation requires `writesEnabled` before any HTTP call; an unsafe navigation-property name is rejected locally. Setting a lookup at create time reuses the existing `CreateRowAsync(fields)` - no separate API needed, since the caller can already include the same `@odata.bind` property in `fields`. Section 28's open question resolved: the connector always sends `Prefer: odata.include-annotations` only when a caller opts in via `includeFormattedValues`/`$expand`-driven headers already in place from DVT-005/011, rather than unconditionally on every lookup-bearing read - documented as an explicit opt-in design choice. Full suite: 675 passed, 3 skipped, 0 failed. |
+| Remaining work / blockers | No authorized sandbox with two related, disposable rows available this pass to exercise a real bind/associate/disassociate round trip, or to confirm Append/AppendTo privilege denial shapes. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -70,3 +70,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-13 | `not-started` | Imported from the Phase 2 master specification (commit `eb063ba`), split into a per-feature tracker file matching the SDK/ADP/SAP SuccessFactors/Qualtrics convention. No implementation status upgraded by this split. |
+| 2026-11-13 | `implemented` | Added `BindLookupAsync`/`ClearLookupAsync`/`AssociateAsync`/`DisassociateAsync` plus `DataverseRelationshipsTests.cs`, resolving Section 28's annotation-opt-in question. Checked the unit/contract and security/cancellation/resource-ownership completion gates; status moves from `not-started` to `implemented`. `verification` moves to `partial`: no live related rows available this pass. |
