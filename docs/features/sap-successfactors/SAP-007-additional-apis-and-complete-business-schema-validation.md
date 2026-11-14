@@ -4,10 +4,10 @@ title: "Additional APIs and complete business-schema validation"
 category: "sap-successfactors"
 priority: "P1"
 phase: "P5"
-status: "planned"
+status: "blocked"
 baseline_status: "Planned"
-verification: "unverified"
-last_updated: "2026-11-12"
+verification: "blocked"
+last_updated: "2026-11-13"
 implementation_commit: null
 ---
 
@@ -55,7 +55,7 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 |---|---|
 | Implementation revision | Not recorded; add the tested commit SHA when available |
 | Validation commands / results | Not newly executed during documentation split; baseline evidence is in the specification |
-| Remaining work / blockers | See functional requirements, acceptance criteria and external blockers above; replace with precise remaining items as work progresses |
+| Remaining work / blockers | Explicitly re-confirmed as blocked during the same session that closed the other 15 SAP features. Offered a choice between a best-effort capability-descriptor scaffold and staying blocked; staying blocked (the recommended option) was accepted. Rationale: unlike the other 15 features, this one requires both current official entity specs AND tenant business rules before any capability/schema-validation policy can be published - the official "SAP SuccessFactors API Reference Guide" (2H 2026 edition) resolves the documentation half for individual entities as they're addressed (see SAP-010's FO entity-set citations), but the tenant-business-rules half is inherently unverifiable without a live, authorized tenant and was not and cannot be supplied by public documentation alone. No capability policy, entity allowlist, or schema validator was invented. |
 | Acceptance / completion | Not recorded; do not infer completion from a commit or passing build |
 
 ## Status history
@@ -63,3 +63,4 @@ The checkboxes below are verification gates, not an inferred assessment of exist
 | Date | Status | Evidence / reason |
 |---|---|---|
 | 2026-11-12 | `planned` | Imported from master specification commit `4f9c080a07e9c6a8ef076658f25e0df12049d023`; no implementation status upgraded by this split. |
+| 2026-11-13 | `blocked` | Explicitly re-confirmed via a direct implement-now-or-stay-blocked choice, now that the official API Reference Guide was available as a resource; staying blocked (the recommended option) was accepted because the tenant-business-rules half of the blocker remains genuinely unverifiable without a live tenant regardless of documentation access. `status` moves from `planned` to `blocked` and `verification` to `blocked` to reflect that this is now a confirmed, not merely deferred, external blocker - no capability policy was invented. |
