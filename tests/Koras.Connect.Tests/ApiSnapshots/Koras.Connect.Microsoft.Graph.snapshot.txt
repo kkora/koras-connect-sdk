@@ -40,21 +40,28 @@ sealed class Koras.Connect.Microsoft.Graph.GraphClient
   method System.Threading.Tasks.Task<System.String> CreateUserAsync(System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task DeleteUserAsync(System.String idOrUserPrincipalName, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Koras.Connect.Abstractions.ConnectionDiagnostic>> DiagnoseAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task DownloadFileAsync(System.String driveId, System.String itemId, System.IO.Stream destination, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateAdministrativeUnitsAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphApplication> EnumerateApplicationsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<T> EnumerateAsync(System.String resourcePath, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphDirectoryRole> EnumerateDirectoryRolesAsync(System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphDriveItem> EnumerateDriveItemsAsync(System.String driveId, System.String itemId = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Collections.Generic.IAsyncEnumerable<System.Text.Json.JsonDocument> EnumerateDrivesAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphUser> EnumerateGroupMembersAsync(System.String groupId, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphGroup> EnumerateGroupsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphServicePrincipal> EnumerateServicePrincipalsAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Collections.Generic.IAsyncEnumerable<Koras.Connect.Microsoft.Graph.GraphUser> EnumerateUsersAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphApplication> GetApplicationAsync(System.String id, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetDriveAsync(System.String driveId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphUser> GetMeAsync(Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetMyDriveAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphOrganization> GetOrganizationAsync(System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphServicePrincipal> GetServicePrincipalAsync(System.String id, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task<Koras.Connect.Microsoft.Graph.GraphUser> GetUserAsync(System.String idOrUserPrincipalName, Koras.Connect.Microsoft.Graph.GraphQuery query = null, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task<System.Text.Json.JsonDocument> GetUserDriveAsync(System.String userId, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task RemoveGroupMemberAsync(System.String groupId, System.String memberId, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
   method System.Threading.Tasks.Task UpdateUserAsync(System.String idOrUserPrincipalName, System.Text.Json.JsonElement fields, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
+  method System.Threading.Tasks.Task UploadSmallFileAsync(System.String driveId, System.String parentPath, System.String fileName, System.IO.Stream content, System.Boolean writesEnabled = False, System.Threading.CancellationToken cancellationToken = null)
 sealed class Koras.Connect.Microsoft.Graph.GraphClientCredentialsOptions
   ctor(System.String TenantId, System.String ClientId, System.String ClientSecret = null, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource = null)
   property System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<System.Security.Cryptography.X509Certificates.X509Certificate2>> CertificateSource {get+init}
@@ -85,6 +92,12 @@ sealed class Koras.Connect.Microsoft.Graph.GraphDirectoryRole
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
   property System.String DisplayName {get+set}
   property System.String Id {get+set}
+sealed class Koras.Connect.Microsoft.Graph.GraphDriveItem
+  ctor()
+  property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
+  property System.String Id {get+set}
+  property System.String Name {get+set}
+  property System.Nullable<System.Int64> Size {get+set}
 sealed class Koras.Connect.Microsoft.Graph.GraphGroup
   ctor()
   property System.Collections.Generic.Dictionary<System.String, System.Text.Json.JsonElement> AdditionalData {get+set}
